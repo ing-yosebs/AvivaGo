@@ -41,3 +41,23 @@ Visit `http://localhost:3000`.
 - **Middleware**: Blocks unauthenticated access to `/driver/*`.
 - **Auth**: Fully functional Email/Password Login and Register pages.
 - **UI**: Clean Tailwind design.
+
+## 6. Development & Deployment
+### Deploying to Vercel (Recommended)
+This project is optimized for [Vercel](https://vercel.com).
+
+1.  **Push to GitHub**: Make sure your project is on GitHub (done).
+2.  **Create Vercel Account**: Go to [vercel.com](https://vercel.com) and sign up/login with GitHub.
+3.  **New Project**: Click "Add New..." -> "Project".
+4.  **Import Repository**: Select your `AvivaGo` repository.
+5.  **Environment Variables**:
+    - Expand the "Environment Variables" section.
+    - Add the keys from your `.env.local`:
+        - `NEXT_PUBLIC_SUPABASE_URL`
+        - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+        - `SUPABASE_URL`
+        - `SUPABASE_ANON_KEY`
+6.  **Deploy**: Click "Deploy".
+
+Vercel will build the app and give you a live URL (e.g., `https://avivago.vercel.app`) that you can share with anyone.
+
