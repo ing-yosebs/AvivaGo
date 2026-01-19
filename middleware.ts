@@ -61,14 +61,9 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/auth/login', request.url))
     }
 
-    // 2. Redirect logged-in users away from Landing Page to Onboarding
-    if (request.nextUrl.pathname === '/' && user) {
-        return NextResponse.redirect(new URL('/driver/onboarding', request.url))
-    }
-
-    // 3. Redirect logged-in users away from Auth Pages
+    // 2. Redirect logged-in users away from Auth Pages to Home (since they are already logged in)
     if (request.nextUrl.pathname.startsWith('/auth') && user) {
-        return NextResponse.redirect(new URL('/driver/onboarding', request.url))
+        return NextResponse.redirect(new URL('/', request.url))
     }
 
     return response

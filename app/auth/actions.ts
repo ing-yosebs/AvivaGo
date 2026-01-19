@@ -53,5 +53,5 @@ export async function signUp(formData: FormData) {
     // Send a separate welcome email (optional, but requested)
     await sendWelcomeEmail(email, fullName)
 
-    return { success: true, message: 'Check your email to continue sign in process' }
+    return { success: true, message: 'Revisa tu correo para continuar el proceso de inicio de sesión' }
 }

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { signUp } from '@/app/auth/actions'
-import { User, Mail, Lock, CheckCircle, Loader2, Eye, EyeOff } from 'lucide-react'
+import { User, Mail, Lock, CheckCircle, Loader2, Eye, EyeOff, Rocket } from 'lucide-react'
 import Link from 'next/link'
 
 export default function RegisterPage() {
@@ -41,7 +41,9 @@ export default function RegisterPage() {
         if (res?.error) {
             setError(res.error)
         } else if (res?.success) {
-            setMessage(res.message || 'Registration successful!')
+            // Redirect to success page
+            window.location.href = '/register/success'
+            return
         }
         setPending(false)
     }
@@ -57,9 +59,18 @@ export default function RegisterPage() {
             <main className="w-full max-w-md p-6 relative z-10">
                 <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl">
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
-                            Crear Cuenta
+                        {/* Logo */}
+                        <div className="flex justify-center mb-4">
+                            <div className="bg-white/10 p-3 rounded-2xl border border-white/10 backdrop-blur-md shadow-lg">
+                                <Rocket className="h-8 w-8 text-white transform -rotate-45" />
+                            </div>
+                        </div>
+                        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent mb-2">
+                            AvivaGo
                         </h1>
+                        <h2 className="text-xl font-semibold text-white/90">
+                            Crear Cuenta
+                        </h2>
                         <p className="text-zinc-400 mt-2 text-sm">
                             Únete a la comunidad exclusiva de AvivaGo
                         </p>
@@ -166,7 +177,12 @@ export default function RegisterPage() {
 
                         {error && (
                             <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center">
-                                {error}
+                                {error.includes('already registered') || error.includes('already exists') ? (
+                                    <>
+                                        Este correo ya está registrado. <br />
+                                        <Link href="/auth/forgot-password" className="text-white underline mt-1 inline-block">¿Olvidaste tu contraseña?</Link>
+                                    </>
+                                ) : error}
                             </div>
                         )}
 
@@ -189,7 +205,7 @@ export default function RegisterPage() {
 
                     <div className="mt-8 text-center text-sm text-zinc-500">
                         ¿Ya tienes cuenta?{' '}
-                        <Link href="/login" className="text-white hover:underline">
+                        <Link href="/auth/login" className="text-white hover:underline">
                             Iniciar Sesión
                         </Link>
                     </div>

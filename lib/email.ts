@@ -1,8 +1,15 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY
+    ? new Resend(process.env.RESEND_API_KEY)
+    : null;
 
 export async function sendWelcomeEmail(email: string, name: string) {
+    if (!resend) {
+        console.warn('RESEND_API_KEY is missing. Welcome email was not sent.');
+        return { success: true, warning: 'Email service not configured' };
+    }
+
     try {
         const { data, error } = await resend.emails.send({
             from: 'AvivaGo <onboarding@resend.dev>', // Update this with your verified domain in prod

@@ -1,55 +1,111 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './Header';
 import DriverCard from './DriverCard';
-import { MOCK_DRIVERS } from '../lib/mockData';
+import { createClient } from '@/lib/supabase/client';
+import { Loader2, Search } from 'lucide-react';
 
 export default function DriverBrowser() {
     const [searchTerm, setSearchTerm] = useState('');
+    const [drivers, setDrivers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const supabase = createClient();
 
-    const filteredDrivers = MOCK_DRIVERS.filter(driver => {
+    useEffect(() => {
+        const fetchDrivers = async () => {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('driver_profiles')
+                .select(`
+                    id,
+                    bio,
+                    profile_photo_url,
+                    city,
+                    average_rating,
+                    users (
+                        full_name,
+                        email
+                    ),
+                    vehicles (
+                        brand,
+                        model,
+                        year
+                    )
+                `)
+                .eq('status', 'active')
+                .eq('is_visible', true);
+
+            if (error) {
+                console.error('Error fetching drivers:', error);
+            } else {
+                setDrivers(data || []);
+            }
+            setLoading(false);
+        };
+
+        fetchDrivers();
+    }, [supabase]);
+
+    const filteredDrivers = drivers.filter(driver => {
         const term = searchTerm.toLowerCase();
+        const fullName = driver.users?.full_name?.toLowerCase() || '';
+        const city = driver.city?.toLowerCase() || '';
+        const vehicle = driver.vehicles?.[0] ? `${driver.vehicles[0].brand} ${driver.vehicles[0].model}`.toLowerCase() : '';
+
         return (
-            driver.name.toLowerCase().includes(term) ||
-            driver.city.toLowerCase().includes(term) ||
-            driver.area.toLowerCase().includes(term) ||
-            driver.tags.some(tag => tag.toLowerCase().includes(term))
+            fullName.includes(term) ||
+            city.includes(term) ||
+            vehicle.includes(term) ||
+            driver.bio?.toLowerCase().includes(term)
         );
     });
 
-
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative overflow-hidden">
+            {/* Background elements */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px]" />
+            </div>
+
             <Header
                 searchTerm={searchTerm}
                 onSearchChange={(e) => setSearchTerm(e.target.value)}
             />
 
-            <main className="flex-1 pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-6xl mx-auto">
+            <main className="flex-1 pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="max-w-7xl mx-auto">
 
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-extrabold text-aviva-text tracking-tight mb-2">
+                    <div className="mb-10">
+                        <h1 className="text-4xl font-bold tracking-tight mb-3">
                             Conductores Profesionales
                         </h1>
-                        <p className="text-lg text-gray-500">
-                            Encuentra conductores verificados y contacta directamente.
+                        <p className="text-zinc-400 text-lg max-w-2xl">
+                            Encuentra conductores verificados en tu zona. Seguridad, confianza y trato directo.
                         </p>
                     </div>
 
-                    {filteredDrivers.length > 0 ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-20 gap-4">
+                            <Loader2 className="h-10 w-10 text-white animate-spin opacity-20" />
+                            <p className="text-zinc-500 animate-pulse">Cargando conductores...</p>
+                        </div>
+                    ) : filteredDrivers.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
                             {filteredDrivers.map(driver => (
                                 <DriverCard key={driver.id} driver={driver} />
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
-                            <p className="text-gray-500 text-lg">No encontramos conductores que coincidan con tu búsqueda.</p>
+                        <div className="text-center py-20 backdrop-blur-xl bg-white/5 border border-dashed border-white/10 rounded-3xl">
+                            <div className="flex justify-center mb-4 text-zinc-600">
+                                <Search className="h-12 w-12" />
+                            </div>
+                            <p className="text-zinc-400 text-lg">No encontramos conductores que coincidan con tu búsqueda.</p>
                             <button
                                 onClick={() => setSearchTerm('')}
-                                className="mt-4 text-aviva-primary font-medium hover:underline"
+                                className="mt-4 text-white font-medium hover:underline"
                             >
                                 Limpiar filtros
                             </button>
