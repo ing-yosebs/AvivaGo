@@ -13,7 +13,8 @@ import {
     MessageSquare,
     Eye,
     ChevronRight,
-    Rocket
+    Rocket,
+    User
 } from 'lucide-react'
 
 export default function DriverDashboard() {
