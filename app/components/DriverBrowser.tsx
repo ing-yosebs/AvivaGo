@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Header from './Header';
 import DriverCard from './DriverCard';
 import { createClient } from '@/lib/supabase/client';
-import { Loader2, Search } from 'lucide-react';
+import { Loader2, Search, Filter } from 'lucide-react';
 
 export default function DriverBrowser() {
     const [searchTerm, setSearchTerm] = useState('');
@@ -69,12 +69,31 @@ export default function DriverBrowser() {
                 <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px]" />
             </div>
 
-            <Header
-                searchTerm={searchTerm}
-                onSearchChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <Header />
 
-            <main className="flex-1 pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative z-10">
+            {/* Search and Filter Section below Header */}
+            <div className="pt-24 pb-6 px-4 sm:px-6 lg:px-8 relative z-20">
+                <div className="max-w-7xl mx-auto">
+                    <div className="backdrop-blur-xl bg-white/5 border border-white/10 p-2 rounded-2xl flex flex-col md:flex-row items-center gap-2 shadow-2xl">
+                        <div className="relative flex-1 w-full">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+                            <input
+                                type="text"
+                                placeholder="¿A quién buscas? (Nombre, ciudad o tipo de vehículo...)"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full bg-transparent border-none pl-12 pr-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-0 text-lg"
+                            />
+                        </div>
+                        <button className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-zinc-200 transition-all w-full md:w-auto justify-center">
+                            <Filter className="h-4 w-4" />
+                            <span>Filtros Avanzados</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <main className="flex-1 pb-12 px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="max-w-7xl mx-auto">
 
                     <div className="mb-10">

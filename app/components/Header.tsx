@@ -6,12 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Search, Filter, LogOut, User, Rocket } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-interface HeaderProps {
-    searchTerm: string;
-    onSearchChange: (e: ChangeEvent<HTMLInputElement>) => void;
-}
-
-export default function Header({ searchTerm, onSearchChange }: HeaderProps) {
+export default function Header() {
     const [user, setUser] = useState<any>(null);
     const supabase = createClient();
     const router = useRouter();
@@ -48,26 +43,6 @@ export default function Header({ searchTerm, onSearchChange }: HeaderProps) {
                         <span className="text-xl font-bold tracking-tight text-white">AvivaGo</span>
                     </Link>
 
-                    {/* Search Bar */}
-                    <div className="flex-1 max-w-2xl px-2 lg:px-0">
-                        <div className="relative group">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500 group-focus-within:text-white transition-colors">
-                                <Search className="h-4 w-4" />
-                            </div>
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={onSearchChange}
-                                className="block w-full pl-10 pr-10 py-2 border border-white/10 rounded-xl leading-5 bg-white/5 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-white/20 focus:border-white/20 sm:text-sm transition-all"
-                                placeholder="Buscar conductor, ruta o ciudad..."
-                            />
-                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                <button className="p-1 hover:bg-white/10 rounded-lg cursor-pointer transition-colors text-zinc-500 hover:text-white">
-                                    <Filter className="h-4 w-4" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
 
                     {/* Nav actions */}
                     <nav className="flex items-center gap-2 md:gap-4 flex-shrink-0">

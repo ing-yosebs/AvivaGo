@@ -33,7 +33,7 @@ const ProfileView = ({ driver }: { driver: Driver }) => {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
-            <Header searchTerm={searchTerm} onSearchChange={(e) => setSearchTerm(e.target.value)} />
+            <Header />
 
             <main className="flex-1 pt-24 pb-12 px-4 sm:px-6 lg:px-8">
                 <div className="max-w-5xl mx-auto">
