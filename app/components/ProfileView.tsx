@@ -37,8 +37,8 @@ interface ProfileViewProps {
 }
 
 const ProfileView = ({ driver }: ProfileViewProps) => {
-    // We are setting isUnlocked to true by default as requested to see the unlocked state
-    const [isUnlocked, setIsUnlocked] = useState(true);
+    // Initial state is locked (false) to show the contact information hidden
+    const [isUnlocked, setIsUnlocked] = useState(false);
 
     return (
         <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative overflow-hidden">
@@ -121,7 +121,10 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                             <div className="p-6 bg-white border border-white/10 rounded-3xl text-center shadow-xl">
                                                 <p className="text-zinc-500 text-sm mb-2">Costo para contactar</p>
                                                 <h4 className="text-4xl font-bold text-black mb-6">${driver.price.toFixed(2)} <span className="text-sm font-medium text-zinc-400">USD</span></h4>
-                                                <button className="w-full flex items-center justify-center gap-3 bg-zinc-950 text-white font-bold py-4 rounded-2xl hover:bg-blue-600 transition-all shadow-lg group">
+                                                <button
+                                                    onClick={() => setIsUnlocked(true)}
+                                                    className="w-full flex items-center justify-center gap-3 bg-zinc-950 text-white font-bold py-4 rounded-2xl hover:bg-blue-600 transition-all shadow-lg group active:scale-[0.98]"
+                                                >
                                                     <Lock className="h-4 w-4 group-hover:rotate-12 transition-transform" />
                                                     Desbloquear ahora
                                                 </button>

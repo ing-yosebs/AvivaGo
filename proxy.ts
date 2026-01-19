@@ -56,8 +56,11 @@ export async function proxy(request: NextRequest) {
 
     const { data: { user } } = await supabase.auth.getUser()
 
-    // 1. Protect /driver routes
-    if (request.nextUrl.pathname.startsWith('/driver') && !user) {
+    // 1. Protect specific driver management routes, but allow public profiles
+    const path = request.nextUrl.pathname;
+    const isPublicProfile = /^\/driver\/[a-zA-Z0-9-]+$/.test(path);
+
+    if (path.startsWith('/driver') && !isPublicProfile && !user) {
         return NextResponse.redirect(new URL('/auth/login', request.url))
     }
 
