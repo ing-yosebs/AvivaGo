@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import ProfileView from '../../components/ProfileView';
 import Header from '../../components/Header';
 
-export default async function DriverPage({ params }: { params: { id: string } }) {
+export default async function DriverPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const supabase = await createClient();
 
     // Fetch driver profile from Supabase
@@ -10,24 +11,26 @@ export default async function DriverPage({ params }: { params: { id: string } })
         .from('driver_profiles')
         .select(`
             *,
-            users (
+            users!driver_profiles_user_id_fkey (
                 full_name,
                 email,
                 avatar_url
             ),
             vehicles (*)
         `)
-        .eq('id', params.id)
+        .eq('id', id)
         .single();
 
     if (error || !driver) {
-        console.error('Error fetching driver:', error);
+        console.error('Error fetching driver:', JSON.stringify(error, null, 2));
         return (
             <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
                 <Header />
                 <div className="bg-white/5 border border-white/10 p-8 rounded-[40px] max-w-sm backdrop-blur-xl mt-10">
                     <h1 className="text-2xl font-bold text-white mb-2">Conductor no encontrado</h1>
-                    <p className="text-zinc-500 mb-6 font-medium">El perfil que buscas no existe o ha sido desactivado.</p>
+                    <p className="text-zinc-500 mb-6 font-medium">
+                        {error ? `Hubo un error al cargar la información: ${error.message}` : 'El perfil que buscas no existe o ha sido desactivado.'}
+                    </p>
                     <a href="/" className="inline-block bg-white text-black px-8 py-3 rounded-2xl font-bold hover:bg-zinc-200 transition-all active:scale-95 shadow-lg shadow-white/5">
                         Volver al Inicio
                     </a>
@@ -41,15 +44,15 @@ export default async function DriverPage({ params }: { params: { id: string } })
         id: driver.id,
         name: driver.users?.full_name || 'Conductor AvivaGo',
         city: driver.city,
-        area: driver.city, // Using city as area for now
+        area: driver.city,
         vehicle: driver.vehicles?.[0] ? `${driver.vehicles[0].brand} ${driver.vehicles[0].model}` : 'Vehículo Confort',
         year: driver.vehicles?.[0]?.year || 2022,
         photo: driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop',
         rating: Number(driver.average_rating) || 5.0,
         reviews: driver.total_reviews || 0,
-        price: 2.00, // Fixed price for now
+        price: 2.00,
         year_joined: new Date(driver.created_at).getFullYear().toString(),
-        tags: ["Verificado", "Seguro"], // Mock tags for now
+        tags: ["Verificado", "Seguro"],
         bio: driver.bio || "Conductor profesional comprometido con tu seguridad y puntualidad.",
         phone: driver.whatsapp_number
     };
