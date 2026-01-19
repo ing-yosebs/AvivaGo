@@ -37,14 +37,16 @@ export default function PanelLayout({
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white flex">
+        <div className="min-h-screen bg-zinc-950 text-white flex flex-col lg:flex-row">
             <DashboardSidebar />
-            <main className="flex-1 ml-64 p-8 min-h-screen relative overflow-auto">
+
+            {/* Main Content Area */}
+            <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 min-h-screen relative overflow-x-hidden pt-20 lg:pt-8">
                 {/* Background Decorations */}
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none -z-10" />
                 <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-purple-600/5 rounded-full blur-[100px] pointer-events-none -z-10" />
 
-                <div className="max-w-6xl mx-auto">
+                <div className="max-w-6xl mx-auto w-full">
                     {children}
                 </div>
             </main>
