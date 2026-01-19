@@ -74,13 +74,19 @@ export default function Header({ searchTerm, onSearchChange }: HeaderProps) {
                         {user ? (
                             <div className="flex items-center gap-3">
                                 <Link
-                                    href="/profile"
+                                    href="/perfil"
                                     className="hidden md:flex items-center gap-2 text-sm font-medium text-zinc-400 hover:text-white transition-colors"
                                 >
                                     <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center border border-white/10">
                                         <User className="h-4 w-4" />
                                     </div>
                                     <span className="max-w-[100px] truncate">{user.email?.split('@')[0]}</span>
+                                </Link>
+                                <Link
+                                    href="/dashboard"
+                                    className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
+                                >
+                                    Mi Panel
                                 </Link>
                                 <button
                                     onClick={handleSignOut}
