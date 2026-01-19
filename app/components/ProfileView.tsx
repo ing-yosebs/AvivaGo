@@ -2,146 +2,203 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Driver } from '../lib/mockData';
 import Header from './Header';
+import {
+    MapPin,
+    Star,
+    CheckCircle,
+    ChevronLeft,
+    MessageCircle,
+    Lock,
+    ShieldCheck,
+    Calendar,
+    Car,
+    Clock,
+    Award
+} from 'lucide-react';
 
-// Icons
-const LocationIcon = () => (
-    <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-);
+interface ProfileViewProps {
+    driver: {
+        id: string | number;
+        name: string;
+        city: string;
+        area: string;
+        vehicle: string;
+        year: number;
+        photo: string;
+        rating: number;
+        reviews: number;
+        price: number;
+        year_joined?: string;
+        tags: string[];
+        bio: string;
+        phone?: string;
+    }
+}
 
-const CheckIcon = () => (
-    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-    </svg>
-);
-
-const ProfileView = ({ driver }: { driver: Driver }) => {
-    const [isUnlocked, setIsUnlocked] = useState(false);
-
-    // In a real app, Header state would be lifted or context
-    const [searchTerm, setSearchTerm] = useState('');
-
-    const handleUnlock = () => {
-        if (confirm("Confirmar pago simulado")) {
-            setIsUnlocked(true);
-        }
-    };
+const ProfileView = ({ driver }: ProfileViewProps) => {
+    // We are setting isUnlocked to true by default as requested to see the unlocked state
+    const [isUnlocked, setIsUnlocked] = useState(true);
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative overflow-hidden">
+            {/* Background elements */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px]" />
+                <div className="absolute top-[20%] right-[-10%] w-[30%] h-[30%] bg-purple-600/10 rounded-full blur-[100px]" />
+            </div>
+
             <Header />
 
-            <main className="flex-1 pt-24 pb-12 px-4 sm:px-6 lg:px-8">
-                <div className="max-w-5xl mx-auto">
-                    {/* Back Nav */}
-                    <div className="mb-6">
-                        <Link href="/" className="text-sm font-semibold text-gray-500 hover:text-aviva-primary flex items-center gap-2 transition-colors">
-                            ← Volver al listado
-                        </Link>
-                    </div>
+            <main className="flex-1 pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="max-w-6xl mx-auto">
+                    {/* Back Navigation */}
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm font-bold text-zinc-400 hover:text-white hover:bg-white/10 transition-all mb-8 group"
+                    >
+                        <ChevronLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                        Volver al buscador
+                    </Link>
 
-                    <div className="bg-white rounded-2xl shadow-sm border border-aviva-border overflow-hidden">
-                        {/* Profile Header Mobile */}
-                        <div className="md:hidden h-52 bg-gray-100 relative">
-                            <img src={driver.photo} className="w-full h-full object-cover" alt={driver.name} />
-                        </div>
-
-                        <div className="flex flex-col md:flex-row">
-                            {/* Sidebar / Left Column */}
-                            <div className="w-full md:w-1/3 bg-white p-8 border-r border-gray-100 flex flex-col">
-                                <img
-                                    src={driver.photo}
-                                    className="hidden md:block w-32 h-32 rounded-full object-cover mb-6 ring-4 ring-gray-100 shadow-sm"
-                                    alt={driver.name}
-                                />
-
-                                <h1 className="text-2xl font-bold text-aviva-text mb-1">{driver.name}</h1>
-                                <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600 mb-6">
-                                    <LocationIcon /> {driver.city}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        {/* Sidebar: Profile Info and CTA */}
+                        <div className="lg:col-span-4 space-y-6">
+                            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[40px] overflow-hidden p-8 sticky top-24">
+                                <div className="relative mb-8 text-center">
+                                    <div className="w-32 h-32 mx-auto rounded-full overflow-hidden ring-4 ring-blue-600/20 group relative">
+                                        <img
+                                            src={driver.photo}
+                                            alt={driver.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <div className="absolute inset-0 bg-blue-600/20 group-hover:opacity-0 transition-opacity" />
+                                    </div>
+                                    <div className="absolute bottom-0 right-1/2 translate-x-12 translate-y-1 bg-green-500 p-1.5 rounded-full ring-4 ring-zinc-950">
+                                        <ShieldCheck className="h-4 w-4 text-white" />
+                                    </div>
                                 </div>
 
-                                {/* Contact Card (Dynamic State) */}
-                                {isUnlocked ? (
-                                    <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center mt-6 animate-fade-in">
-                                        <div className="flex justify-center mb-2">
-                                            <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                                <CheckIcon />
+                                <div className="text-center mb-8">
+                                    <h1 className="text-3xl font-bold mb-2 tracking-tight">{driver.name}</h1>
+                                    <div className="flex items-center justify-center gap-2 text-zinc-400">
+                                        <MapPin className="h-4 w-4 text-blue-500" />
+                                        <span className="text-sm font-medium">{driver.city}</span>
+                                    </div>
+                                    <div className="flex items-center justify-center gap-1.5 mt-4">
+                                        <div className="flex items-center gap-1 text-yellow-500 bg-yellow-500/10 px-3 py-1 rounded-full border border-yellow-500/20">
+                                            <Star className="h-3.5 w-3.5 fill-current" />
+                                            <span className="text-sm font-bold">{driver.rating}</span>
+                                        </div>
+                                        <span className="text-zinc-600">•</span>
+                                        <span className="text-sm text-zinc-500 font-medium">{driver.reviews} reseñas</span>
+                                    </div>
+                                </div>
+
+                                {/* Contact Section */}
+                                <div className="space-y-4">
+                                    {isUnlocked ? (
+                                        <div className="space-y-4 animate-in fade-in zoom-in duration-500">
+                                            <div className="p-6 bg-green-500/10 border border-green-500/20 rounded-3xl text-center">
+                                                <p className="text-green-500 font-bold text-[10px] uppercase tracking-widest mb-2">Contacto Desbloqueado</p>
+                                                <p className="text-2xl font-mono font-bold text-white mb-6 tracking-wider">
+                                                    {driver.phone}
+                                                </p>
+                                                <a
+                                                    href={`https://wa.me/${driver.phone?.replace(/\D/g, '')}?text=Hola ${driver.name}, vi tu perfil en AvivaGo y me gustaría consultar por un servicio.`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="w-full flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-green-500/20 active:scale-[0.98]"
+                                                >
+                                                    <MessageCircle className="h-5 w-5 fill-current" />
+                                                    Escribir al WhatsApp
+                                                </a>
+                                            </div>
+                                            <p className="text-[10px] text-center text-zinc-500 uppercase font-bold">Sin cargos adicionales por contacto directo</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            <div className="p-6 bg-white border border-white/10 rounded-3xl text-center shadow-xl">
+                                                <p className="text-zinc-500 text-sm mb-2">Costo para contactar</p>
+                                                <h4 className="text-4xl font-bold text-black mb-6">${driver.price.toFixed(2)} <span className="text-sm font-medium text-zinc-400">USD</span></h4>
+                                                <button className="w-full flex items-center justify-center gap-3 bg-zinc-950 text-white font-bold py-4 rounded-2xl hover:bg-blue-600 transition-all shadow-lg group">
+                                                    <Lock className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                                                    Desbloquear ahora
+                                                </button>
+                                            </div>
+                                            <div className="flex items-center justify-center gap-2 text-zinc-500">
+                                                <ShieldCheck className="h-4 w-4 text-green-500/50" />
+                                                <span className="text-[10px] font-bold uppercase tracking-widest">Protección al cliente</span>
                                             </div>
                                         </div>
-                                        <p className="text-green-800 font-bold text-sm uppercase tracking-wide mb-2">Contacto Directo</p>
-                                        <p className="text-xl lg:text-2xl font-mono font-bold text-aviva-text tracking-tight mb-4 select-all">
-                                            {driver.phone}
-                                        </p>
-                                        <a
-                                            href={`https://wa.me/?text=Hola ${driver.name}, vi tu perfil en AvivaGo.`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="w-full block bg-[#25D366] text-white font-bold py-3 rounded-lg hover:bg-green-600 transition shadow-sm text-sm"
-                                        >
-                                            Escribir al WhatsApp
-                                        </a>
-                                    </div>
-                                ) : (
-                                    <div className="bg-aviva-tag border border-aviva-border rounded-xl p-6 mt-6">
-                                        <div className="text-center mb-6">
-                                            <p className="text-gray-500 text-sm mb-1">Costo de desbloqueo</p>
-                                            <div className="flex justify-center items-baseline gap-1">
-                                                <span className="text-3xl font-bold text-aviva-text">${driver.price.toFixed(2)}</span>
-                                                <span className="text-sm font-normal text-gray-400">USD</span>
-                                            </div>
-                                            <p className="text-xs text-gray-400 mt-2">Pago único • Acceso ilimitado</p>
-                                        </div>
-                                        <button
-                                            onClick={handleUnlock}
-                                            className="w-full bg-aviva-primary text-white font-bold py-3.5 rounded-lg hover:bg-aviva-primaryHover transition-colors shadow-sm text-sm"
-                                        >
-                                            Desbloquear Contacto
-                                        </button>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
+                        </div>
 
-                            {/* Main Content / Right Column */}
-                            <div className="flex-1 p-8 md:bg-gray-50/30">
-                                <div className="max-w-none text-gray-600">
-                                    <div className="border-b border-gray-200 pb-2 mb-4">
-                                        <h3 className="text-aviva-text font-bold text-base uppercase tracking-wide">Perfil Profesional</h3>
+                        {/* Main Content: Bio, Vehicle, Reviews */}
+                        <div className="lg:col-span-8 space-y-8">
+                            {/* Bio Card */}
+                            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[40px] p-8 lg:p-12">
+                                <section className="mb-10">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-blue-600/10 p-2 rounded-xl">
+                                            <Award className="h-5 w-5 text-blue-500" />
+                                        </div>
+                                        <h3 className="text-xl font-bold tracking-tight">Experiencia Profesional</h3>
                                     </div>
-                                    <p className="leading-relaxed mb-8 text-gray-600">{driver.bio}</p>
+                                    <p className="text-zinc-400 text-lg leading-relaxed font-medium line-height-relaxed">
+                                        {driver.bio}
+                                    </p>
+                                </section>
 
-                                    <div className="grid grid-cols-2 gap-6 mb-8">
-                                        <div>
-                                            <span className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Vehículo</span>
-                                            <span className="text-aviva-text font-semibold">{driver.vehicle}</span>
+                                <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                                    <div className="space-y-4 p-6 bg-white/5 border border-white/10 rounded-3xl">
+                                        <div className="flex items-center gap-3 text-sm font-bold text-zinc-500 uppercase tracking-widest">
+                                            <Car className="h-4 w-4" />
+                                            Vehículo Registrado
                                         </div>
-                                        <div>
-                                            <span className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Año</span>
-                                            <span className="text-aviva-text font-semibold">{driver.year}</span>
-                                        </div>
-                                        <div>
-                                            <span className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Miembro Desde</span>
-                                            <span className="text-aviva-text font-semibold">{driver.year_joined || "2023"}</span>
-                                        </div>
-                                        <div>
-                                            <span className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Viajes</span>
-                                            <span className="text-aviva-text font-semibold">{driver.reviews}+</span>
-                                        </div>
+                                        <div className="text-xl font-bold">{driver.vehicle}</div>
+                                        <div className="text-sm text-zinc-500">Modelo {driver.year} • Capacidad para 4 pasajeros</div>
                                     </div>
+                                    <div className="space-y-4 p-6 bg-white/5 border border-white/10 rounded-3xl">
+                                        <div className="flex items-center gap-3 text-sm font-bold text-zinc-500 uppercase tracking-widest">
+                                            <Calendar className="h-4 w-4" />
+                                            Miembro AvivaGo
+                                        </div>
+                                        <div className="text-xl font-bold">Desde {driver.year_joined}</div>
+                                        <div className="text-sm text-zinc-500">Perfil verificado por nuestro equipo</div>
+                                    </div>
+                                </section>
 
-                                    <div className="border-b border-gray-200 pb-2 mb-4">
-                                        <h3 className="text-aviva-text font-bold text-base uppercase tracking-wide">Servicios & Etiquetas</h3>
+                                <section>
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-blue-600/10 p-2 rounded-xl">
+                                            <Clock className="h-5 w-5 text-blue-500" />
+                                        </div>
+                                        <h3 className="text-xl font-bold tracking-tight">Mis Servicios</h3>
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-3">
                                         {driver.tags.map(tag => (
-                                            <span key={tag} className="bg-white px-3 py-1.5 rounded-md border border-gray-200 text-sm font-medium text-gray-600 shadow-sm">
+                                            <span
+                                                key={tag}
+                                                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white hover:bg-white/10 transition-colors"
+                                            >
                                                 {tag}
                                             </span>
                                         ))}
                                     </div>
+                                </section>
+                            </div>
+
+                            {/* Verification Badge */}
+                            <div className="backdrop-blur-xl bg-blue-600/5 border border-blue-600/20 rounded-[40px] p-8 flex items-center gap-6">
+                                <div className="bg-blue-600 p-4 rounded-3xl">
+                                    <ShieldCheck className="h-8 w-8 text-white" />
+                                </div>
+                                <div>
+                                    <h4 className="text-xl font-bold mb-1">Verificación de Identidad</h4>
+                                    <p className="text-zinc-400 text-sm">Este conductor ha pasado por nuestro proceso de validación de documentos y antecedentes.</p>
                                 </div>
                             </div>
                         </div>
