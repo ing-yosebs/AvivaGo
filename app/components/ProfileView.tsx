@@ -14,7 +14,8 @@ import {
     Calendar,
     Car,
     Clock,
-    Award
+    Award,
+    Globe
 } from 'lucide-react';
 
 interface ProfileViewProps {
@@ -33,6 +34,10 @@ interface ProfileViewProps {
         tags: string[];
         bio: string;
         phone?: string;
+        zones?: string[];
+        languages?: string[];
+        indigenous?: string[];
+        schedule?: string;
     }
 }
 
@@ -174,12 +179,78 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                     </div>
                                 </section>
 
-                                <section>
+                                <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                                    <div className="space-y-4 p-6 bg-white/5 border border-white/10 rounded-3xl">
+                                        <div className="flex items-center gap-3 text-sm font-bold text-zinc-500 uppercase tracking-widest">
+                                            <MapPin className="h-4 w-4" />
+                                            Zonas de Cobertura
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(driver.zones || []).length > 0 ? (
+                                                (driver.zones || []).map(zone => (
+                                                    <span key={zone} className="px-3 py-1 bg-blue-600/20 text-blue-400 rounded-lg text-sm font-bold">{zone}</span>
+                                                ))
+                                            ) : <span className="text-zinc-500 italic">No especificado</span>}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4 p-6 bg-white/5 border border-white/10 rounded-3xl">
+                                        <div className="flex items-center gap-3 text-sm font-bold text-zinc-500 uppercase tracking-widest">
+                                            <Globe className="h-4 w-4" />
+                                            Idiomas
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(driver.languages || []).length > 0 ? (
+                                                (driver.languages || []).map(lang => (
+                                                    <span key={lang} className="px-3 py-1 bg-purple-600/20 text-purple-400 rounded-lg text-sm font-bold">{lang}</span>
+                                                ))
+                                            ) : <span className="text-zinc-500 italic">Español</span>}
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* Indigenous Languages */}
+                                <section className="mb-10">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-blue-600/10 p-2 rounded-xl">
+                                            <Globe className="h-5 w-5 text-emerald-400" />
+                                        </div>
+                                        <h3 className="text-xl font-bold tracking-tight">Idiomas Indígenas</h3>
+                                    </div>
+                                    <div className="p-6 bg-white/5 border border-white/10 rounded-3xl">
+                                        {(driver.indigenous || []).length > 0 ? (
+                                            <div className="flex flex-wrap gap-2">
+                                                {driver.indigenous?.map((lang: string) => (
+                                                    <span key={lang} className="px-3 py-1 bg-green-600/20 text-green-400 rounded-lg text-sm font-bold">
+                                                        {lang}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="text-zinc-500 italic">No especificado</span>
+                                        )}
+                                    </div>
+                                </section>
+
+                                <section className="mb-10">
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="bg-blue-600/10 p-2 rounded-xl">
                                             <Clock className="h-5 w-5 text-blue-500" />
                                         </div>
-                                        <h3 className="text-xl font-bold tracking-tight">Mis Servicios</h3>
+                                        <h3 className="text-xl font-bold tracking-tight">Horario y Disponibilidad</h3>
+                                    </div>
+                                    <div className="p-6 bg-white/5 border border-white/10 rounded-3xl">
+                                        <div className="text-lg text-zinc-300 font-medium font-mono">
+                                            {driver.schedule || "Consultar disponibilidad directa"}
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section>
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-blue-600/10 p-2 rounded-xl">
+                                            <Award className="h-5 w-5 text-blue-500" />
+                                        </div>
+                                        <h3 className="text-xl font-bold tracking-tight">Especialidades</h3>
                                     </div>
                                     <div className="flex flex-wrap gap-3">
                                         {driver.tags.map(tag => (

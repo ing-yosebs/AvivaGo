@@ -20,7 +20,7 @@ export default function DriverCard({ driver }: DriverCardProps) {
                 {/* Image Section */}
                 <div className="relative md:w-[35%] h-56 md:h-auto overflow-hidden">
                     <img
-                        src={driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop'}
+                        src={driver.users?.avatar_url || driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop'}
                         alt={fullName}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />

@@ -25,7 +25,8 @@ export default function DriverBrowser() {
                     average_rating,
                     users (
                         full_name,
-                        email
+                        email,
+                        avatar_url
                     ),
                     vehicles (
                         brand,
