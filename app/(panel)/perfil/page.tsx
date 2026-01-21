@@ -306,7 +306,7 @@ function PersonalDataSection({ profile, onSave, saving }: any) {
 
     // Google Maps logic
     const { isLoaded } = useJsApiLoader({
-        googleMapsApiKey: 'AIzaSyCRRN6TYVW6XYsqXeq3Z-Kqfr_uqOWxUBs',
+        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
         libraries: LIBRARIES
     })
 
