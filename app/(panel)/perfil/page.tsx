@@ -30,7 +30,7 @@ import {
 } from 'lucide-react'
 import { GoogleMap, useJsApiLoader, Autocomplete, MarkerF } from '@react-google-maps/api'
 
-const LIBRARIES: ("places" | "drawing" | "geometry" | "localContext" | "visualization")[] = ['places']
+const LIBRARIES: ("places" | "drawing" | "geometry" | "visualization")[] = ['places']
 
 export default function ProfilePage() {
     return (
