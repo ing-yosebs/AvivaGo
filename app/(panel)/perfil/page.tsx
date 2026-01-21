@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { uploadFile } from '@/lib/supabase/storage'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
     User,
     Car,
@@ -24,11 +25,25 @@ import {
     AlertCircle,
     Info,
     Loader2,
-    Check
+    Check,
+    Search
 } from 'lucide-react'
+import { GoogleMap, useJsApiLoader, Autocomplete, MarkerF } from '@react-google-maps/api'
+
+const LIBRARIES: ("places" | "drawing" | "geometry" | "localContext" | "visualization")[] = ['places']
 
 export default function ProfilePage() {
-    const [activeTab, setActiveTab] = useState('personal')
+    return (
+        <Suspense fallback={<div>Cargando...</div>}>
+            <ProfileContent />
+        </Suspense>
+    )
+}
+
+function ProfileContent() {
+    const searchParams = useSearchParams()
+    const urlTab = searchParams.get('tab')
+    const [activeTab, setActiveTab] = useState(urlTab || 'personal')
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState<any>(null)
     const [profile, setProfile] = useState<any>(null)
@@ -98,6 +113,12 @@ export default function ProfilePage() {
             })
         }
     }
+
+    useEffect(() => {
+        if (urlTab) {
+            setActiveTab(urlTab)
+        }
+    }, [urlTab])
 
     useEffect(() => {
         const init = async () => {
@@ -183,23 +204,6 @@ export default function ProfilePage() {
                 </div>
             )}
 
-            {/* Tabs Navigation */}
-            <div className="flex gap-2 p-1 bg-white/5 rounded-2xl w-fit overflow-x-auto max-w-full no-scrollbar">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 whitespace-nowrap ${activeTab === tab.id
-                            ? 'bg-blue-600 text-white shadow-lg'
-                            : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                            }`}
-                    >
-                        <tab.icon className="h-4 w-4" />
-                        <span className="text-sm font-medium">{tab.label}</span>
-                    </button>
-                ))}
-            </div>
-
             {/* Content Area */}
             <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8">
 
@@ -246,6 +250,16 @@ function PersonalDataSection({ profile, onSave, saving }: any) {
         emergency_contact_relationship: profile?.emergency_contact_relationship || '',
         emergency_contact_phone: profile?.emergency_contact_phone || '',
         address_text: profile?.address_text || '',
+        address_street: profile?.address_street || '',
+        address_number_ext: profile?.address_number_ext || '',
+        address_number_int: profile?.address_number_int || '',
+        address_suburb: profile?.address_suburb || '',
+        address_state: profile?.address_state || '',
+        address_country: profile?.address_country || '',
+        address_postal_code: profile?.address_postal_code || '',
+        address_references: profile?.address_references || '',
+        address_map_lat: profile?.address_map_lat || 19.4326,
+        address_map_lng: profile?.address_map_lng || -99.1332,
         avatar_url: profile?.avatar_url || '',
         id_document_url: profile?.id_document_url || '',
         address_proof_url: profile?.address_proof_url || '',
@@ -265,6 +279,16 @@ function PersonalDataSection({ profile, onSave, saving }: any) {
                 emergency_contact_relationship: profile.emergency_contact_relationship || '',
                 emergency_contact_phone: profile.emergency_contact_phone || '',
                 address_text: profile.address_text || '',
+                address_street: profile.address_street || '',
+                address_number_ext: profile.address_number_ext || '',
+                address_number_int: profile.address_number_int || '',
+                address_suburb: profile.address_suburb || '',
+                address_state: profile.address_state || '',
+                address_country: profile.address_country || '',
+                address_postal_code: profile.address_postal_code || '',
+                address_references: profile.address_references || '',
+                address_map_lat: profile.address_map_lat || 19.4326,
+                address_map_lng: profile.address_map_lng || -99.1332,
                 avatar_url: profile.avatar_url || '',
                 id_document_url: profile.id_document_url || '',
                 address_proof_url: profile.address_proof_url || '',
@@ -279,6 +303,76 @@ function PersonalDataSection({ profile, onSave, saving }: any) {
         }
         setFormData({ ...formData, [e.target.name]: value })
     }
+
+    // Google Maps logic
+    const { isLoaded } = useJsApiLoader({
+        googleMapsApiKey: 'AIzaSyCRRN6TYVW6XYsqXeq3Z-Kqfr_uqOWxUBs',
+        libraries: LIBRARIES
+    })
+
+    const [autocomplete, setAutocomplete] = useState<any>(null)
+    const mapRef = useRef<any>(null)
+
+    const onPlaceChanged = () => {
+        if (autocomplete !== null) {
+            const place = autocomplete.getPlace()
+            if (!place.geometry) return
+
+            const components = place.address_components
+            let street = '', num = '', suburb = '', city = '', state = '', country = '', cp = ''
+
+            components.forEach((c: any) => {
+                const types = c.types
+                if (types.includes('route')) street = c.long_name
+                if (types.includes('street_number')) num = c.long_name
+                if (types.includes('sublocality') || types.includes('neighborhood')) suburb = c.long_name
+                if (types.includes('locality') || types.includes('administrative_area_level_2')) city = c.long_name
+                if (types.includes('administrative_area_level_1')) state = c.long_name
+                if (types.includes('country')) country = c.long_name
+                if (types.includes('postal_code')) cp = c.long_name
+            })
+
+            setFormData(prev => ({
+                ...prev,
+                address_text: place.formatted_address || '',
+                address_street: street,
+                address_number_ext: num,
+                address_suburb: suburb || city,
+                address_state: state,
+                address_country: country,
+                address_postal_code: cp,
+                address_map_lat: place.geometry.location.lat(),
+                address_map_lng: place.geometry.location.lng(),
+            }))
+        }
+    }
+
+    // Sync manual changes to map
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (isLoaded && window.google) {
+                const address = `${formData.address_street} ${formData.address_number_ext}, ${formData.address_suburb}, ${formData.address_state}, ${formData.address_postal_code}, ${formData.address_country}`
+                const geocoder = new google.maps.Geocoder()
+                geocoder.geocode({ address }, (results, status) => {
+                    if (status === 'OK' && results && results[0]) {
+                        const { lat, lng } = results[0].geometry.location
+                        const newLat = lat()
+                        const newLng = lng()
+
+                        // Only update if difference is significant to avoid infinite loops or jitter
+                        if (Math.abs(newLat - formData.address_map_lat) > 0.0001 || Math.abs(newLng - formData.address_map_lng) > 0.0001) {
+                            setFormData(prev => ({
+                                ...prev,
+                                address_map_lat: newLat,
+                                address_map_lng: newLng
+                            }))
+                        }
+                    }
+                })
+            }
+        }, 2000)
+        return () => clearTimeout(timer)
+    }, [formData.address_street, formData.address_number_ext, formData.address_suburb, formData.address_state, formData.address_postal_code, isLoaded])
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: string, bucket: string) => {
         const file = e.target.files?.[0]
@@ -448,56 +542,113 @@ function PersonalDataSection({ profile, onSave, saving }: any) {
                     </div>
                 </div>
 
-                {/* Address Map */}
-                <div className="space-y-4">
+                {/* Address Section */}
+                <div className="md:col-span-2 space-y-6 pt-4 border-t border-white/10">
                     <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
-                        <MapPin className="h-3 w-3" /> Ubicación en el Mapa
+                        <MapPin className="h-3 w-3" /> Dirección de Residencia Actual
                     </h4>
-                    <div className="relative group">
-                        <input
-                            name="address_text"
-                            value={formData.address_text}
-                            onChange={handleChange}
-                            placeholder="Buscar dirección en Google Maps..."
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-10 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all font-medium"
-                        />
-                        <MapPin className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500" />
-                    </div>
 
-                    <div className="relative h-64 bg-zinc-900 rounded-3xl border border-white/10 overflow-hidden group">
-                        {/* Interactive UI Overlay for Map */}
-                        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center grayscale contrast-75 brightness-50 opacity-40" />
+                    {isLoaded ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-zinc-500">Buscar Dirección (Autocompletado)</label>
+                                    <Autocomplete
+                                        onLoad={setAutocomplete}
+                                        onPlaceChanged={onPlaceChanged}
+                                    >
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                placeholder="Empieza a escribir tu dirección..."
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-10 focus:outline-none focus:border-blue-500"
+                                            />
+                                            <Search className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500" />
+                                        </div>
+                                    </Autocomplete>
+                                </div>
 
-                        <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4">
-                            <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-2xl shadow-blue-600/40 animate-bounce">
-                                <MapPin className="h-6 w-6 text-white" />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2 col-span-2">
+                                        <label className="text-[10px] font-bold uppercase text-zinc-500">Calle *</label>
+                                        <input name="address_street" value={formData.address_street} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase text-zinc-500">No. Exterior *</label>
+                                        <input name="address_number_ext" value={formData.address_number_ext} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase text-zinc-500">No. Interior</label>
+                                        <input name="address_number_int" value={formData.address_number_int} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase text-zinc-500">Alcaldía / Municipio *</label>
+                                        <input name="address_suburb" value={formData.address_suburb} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase text-zinc-500">Código Postal *</label>
+                                        <input name="address_postal_code" value={formData.address_postal_code} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase text-zinc-500">Estado *</label>
+                                        <input name="address_state" value={formData.address_state} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase text-zinc-500">País *</label>
+                                        <input name="address_country" value={formData.address_country} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-zinc-500">Referencias</label>
+                                    <textarea name="address_references" value={formData.address_references} onChange={handleChange} placeholder="Ej. Casa portón negro, frente a parque..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 min-h-[80px]" />
+                                </div>
                             </div>
-                            <div className="text-center px-6">
-                                <p className="text-sm font-bold text-white uppercase tracking-widest mb-1">Confirmar Ubicación</p>
-                                <p className="text-[10px] text-zinc-400 max-w-[200px]">Haz clic para fijar tu posición exacta y generar coordenadas GPS automáticas.</p>
+
+                            <div className="space-y-4">
+                                <div className="h-[400px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+                                    <GoogleMap
+                                        mapContainerStyle={{ width: '100%', height: '100%' }}
+                                        center={{ lat: Number(formData.address_map_lat), lng: Number(formData.address_map_lng) }}
+                                        zoom={15}
+                                        onLoad={map => mapRef.current = map}
+                                        options={{
+                                            styles: [
+                                                { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+                                                { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+                                                { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+                                            ],
+                                            disableDefaultUI: true,
+                                            zoomControl: true,
+                                        }}
+                                    >
+                                        <MarkerF
+                                            position={{ lat: Number(formData.address_map_lat), lng: Number(formData.address_map_lng) }}
+                                            draggable={true}
+                                            onDragEnd={(e: any) => {
+                                                const lat = e.latLng.lat();
+                                                const lng = e.latLng.lng();
+                                                setFormData(prev => ({ ...prev, address_map_lat: lat, address_map_lng: lng }));
+                                            }}
+                                        />
+                                    </GoogleMap>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                                        <p className="text-[8px] font-bold text-zinc-500 uppercase mb-1">Latitud</p>
+                                        <p className="text-xs font-mono text-blue-400">{formData.address_map_lat}</p>
+                                    </div>
+                                    <div className="p-3 bg-white/5 rounded-xl border border-white/5">
+                                        <p className="text-[8px] font-bold text-zinc-500 uppercase mb-1">Longitud</p>
+                                        <p className="text-xs font-mono text-blue-400">{formData.address_map_lng}</p>
+                                    </div>
+                                </div>
                             </div>
-                            <button className="px-6 py-2 bg-white/10 backdrop-blur-md border border-white/10 rounded-xl text-xs font-bold hover:bg-white/20 transition-all active:scale-95">
-                                Activar Localización
-                            </button>
                         </div>
-
-                        {/* Map controls visualization */}
-                        <div className="absolute top-4 right-4 flex flex-col gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-zinc-900/80 border border-white/10 flex items-center justify-center text-zinc-400">+</div>
-                            <div className="w-8 h-8 rounded-lg bg-zinc-900/80 border border-white/10 flex items-center justify-center text-zinc-400">-</div>
+                    ) : (
+                        <div className="h-[400px] bg-white/5 rounded-3xl flex items-center justify-center border border-dashed border-white/20">
+                            <Loader2 className="h-8 w-8 animate-spin text-zinc-700" />
                         </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                            <p className="text-[8px] font-bold text-zinc-500 uppercase mb-1">Latitud</p>
-                            <p className="text-xs font-mono text-blue-400">{profile?.address_map_lat || '19.432608'}</p>
-                        </div>
-                        <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                            <p className="text-[8px] font-bold text-zinc-500 uppercase mb-1">Longitud</p>
-                            <p className="text-xs font-mono text-blue-400">{profile?.address_map_lng || '-99.133209'}</p>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
 
@@ -783,7 +934,7 @@ function ServicesSection({ services, onSave, saving }: any) {
         languages: services?.languages || ['Español'],
         indigenous_languages: services?.indigenous_languages || [],
         work_schedule: services?.work_schedule || {},
-        professional_questionnaire: services?.professional_questionnaire || {}
+        professional_questionnaire: services?.professional_questionnaire || { bio: '' }
     })
 
     useEffect(() => {
@@ -793,7 +944,7 @@ function ServicesSection({ services, onSave, saving }: any) {
                 languages: services.languages || ['Español'],
                 indigenous_languages: services.indigenous_languages || [],
                 work_schedule: services.work_schedule || {},
-                professional_questionnaire: services.professional_questionnaire || {}
+                professional_questionnaire: services.professional_questionnaire || { bio: '' }
             })
         }
     }, [services])
@@ -822,9 +973,25 @@ function ServicesSection({ services, onSave, saving }: any) {
     return (
         <div className="space-y-12 max-w-5xl">
             {/* Header */}
-            <div>
-                <h3 className="text-xl font-bold mb-2">Preferencias de Servicio</h3>
-                <p className="text-zinc-400 text-sm">Define cómo y dónde prefieres trabajar para conectar con los clientes adecuados.</p>
+            <div className="space-y-6 bg-white/5 p-8 rounded-[2.5rem] border border-white/10">
+                <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                    <FileText className="h-4 w-4" /> Reseña Profesional
+                </h4>
+                <div className="space-y-2">
+                    <p className="text-sm text-zinc-400">Describe tu servicio con tus propias palabras para que los clientes te conozcan mejor.</p>
+                    <textarea
+                        value={formData.professional_questionnaire?.bio || ''}
+                        onChange={(e) => setFormData({
+                            ...formData,
+                            professional_questionnaire: {
+                                ...formData.professional_questionnaire,
+                                bio: e.target.value
+                            }
+                        })}
+                        placeholder="Ej. Soy un conductor con 10 años de experiencia, especializado en traslados ejecutivos y turismo local..."
+                        className="w-full bg-zinc-900 border border-white/10 rounded-2xl p-6 min-h-[150px] text-white focus:border-blue-500 transition-colors resize-none"
+                    />
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -894,24 +1061,28 @@ function ServicesSection({ services, onSave, saving }: any) {
                     <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                         <Clock className="h-4 w-4" /> Horario de Disponibilidad
                     </h4>
-                    <div className="space-y-3 bg-white/5 p-6 rounded-3xl border border-white/5">
+                    <div className="space-y-3 bg-white/5 p-4 md:p-6 rounded-3xl border border-white/5 overflow-hidden">
                         {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(day => (
-                            <div key={day} className="flex items-center justify-between text-sm py-1 border-b border-white/5 last:border-0">
-                                <span className="text-zinc-400">{day}</span>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="time"
-                                        className="bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-xs"
-                                        value={formData.work_schedule[day]?.start || '00:00'}
-                                        onChange={(e) => handleTimeChange(day, 'start', e.target.value)}
-                                    />
+                            <div key={day} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0 py-3 border-b border-white/5 last:border-0">
+                                <span className="text-zinc-400 font-medium">{day}</span>
+                                <div className="flex items-center gap-2 justify-end">
+                                    <div className="relative group flex-1 sm:flex-none">
+                                        <input
+                                            type="time"
+                                            className="w-full sm:w-auto bg-zinc-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                            value={formData.work_schedule[day]?.start || '00:00'}
+                                            onChange={(e) => handleTimeChange(day, 'start', e.target.value)}
+                                        />
+                                    </div>
                                     <span className="text-zinc-600">-</span>
-                                    <input
-                                        type="time"
-                                        className="bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-xs"
-                                        value={formData.work_schedule[day]?.end || '00:00'}
-                                        onChange={(e) => handleTimeChange(day, 'end', e.target.value)}
-                                    />
+                                    <div className="relative group flex-1 sm:flex-none">
+                                        <input
+                                            type="time"
+                                            className="w-full sm:w-auto bg-zinc-900 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                            value={formData.work_schedule[day]?.end || '00:00'}
+                                            onChange={(e) => handleTimeChange(day, 'end', e.target.value)}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         ))}

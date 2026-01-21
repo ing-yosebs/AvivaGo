@@ -122,8 +122,8 @@ export default function QuestionnairePage() {
                             <ChevronLeft className="h-4 w-4" />
                             Volver a configuración
                         </button>
-                        <h1 className="text-4xl font-bold tracking-tight">Cuestionario de Perfilamiento</h1>
-                        <p className="text-zinc-400 mt-2">Versión 1.1 - Directorio de Servicios Personalizados</p>
+                        <h1 className="text-4xl font-bold tracking-tight">Cuestionario Profesional</h1>
+                        <p className="text-zinc-400 mt-2">Versión 1.2 - Directorio de Servicios Personalizados</p>
                     </div>
                 </div>
 
@@ -170,9 +170,9 @@ export default function QuestionnairePage() {
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {[
-                                    { id: '1a', label: 'Perfil Privacidad', desc: 'Ambiente de absoluta reserva y silencio.' },
-                                    { id: '1b', label: 'Perfil Empático', desc: 'Saludo cordial y adaptación al ritmo del cliente.' },
-                                    { id: '1c', label: 'Perfil Anfitrión', desc: 'Disfruto conversar y dar recomendaciones locales.' }
+                                    { id: '1a', label: 'Privacidad', desc: 'Ambiente de absoluta reserva y silencio.' },
+                                    { id: '1b', label: 'Empático', desc: 'Saludo cordial y adaptación al ritmo del cliente.' },
+                                    { id: '1c', label: 'Anfitrión', desc: 'Disfruto conversar y dar recomendaciones locales.' }
                                 ].map(opt => (
                                     <button
                                         key={opt.id}
@@ -180,7 +180,7 @@ export default function QuestionnairePage() {
                                         className={`p-6 rounded-3xl border text-left transition-all duration-300 ${formData.social === opt.id ? 'bg-blue-600 border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.2)]' : 'bg-white/5 border-white/5 hover:border-white/10'
                                             }`}
                                     >
-                                        <div className="font-bold mb-2">{opt.label}</div>
+                                        <div className="font-bold text-lg mb-1">{opt.label}</div>
                                         <p className={`text-xs ${formData.social === opt.id ? 'text-blue-100' : 'text-zinc-500'}`}>{opt.desc}</p>
                                     </button>
                                 ))}
@@ -195,9 +195,9 @@ export default function QuestionnairePage() {
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {[
-                                    { id: '2a', label: 'Perfil Zen', desc: 'Suavidad absoluta y velocidad constante por debajo del límite.' },
-                                    { id: '2b', label: 'Perfil Dinámico', desc: 'Enfoque en puntualidad y optimización de tiempos.' },
-                                    { id: '2c', label: 'Perfil Normativo', desc: 'Cumplimiento estricto de reglas (no fumar, no comer).' }
+                                    { id: '2a', label: 'Zen', desc: 'Suavidad absoluta y velocidad constante por debajo del límite.' },
+                                    { id: '2b', label: 'Dinámico', desc: 'Enfoque en puntualidad y optimización de tiempos.' },
+                                    { id: '2c', label: 'Normativo', desc: 'Cumplimiento estricto de reglas (no fumar, no comer).' }
                                 ].map(opt => (
                                     <button
                                         key={opt.id}
@@ -205,7 +205,7 @@ export default function QuestionnairePage() {
                                         className={`p-6 rounded-3xl border text-left transition-all duration-300 ${formData.driving === opt.id ? 'bg-blue-600 border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.2)]' : 'bg-white/5 border-white/5 hover:border-white/10'
                                             }`}
                                     >
-                                        <div className="font-bold mb-2">{opt.label}</div>
+                                        <div className="font-bold text-lg mb-1">{opt.label}</div>
                                         <p className={`text-xs ${formData.driving === opt.id ? 'text-blue-100' : 'text-zinc-500'}`}>{opt.desc}</p>
                                     </button>
                                 ))}
@@ -220,9 +220,9 @@ export default function QuestionnairePage() {
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {[
-                                    { id: '3a', label: 'Servicio Directo', desc: 'El cliente gestiona su propio acceso y equipaje.' },
-                                    { id: '3b', label: 'Servicio Asistido', desc: 'Ayuda activa con maletas y apoyo en el ascenso/descenso.' },
-                                    { id: '3c', label: 'Servicio de Espera / Circuitos', desc: 'Disponibilidad para múltiples paradas y esperas.' }
+                                    { id: '3a', label: 'Directo', desc: 'El cliente gestiona su propio acceso y equipaje.' },
+                                    { id: '3b', label: 'Asistido', desc: 'Ayuda activa con maletas y apoyo en el ascenso/descenso.' },
+                                    { id: '3c', label: 'Espera / Circuitos', desc: 'Disponibilidad para múltiples paradas y esperas.' }
                                 ].map(opt => (
                                     <button
                                         key={opt.id}
@@ -230,7 +230,7 @@ export default function QuestionnairePage() {
                                         className={`p-6 rounded-3xl border text-left transition-all duration-300 ${formData.assistance === opt.id ? 'bg-blue-600 border-blue-500 shadow-[0_0_20px_rgba(37,99,235,0.2)]' : 'bg-white/5 border-white/5 hover:border-white/10'
                                             }`}
                                     >
-                                        <div className="font-bold mb-2">{opt.label}</div>
+                                        <div className="font-bold text-lg mb-1">{opt.label}</div>
                                         <p className={`text-xs ${formData.assistance === opt.id ? 'text-blue-100' : 'text-zinc-500'}`}>{opt.desc}</p>
                                     </button>
                                 ))}
@@ -370,46 +370,6 @@ export default function QuestionnairePage() {
                     </div>
                 </div>
 
-                {/* Languages, Indigenous Languages, and Schedule */}
-                <section className="mb-10">
-                    <div className="flex items-center gap-3 mb-6">
-                        <Globe className="h-5 w-5 text-emerald-400" />
-                        <h3 className="text-xl font-bold tracking-tight">Idiomas y Horario</h3>
-                    </div>
-                    {/* Languages */}
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-zinc-400 mb-2">Idiomas de Comunicación (separados por coma)</label>
-                        <input
-                            type="text"
-                            value={formData.languages?.join(', ') || ''}
-                            onChange={(e) => setFormData({ ...formData, languages: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500"
-                            placeholder="Ejemplo: Español, Inglés"
-                        />
-                    </div>
-                    {/* Indigenous Languages */}
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-zinc-400 mb-2">Lenguas Indígenas (separadas por coma)</label>
-                        <input
-                            type="text"
-                            value={formData.indigenous?.join(', ') || ''}
-                            onChange={(e) => setFormData({ ...formData, indigenous: e.target.value.split(',').map((s) => s.trim()).filter(Boolean) })}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500"
-                            placeholder="Ejemplo: Nahuatl, Quechua"
-                        />
-                    </div>
-                    {/* Schedule */}
-                    <div className="mb-6">
-                        <label className="block text-sm font-medium text-zinc-400 mb-2">Horario y Disponibilidad (texto libre)</label>
-                        <textarea
-                            value={formData.schedule || ''}
-                            onChange={(e) => setFormData({ ...formData, schedule: e.target.value })}
-                            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-white placeholder-zinc-500"
-                            rows={3}
-                            placeholder="Ejemplo: Lunes a Viernes 08:00-18:00"
-                        />
-                    </div>
-                </section>
                 {/* Validation */}
                 <div className="space-y-8 pb-32">
                     <div className="flex items-center gap-4">

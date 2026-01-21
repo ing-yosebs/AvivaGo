@@ -12,6 +12,15 @@ export default function DriverBrowser() {
     const [loading, setLoading] = useState(true);
     const [showFilters, setShowFilters] = useState(false);
     const [selectedCity, setSelectedCity] = useState<string>('all');
+    const [selectedTag, setSelectedTag] = useState<string>('all');
+    const [selectedZone, setSelectedZone] = useState<string>('all');
+    const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
+    const [selectedIndigenous, setSelectedIndigenous] = useState<string>('all');
+    const [selectedPersonality, setSelectedPersonality] = useState<{ social: string, driving: string, assistance: string }>({
+        social: 'all',
+        driving: 'all',
+        assistance: 'all'
+    });
     const supabase = createClient();
 
     useEffect(() => {
@@ -28,13 +37,15 @@ export default function DriverBrowser() {
                     users (
                         full_name,
                         email,
-                        avatar_url
+                        avatar_url,
+                        address_state
                     ),
                     vehicles (
                         brand,
                         model,
                         year
-                    )
+                    ),
+                    driver_services (*)
                 `)
                 .eq('status', 'active')
                 .eq('is_visible', true);
@@ -53,7 +64,7 @@ export default function DriverBrowser() {
     const filteredDrivers = drivers.filter(driver => {
         const term = searchTerm.toLowerCase();
         const fullName = driver.users?.full_name?.toLowerCase() || '';
-        const city = driver.city?.toLowerCase() || '';
+        const city = (driver.users?.address_state || driver.city || '').toLowerCase();
         const vehicle = driver.vehicles?.[0] ? `${driver.vehicles[0].brand} ${driver.vehicles[0].model}`.toLowerCase() : '';
 
         const matchesSearch =
@@ -62,12 +73,67 @@ export default function DriverBrowser() {
             vehicle.includes(term) ||
             driver.bio?.toLowerCase().includes(term);
 
-        const matchesCity = selectedCity === 'all' || driver.city === selectedCity;
+        const matchesCity = selectedCity === 'all' || (driver.users?.address_state === selectedCity || driver.city === selectedCity);
 
-        return matchesSearch && matchesCity;
+        const services = (Array.isArray(driver.driver_services) ? driver.driver_services[0] : driver.driver_services) || {};
+        const questionnaire = services.professional_questionnaire || {};
+
+        const matchesTag = selectedTag === 'all' || (questionnaire.tags || []).includes(selectedTag);
+
+        const matchesSocial = selectedPersonality.social === 'all' || questionnaire.social === selectedPersonality.social;
+        const matchesDriving = selectedPersonality.driving === 'all' || questionnaire.driving === selectedPersonality.driving;
+        const matchesAssistance = selectedPersonality.assistance === 'all' || questionnaire.assistance === selectedPersonality.assistance;
+
+        const zones = services.preferred_zones || [];
+        const languages = services.languages || [];
+        const indigenous = services.indigenous_languages || [];
+
+        const matchesZone = selectedZone === 'all' || zones.includes(selectedZone);
+        const matchesLanguage = selectedLanguage === 'all' || languages.includes(selectedLanguage);
+        const matchesIndigenous = selectedIndigenous === 'all' || indigenous.includes(selectedIndigenous);
+
+        return matchesSearch && matchesCity && matchesTag && matchesSocial && matchesDriving && matchesAssistance && matchesZone && matchesLanguage && matchesIndigenous;
     });
 
-    const cities = Array.from(new Set(drivers.map(d => d.city))).filter(Boolean);
+    const allTags = [
+        { id: 'cargo', label: 'Carga de Alto Volumen' },
+        { id: 'sport', label: 'Equipo Deportivo' },
+        { id: 'rack', label: 'Canastilla / Rack' },
+        { id: 'baby', label: 'Silla para Bebé' },
+        { id: 'charge', label: 'Kit de Carga' },
+        { id: 'ac', label: 'Aire Acondicionado' },
+        { id: 'mobility', label: 'Movilidad Reducida' },
+        { id: 'sensory', label: 'Asistencia Sensorial' },
+        { id: 'medical', label: 'Soporte Médico' },
+        { id: 'plus', label: 'Espacio Confort' },
+        { id: 'neuro', label: 'Neurodiversidad' },
+        { id: 'pet', label: 'Pet Friendly' },
+        { id: 'move', label: 'Mudanza Ligera' },
+        { id: 'shopping', label: 'Turismo de Compras' },
+        { id: 'party', label: 'Traslado de Fiesta' },
+        { id: 'native', label: 'Anfitrión Extranjeros' },
+        { id: 'guide', label: 'Guía e Información' },
+        { id: 'roads', label: 'Traslados Foráneos' },
+        { id: 'universal', label: 'Compromiso Universal' }
+    ];
+
+    const cities = Array.from(new Set(drivers.map(d => d.users?.address_state || d.city))).filter(Boolean).sort();
+
+    // Extract unique zones, languages, and indigenous languages for filters
+    const allAvailableZones = Array.from(new Set(drivers.flatMap(d => {
+        const s = Array.isArray(d.driver_services) ? d.driver_services[0] : d.driver_services;
+        return s?.preferred_zones || [];
+    }))).filter(Boolean).sort();
+
+    const allAvailableLanguages = Array.from(new Set(drivers.flatMap(d => {
+        const s = Array.isArray(d.driver_services) ? d.driver_services[0] : d.driver_services;
+        return s?.languages || [];
+    }))).filter(Boolean).sort();
+
+    const allAvailableIndigenous = Array.from(new Set(drivers.flatMap(d => {
+        const s = Array.isArray(d.driver_services) ? d.driver_services[0] : d.driver_services;
+        return s?.indigenous_languages || [];
+    }))).filter(Boolean).sort();
 
     return (
         <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative overflow-hidden">
@@ -120,15 +186,94 @@ export default function DriverBrowser() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Vehículo</label>
-                                    <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white opacity-50 cursor-not-allowed">
-                                        <option>Cualquiera</option>
+                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Especialidad / Equipo</label>
+                                    <select
+                                        value={selectedTag}
+                                        onChange={(e) => setSelectedTag(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                    >
+                                        <option value="all">Cualquier especialidad</option>
+                                        {allTags.map(tag => (
+                                            <option key={tag.id} value={tag.id}>{tag.label}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Calificación</label>
-                                    <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white opacity-50 cursor-not-allowed">
-                                        <option>Cualquiera</option>
+                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Atmósfera (Social)</label>
+                                    <select
+                                        value={selectedPersonality.social}
+                                        onChange={(e) => setSelectedPersonality({ ...selectedPersonality, social: e.target.value })}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                    >
+                                        <option value="all">Todas</option>
+                                        <option value="1a">Privacidad / Silencio</option>
+                                        <option value="1b">Empatía / Cordial</option>
+                                        <option value="1c">Anfitrión / Plática</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Conducción</label>
+                                    <select
+                                        value={selectedPersonality.driving}
+                                        onChange={(e) => setSelectedPersonality({ ...selectedPersonality, driving: e.target.value })}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                    >
+                                        <option value="all">Todas</option>
+                                        <option value="2a">Zen (Suavidad)</option>
+                                        <option value="2b">Dinámico (Optimización)</option>
+                                        <option value="2c">Normativo (Estricto)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Nivel de Asistencia</label>
+                                    <select
+                                        value={selectedPersonality.assistance}
+                                        onChange={(e) => setSelectedPersonality({ ...selectedPersonality, assistance: e.target.value })}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                    >
+                                        <option value="all">Todas</option>
+                                        <option value="3a">Directo (Auto-gestión)</option>
+                                        <option value="3b">Asistido (Maletas/Apoyo)</option>
+                                        <option value="3c">Espera (Múltiples paradas)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Zona de Trabajo</label>
+                                    <select
+                                        value={selectedZone}
+                                        onChange={(e) => setSelectedZone(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                    >
+                                        <option value="all">Todas las zonas</option>
+                                        {allAvailableZones.map(zone => (
+                                            <option key={zone} value={zone}>{zone}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Idioma de Comunicación</label>
+                                    <select
+                                        value={selectedLanguage}
+                                        onChange={(e) => setSelectedLanguage(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                    >
+                                        <option value="all">Todos los idiomas</option>
+                                        {allAvailableLanguages.map(lang => (
+                                            <option key={lang} value={lang}>{lang}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Lengua Indígena</label>
+                                    <select
+                                        value={selectedIndigenous}
+                                        onChange={(e) => setSelectedIndigenous(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                    >
+                                        <option value="all">Cualquiera / Ninguna</option>
+                                        {allAvailableIndigenous.map(lang => (
+                                            <option key={lang} value={lang}>{lang}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>

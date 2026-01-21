@@ -20,7 +20,18 @@ import { useState } from 'react'
 const menuItems = [
     { icon: Home, label: 'Inicio', href: '/' },
     { icon: Shield, label: 'Panel Principal', href: '/dashboard' },
-    { icon: User, label: 'Mi Perfil', href: '/perfil' },
+    {
+        icon: User,
+        label: 'Mi Perfil',
+        href: '/perfil',
+        subItems: [
+            { label: 'Datos Personales', href: '/perfil?tab=personal' },
+            { label: 'Mis Vehículos', href: '/perfil?tab=vehicles' },
+            { label: 'Mis Servicios', href: '/perfil?tab=services' },
+            { label: 'Pagos y Membresía', href: '/perfil?tab=payments' },
+            { label: 'Seguridad', href: '/perfil?tab=security' },
+        ]
+    },
     { icon: Users, label: 'Comunidad', href: '/comunidad' },
     { icon: Heart, label: 'Mis Favoritos', href: '/favoritos' },
 ]
@@ -84,23 +95,49 @@ export default function DashboardSidebar() {
 
                 <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                     {menuItems.map((item) => {
-                        const isActive = pathname === item.href
+                        const isActive = pathname === item.href || (item.subItems && pathname.startsWith(item.href))
+                        const hasSubItems = item.subItems && item.subItems.length > 0
+
                         return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                onClick={() => setIsOpen(false)}
-                                className={`flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${isActive
-                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                                    : 'text-zinc-400 hover:bg-white/5 hover:text-white'
-                                    }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <item.icon className={`h-5 w-5 ${isActive ? 'text-white' : 'group-hover:text-blue-400 transition-colors'}`} />
-                                    <span className="text-sm font-medium">{item.label}</span>
-                                </div>
-                                {isActive && <ChevronRight className="h-4 w-4" />}
-                            </Link>
+                            <div key={item.label} className="space-y-1">
+                                <Link
+                                    href={item.href}
+                                    onClick={() => !hasSubItems && setIsOpen(false)}
+                                    className={`flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${isActive
+                                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                                        : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <item.icon className={`h-5 w-5 ${isActive ? 'text-white' : 'group-hover:text-blue-400 transition-colors'}`} />
+                                        <span className="text-sm font-medium">{item.label}</span>
+                                    </div>
+                                    {isActive && !hasSubItems && <ChevronRight className="h-4 w-4" />}
+                                </Link>
+
+                                {hasSubItems && (
+                                    <div className="pl-9 space-y-1 mt-1 border-l border-white/5 ml-5">
+                                        {item.subItems.map((sub) => {
+                                            const isSubActive = pathname === '/perfil' && typeof window !== 'undefined' && window.location.search.includes(sub.href.split('?')[1]);
+
+                                            return (
+                                                <Link
+                                                    key={sub.label}
+                                                    href={sub.href}
+                                                    onClick={() => setIsOpen(false)}
+                                                    className={`flex items-center gap-3 p-2 rounded-lg text-xs font-medium transition-all ${isSubActive
+                                                        ? 'text-white bg-white/10'
+                                                        : 'text-zinc-500 hover:text-white hover:bg-white/5'
+                                                        }`}
+                                                >
+                                                    <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isSubActive ? 'bg-blue-500' : 'bg-zinc-800'}`} />
+                                                    {sub.label}
+                                                </Link>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </div>
                         )
                     })}
                 </nav>

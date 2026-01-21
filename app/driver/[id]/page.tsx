@@ -14,7 +14,8 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
             users!driver_profiles_user_id_fkey (
                 full_name,
                 email,
-                avatar_url
+                avatar_url,
+                address_state
             ),
             vehicles (*),
             driver_services (*)
@@ -101,12 +102,31 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         }
     }
 
+    // Map personality questions
+    const personalityOptions: any = {
+        social: {
+            '1a': { label: 'Privacidad', desc: 'Ambiente de absoluta reserva y silencio.' },
+            '1b': { label: 'Empático', desc: 'Saludo cordial y adaptación al ritmo del cliente.' },
+            '1c': { label: 'Anfitrión', desc: 'Disfruto conversar y dar recomendaciones locales.' }
+        },
+        driving: {
+            '2a': { label: 'Zen', desc: 'Suavidad absoluta y velocidad constante por debajo del límite.' },
+            '2b': { label: 'Dinámico', desc: 'Enfoque en puntualidad y optimización de tiempos.' },
+            '2c': { label: 'Normativo', desc: 'Cumplimiento estricto de reglas (no fumar, no comer).' }
+        },
+        assistance: {
+            '3a': { label: 'Directo', desc: 'El cliente gestiona su propio acceso y equipaje.' },
+            '3b': { label: 'Asistido', desc: 'Ayuda activa con maletas y apoyo en el ascenso/descenso.' },
+            '3c': { label: 'Espera / Circuitos', desc: 'Disponibilidad para múltiples paradas y esperas.' }
+        }
+    };
+
     // Convert Supabase driver data to the format expected by ProfileView
     const formattedDriver = {
         id: driver.id,
         name: driver.users?.full_name || 'Conductor AvivaGo',
-        city: driver.city,
-        area: driver.city,
+        city: driver.users?.address_state || driver.city,
+        area: driver.users?.address_state || driver.city,
         vehicle: driver.vehicles?.[0] ? `${driver.vehicles[0].brand} ${driver.vehicles[0].model}` : 'Vehículo Confort',
         year: driver.vehicles?.[0]?.year || 2022,
         photo: driver.users?.avatar_url || driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop',
@@ -114,13 +134,18 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         reviews: driver.total_reviews || 0,
         price: 2.00,
         year_joined: new Date(driver.created_at).getFullYear().toString(),
-        tags: tags,
+        tags: rawTags, // Pass raw tags for categorization in ProfileView
         zones: services?.preferred_zones || [],
         languages: finalLanguages,
         indigenous: finalIndigenous,
-        schedule: scheduleText,
-        bio: driver.bio || "Conductor profesional comprometido con tu seguridad y puntualidad.",
-        phone: driver.whatsapp_number
+        schedule: scheduleObj, // Pass full object
+        bio: questionnaire.bio || "Este conductor aún no ha redactado su reseña profesional.",
+        phone: driver.whatsapp_number,
+        personality: {
+            social: personalityOptions.social[questionnaire.social],
+            driving: personalityOptions.driving[questionnaire.driving],
+            assistance: personalityOptions.assistance[questionnaire.assistance]
+        }
     };
 
     return <ProfileView driver={formattedDriver} />;

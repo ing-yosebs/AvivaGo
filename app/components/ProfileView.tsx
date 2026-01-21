@@ -15,7 +15,11 @@ import {
     Car,
     Clock,
     Award,
-    Globe
+    Globe,
+    Zap,
+    Stethoscope,
+    Users,
+    Map
 } from 'lucide-react';
 
 interface ProfileViewProps {
@@ -37,7 +41,12 @@ interface ProfileViewProps {
         zones?: string[];
         languages?: string[];
         indigenous?: string[];
-        schedule?: string;
+        schedule?: any;
+        personality?: {
+            social?: { label: string; desc: string };
+            driving?: { label: string; desc: string };
+            assistance?: { label: string; desc: string };
+        }
     }
 }
 
@@ -160,7 +169,7 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                     </p>
                                 </section>
 
-                                <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                                <section className="grid grid-cols-1 gap-8 mb-10">
                                     <div className="space-y-4 p-6 bg-white/5 border border-white/10 rounded-3xl">
                                         <div className="flex items-center gap-3 text-sm font-bold text-zinc-500 uppercase tracking-widest">
                                             <Car className="h-4 w-4" />
@@ -168,14 +177,6 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                         </div>
                                         <div className="text-xl font-bold">{driver.vehicle}</div>
                                         <div className="text-sm text-zinc-500">Modelo {driver.year} • Capacidad para 4 pasajeros</div>
-                                    </div>
-                                    <div className="space-y-4 p-6 bg-white/5 border border-white/10 rounded-3xl">
-                                        <div className="flex items-center gap-3 text-sm font-bold text-zinc-500 uppercase tracking-widest">
-                                            <Calendar className="h-4 w-4" />
-                                            Miembro AvivaGo
-                                        </div>
-                                        <div className="text-xl font-bold">Desde {driver.year_joined}</div>
-                                        <div className="text-sm text-zinc-500">Perfil verificado por nuestro equipo</div>
                                     </div>
                                 </section>
 
@@ -238,41 +239,169 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                         </div>
                                         <h3 className="text-xl font-bold tracking-tight">Horario y Disponibilidad</h3>
                                     </div>
-                                    <div className="p-6 bg-white/5 border border-white/10 rounded-3xl">
-                                        <div className="text-lg text-zinc-300 font-medium font-mono">
-                                            {driver.schedule || "Consultar disponibilidad directa"}
-                                        </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(day => {
+                                            const time = driver.schedule?.[day];
+                                            const isActive = time && time.start !== '00:00' && time.end !== '00:00';
+
+                                            return (
+                                                <div key={day} className={`p-4 rounded-2xl border transition-all ${isActive ? 'bg-blue-600/10 border-blue-500/20' : 'bg-white/5 border-white/5 opacity-50'}`}>
+                                                    <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">{day}</div>
+                                                    <div className={`text-sm font-bold ${isActive ? 'text-white' : 'text-zinc-600'}`}>
+                                                        {isActive ? `${time.start} - ${time.end}` : 'No disponible'}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </section>
 
+                                {/* SERVICE SEAL (Personality) */}
+                                {(driver.personality?.social || driver.personality?.driving || driver.personality?.assistance) && (
+                                    <section className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                        <div className="flex items-center gap-3 mb-8">
+                                            <div className="bg-blue-600/10 p-2 rounded-xl">
+                                                <Zap className="h-5 w-5 text-blue-500" />
+                                            </div>
+                                            <h3 className="text-xl font-bold tracking-tight">Sello de Servicio Profesional</h3>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            {driver.personality?.social && (
+                                                <div className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-3">
+                                                    <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Interacción Social</div>
+                                                    <div className="text-lg font-bold text-blue-400">"{driver.personality.social.label}"</div>
+                                                    <p className="text-xs text-zinc-400 leading-relaxed">
+                                                        La interacción social de este conductor es principalmente de <span className="text-white font-medium">"{driver.personality.social.label}"</span>. {driver.personality.social.desc}
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {driver.personality?.driving && (
+                                                <div className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-3">
+                                                    <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Estilo de Conducción</div>
+                                                    <div className="text-lg font-bold text-purple-400">"{driver.personality.driving.label}"</div>
+                                                    <p className="text-xs text-zinc-400 leading-relaxed">
+                                                        Su estilo de conducción es <span className="text-white font-medium">"{driver.personality.driving.label}"</span>. {driver.personality.driving.desc}
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {driver.personality?.assistance && (
+                                                <div className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-3">
+                                                    <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Nivel de Asistencia</div>
+                                                    <div className="text-lg font-bold text-emerald-400">"{driver.personality.assistance.label}"</div>
+                                                    <p className="text-xs text-zinc-400 leading-relaxed">
+                                                        El nivel de asistencia es <span className="text-white font-medium">"{driver.personality.assistance.label}"</span>. {driver.personality.assistance.desc}
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </section>
+                                )}
+
                                 <section>
-                                    <div className="flex items-center gap-3 mb-6">
+                                    <div className="flex items-center gap-3 mb-8">
                                         <div className="bg-blue-600/10 p-2 rounded-xl">
                                             <Award className="h-5 w-5 text-blue-500" />
                                         </div>
-                                        <h3 className="text-xl font-bold tracking-tight">Especialidades</h3>
+                                        <h3 className="text-xl font-bold tracking-tight">Especialidades y Equipamiento</h3>
                                     </div>
-                                    <div className="flex flex-wrap gap-3">
-                                        {driver.tags.map(tag => (
-                                            <span
-                                                key={tag}
-                                                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-white hover:bg-white/10 transition-colors"
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
+
+                                    <div className="space-y-10">
+                                        {[
+                                            {
+                                                title: 'Capacidad Técnica',
+                                                color: 'blue',
+                                                icon: Zap,
+                                                tags: [
+                                                    { id: 'cargo', label: 'Carga de Alto Volumen' },
+                                                    { id: 'sport', label: 'Equipo Deportivo' },
+                                                    { id: 'rack', label: 'Canastilla / Rack' },
+                                                    { id: 'baby', label: 'Silla para Bebé' },
+                                                    { id: 'charge', label: 'Kit de Carga' },
+                                                    { id: 'ac', label: 'Aire Acondicionado' }
+                                                ]
+                                            },
+                                            {
+                                                title: 'Inclusión y Salud',
+                                                color: 'red',
+                                                icon: Stethoscope,
+                                                tags: [
+                                                    { id: 'mobility', label: 'Movilidad Reducida' },
+                                                    { id: 'sensory', label: 'Asistencia Sensorial' },
+                                                    { id: 'medical', label: 'Soporte Médico' },
+                                                    { id: 'plus', label: 'Espacio Confort' },
+                                                    { id: 'neuro', label: 'Neurodiversidad' }
+                                                ]
+                                            },
+                                            {
+                                                title: 'Logística y Estilo de Vida',
+                                                color: 'emerald',
+                                                icon: Users,
+                                                tags: [
+                                                    { id: 'pet', label: 'Pet Friendly' },
+                                                    { id: 'move', label: 'Mudanza Ligera' },
+                                                    { id: 'shopping', label: 'Turismo de Compras' },
+                                                    { id: 'party', label: 'Traslado de Fiesta' }
+                                                ]
+                                            },
+                                            {
+                                                title: 'Turismo y Cultura',
+                                                color: 'amber',
+                                                icon: Map,
+                                                tags: [
+                                                    { id: 'native', label: 'Anfitrión Extranjeros' },
+                                                    { id: 'guide', label: 'Guía e Información' },
+                                                    { id: 'roads', label: 'Traslados Foráneos' },
+                                                    { id: 'universal', label: 'Compromiso Universal' }
+                                                ]
+                                            }
+                                        ].map((cat) => {
+                                            const activeTags = cat.tags.filter(t => driver.tags.includes(t.id));
+                                            if (activeTags.length === 0) return null;
+
+                                            const colorClasses: any = {
+                                                blue: 'bg-blue-600/20 text-blue-400 border-blue-500/20 text-blue-500',
+                                                red: 'bg-red-600/20 text-red-400 border-red-500/20 text-red-500',
+                                                emerald: 'bg-emerald-600/20 text-emerald-400 border-emerald-500/20 text-emerald-500',
+                                                amber: 'bg-amber-600/20 text-amber-400 border-amber-500/20 text-amber-500'
+                                            };
+
+                                            const Icon = cat.icon;
+
+                                            return (
+                                                <div key={cat.title} className="space-y-4">
+                                                    <div className="flex items-center gap-2">
+                                                        <Icon className={`h-4 w-4 ${colorClasses[cat.color].split(' ').pop()}`} />
+                                                        <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-500">{cat.title}</h4>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2.5">
+                                                        {activeTags.map(tag => (
+                                                            <span
+                                                                key={tag.id}
+                                                                className={`px-4 py-2 border rounded-xl text-sm font-bold flex items-center gap-2 transition-all hover:scale-105 ${colorClasses[cat.color].split(' ').slice(0, 3).join(' ')}`}
+                                                            >
+                                                                <div className={`w-1.5 h-1.5 rounded-full ${cat.color === 'blue' ? 'bg-blue-400' : cat.color === 'red' ? 'bg-red-400' : cat.color === 'emerald' ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+                                                                {tag.label}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </section>
                             </div>
 
                             {/* Verification Badge */}
-                            <div className="backdrop-blur-xl bg-blue-600/5 border border-blue-600/20 rounded-[40px] p-8 flex items-center gap-6">
-                                <div className="bg-blue-600 p-4 rounded-3xl">
+                            <div className="backdrop-blur-xl bg-blue-600/5 border border-blue-600/20 rounded-[40px] p-8 flex flex-col md:flex-row items-center gap-6">
+                                <div className="bg-blue-600 p-4 rounded-3xl shrink-0">
                                     <ShieldCheck className="h-8 w-8 text-white" />
                                 </div>
-                                <div>
-                                    <h4 className="text-xl font-bold mb-1">Verificación de Identidad</h4>
-                                    <p className="text-zinc-400 text-sm">Este conductor ha pasado por nuestro proceso de validación de documentos y antecedentes.</p>
+                                <div className="flex-1 text-center md:text-left">
+                                    <h4 className="text-xl font-bold mb-1">Perfil Verificado y Miembro AvivaGo</h4>
+                                    <p className="text-zinc-400 text-sm leading-relaxed">
+                                        Este conductor es miembro activo de nuestra comunidad desde {driver.year_joined} y ha superado satisfactoriamente nuestro proceso de validación de identidad, documentos y antecedentes.
+                                    </p>
                                 </div>
                             </div>
                         </div>
