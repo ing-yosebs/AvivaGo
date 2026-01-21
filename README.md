@@ -36,11 +36,11 @@ npm run dev
 ```
 Visit `http://localhost:3000`.
 
-## 5. Features Implemented
-- **Route Protection**: The home page redirects logged-in users to `/driver/onboarding`.
-- **Middleware**: Blocks unauthenticated access to `/driver/*`.
-- **Auth**: Fully functional Email/Password Login and Register pages.
-- **UI**: Clean Tailwind design.
+- **Public Driver Profiles**: Accessible via dynamic routes with optimized SEO.
+- **Driver Dashboard**: Internal panel for profile management and status.
+- **Onboarding System**: Multi-step process for new drivers.
+- **UI**: Premium dark-mode design with Tailwind CSS and Next.js 16.
+
 
 ## 6. Development & Deployment
 ### Deploying to Vercel (Recommended)

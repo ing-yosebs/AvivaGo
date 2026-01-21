@@ -10,6 +10,8 @@ export default function DriverBrowser() {
     const [searchTerm, setSearchTerm] = useState('');
     const [drivers, setDrivers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [showFilters, setShowFilters] = useState(false);
+    const [selectedCity, setSelectedCity] = useState<string>('all');
     const supabase = createClient();
 
     useEffect(() => {
@@ -54,13 +56,18 @@ export default function DriverBrowser() {
         const city = driver.city?.toLowerCase() || '';
         const vehicle = driver.vehicles?.[0] ? `${driver.vehicles[0].brand} ${driver.vehicles[0].model}`.toLowerCase() : '';
 
-        return (
+        const matchesSearch =
             fullName.includes(term) ||
             city.includes(term) ||
             vehicle.includes(term) ||
-            driver.bio?.toLowerCase().includes(term)
-        );
+            driver.bio?.toLowerCase().includes(term);
+
+        const matchesCity = selectedCity === 'all' || driver.city === selectedCity;
+
+        return matchesSearch && matchesCity;
     });
+
+    const cities = Array.from(new Set(drivers.map(d => d.city))).filter(Boolean);
 
     return (
         <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative overflow-hidden">
@@ -86,11 +93,47 @@ export default function DriverBrowser() {
                                 className="w-full bg-transparent border-none pl-12 pr-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-0 text-lg"
                             />
                         </div>
-                        <button className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-zinc-200 transition-all w-full md:w-auto justify-center">
+                        <button
+                            onClick={() => setShowFilters(!showFilters)}
+                            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all w-full md:w-auto justify-center ${showFilters ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-white text-black hover:bg-zinc-200'}`}
+                        >
                             <Filter className="h-4 w-4" />
-                            <span>Filtros Avanzados</span>
+                            <span>{showFilters ? 'Cerrar Filtros' : 'Filtros Avanzados'}</span>
                         </button>
                     </div>
+
+                    {/* Filter Panel */}
+                    {showFilters && (
+                        <div className="mt-4 p-6 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Ciudad</label>
+                                    <select
+                                        value={selectedCity}
+                                        onChange={(e) => setSelectedCity(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                    >
+                                        <option value="all">Todas las ciudades</option>
+                                        {cities.map(city => (
+                                            <option key={city} value={city}>{city}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Vehículo</label>
+                                    <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white opacity-50 cursor-not-allowed">
+                                        <option>Cualquiera</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Calificación</label>
+                                    <select className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white opacity-50 cursor-not-allowed">
+                                        <option>Cualquiera</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
