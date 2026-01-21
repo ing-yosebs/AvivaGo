@@ -610,7 +610,7 @@ function PersonalDataSection({ profile, onSave, saving }: any) {
                                         mapContainerStyle={{ width: '100%', height: '100%' }}
                                         center={{ lat: Number(formData.address_map_lat), lng: Number(formData.address_map_lng) }}
                                         zoom={15}
-                                        onLoad={map => mapRef.current = map}
+                                        onLoad={map => { mapRef.current = map }}
                                         options={{
                                             styles: [
                                                 { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
