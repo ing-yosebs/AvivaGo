@@ -21,8 +21,8 @@ export default function ReviewThread({ review, currentUserId }: ReviewThreadProp
     const [agreement, setAgreement] = useState(true)
 
     // Determine roles
-    const isReviewer = currentUserId === review.reviewer_id
-    const isDriver = currentUserId === review.driver_profiles?.user_id
+    const isReviewer = !!currentUserId && currentUserId === review.reviewer_id
+    const isDriver = !!currentUserId && currentUserId === (review.driver_profiles?.user_id || review.driver_profiles?.users?.id)
 
     // Determine next step
     let canReply = false

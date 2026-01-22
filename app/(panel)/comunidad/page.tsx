@@ -16,13 +16,17 @@ import {
     MapPin
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { toggleLike } from '@/app/actions/reviews'
 import ReviewThread from '../../components/ReviewThread'
 
 export default function CommunityPage() {
     const [posts, setPosts] = useState<any[]>([])
+    const [searchQuery, setSearchQuery] = useState('')
     const [loading, setLoading] = useState(true)
     const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined)
     const supabase = createClient()
+    const router = useRouter()
 
     const [topDrivers, setTopDrivers] = useState<any[]>([])
 
@@ -57,11 +61,15 @@ export default function CommunityPage() {
                     driver_profiles (
                         id,
                         average_rating,
+                        user_id,
                         users (
                             full_name,
                             avatar_url,
                             address_state
                         )
+                    ),
+                    review_likes (
+                        user_id
                     )
                 `)
                 .order('created_at', { ascending: false })
@@ -90,7 +98,8 @@ export default function CommunityPage() {
                     driver_final_reply_at: r.driver_final_reply_at,
                     time: new Date(r.created_at).toLocaleDateString(),
                     city: r.driver_profiles?.users?.address_state || 'AvivaGo',
-                    likes: 0, // Real likes would need a table, setting to 0 for now as requested
+                    likes: r.review_likes?.length || 0,
+                    hasLiked: r.review_likes?.some((l: any) => l.user_id === user?.id),
                     isVerified: true,
                     // Pass full review object for thread logic if needed, but manual constructing is safer
                     raw: r
@@ -134,19 +143,48 @@ export default function CommunityPage() {
         </div>
     </div>
 
+    const handleLike = async (postId: string) => {
+        if (!currentUserId) {
+            router.push('/auth/login')
+            return
+        }
+
+        // Optimistic update
+        setPosts(prev => prev.map(p => {
+            if (p.id === postId) {
+                const newHasLiked = !p.hasLiked
+                return {
+                    ...p,
+                    hasLiked: newHasLiked,
+                    likes: newHasLiked ? p.likes + 1 : p.likes - 1
+                }
+            }
+            return p
+        }))
+
+        const res = await toggleLike(postId)
+        if (!res.success) {
+            // Revert on error
+            alert(res.error)
+            // Ideally we should re-fetch or revert here
+        }
+    }
+
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-6">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight mb-2">Comunidad</h1>
                     <p className="text-zinc-400">Descubre qué dicen otros usuarios sobre nuestros conductores.</p>
                 </div>
-                <div className="relative">
+                <div className="relative max-w-xl">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
                     <input
                         type="text"
-                        placeholder="Buscar comentarios..."
-                        className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-blue-500 transition-colors"
+                        placeholder="Buscar por nombre, ciudad o mensaje..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-colors w-full"
                     />
                 </div>
             </div>
@@ -154,7 +192,12 @@ export default function CommunityPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Feed */}
                 <div className="lg:col-span-2 space-y-6">
-                    {posts.map((post) => (
+                    {posts.filter(post =>
+                        post.reviewer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        post.driver_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        post.comment?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        post.city?.toLowerCase().includes(searchQuery.toLowerCase())
+                    ).map((post) => (
                         <div key={post.id} className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/[0.07] transition-all group">
                             <div className="flex flex-col gap-4 mb-6">
                                 {/* Top Header: Side-by-Side Horizontal Participants */}
@@ -256,8 +299,11 @@ export default function CommunityPage() {
                             />
 
                             <div className="flex items-center gap-6 pt-4 border-t border-white/5 mt-4">
-                                <button className="flex items-center gap-2 text-sm text-zinc-500 hover:text-blue-400 transition-colors">
-                                    <ThumbsUp className="h-4 w-4" />
+                                <button
+                                    onClick={() => handleLike(post.id)}
+                                    className={`flex items-center gap-2 text-sm transition-colors group/like ${post.hasLiked ? 'text-blue-400' : 'text-zinc-500 hover:text-blue-400'}`}
+                                >
+                                    <ThumbsUp className={`h-4 w-4 transition-transform group-hover/like:scale-110 ${post.hasLiked ? 'fill-current' : ''}`} />
                                     <span>{post.likes}</span>
                                 </button>
                                 <button className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors ml-auto">

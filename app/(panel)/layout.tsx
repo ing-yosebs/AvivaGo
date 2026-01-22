@@ -1,6 +1,7 @@
 'use client'
 
 import DashboardSidebar from '@/app/components/DashboardSidebar'
+import Header from '@/app/components/Header'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
@@ -21,7 +22,7 @@ export default function PanelLayout({
     useEffect(() => {
         const checkAuth = async () => {
             const { data: { user } } = await supabase.auth.getUser()
-            const isPublicRoute = pathname === '/comunidad'
+            const isPublicRoute = pathname.startsWith('/comunidad')
 
             if (!user && !isPublicRoute) {
                 router.push('/auth/login')
@@ -41,12 +42,18 @@ export default function PanelLayout({
         )
     }
 
+    const showSidebar = !!user;
+
     return (
         <div className="min-h-screen bg-zinc-950 text-white flex flex-col lg:flex-row">
-            <DashboardSidebar />
+            {showSidebar ? (
+                <DashboardSidebar />
+            ) : (
+                <Header />
+            )}
 
             {/* Main Content Area */}
-            <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 min-h-screen relative overflow-x-hidden pt-20 lg:pt-8">
+            <main className={`flex-1 p-4 sm:p-6 lg:p-8 min-h-screen relative overflow-x-hidden pt-20 ${showSidebar ? 'lg:ml-64 lg:pt-8' : 'lg:pt-24'}`}>
                 {/* Background Decorations */}
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[120px] pointer-events-none -z-10" />
                 <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-purple-600/5 rounded-full blur-[100px] pointer-events-none -z-10" />
