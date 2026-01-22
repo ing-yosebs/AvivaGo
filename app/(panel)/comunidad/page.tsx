@@ -12,7 +12,8 @@ import {
     CheckCircle2,
     Calendar,
     ArrowRight,
-    Share2
+    Share2,
+    MapPin
 } from 'lucide-react'
 import Link from 'next/link'
 import ReviewThread from '../../components/ReviewThread'
@@ -154,7 +155,7 @@ export default function CommunityPage() {
                 <div className="lg:col-span-2 space-y-6">
                     {posts.map((post) => (
                         <div key={post.id} className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/[0.07] transition-all group">
-                            <div className="flex flex-col gap-6 mb-6">
+                            <div className="flex flex-col gap-4 mb-6">
                                 {/* Top Header: Side-by-Side Horizontal Participants */}
                                 <div className="flex items-center justify-between gap-2 overflow-hidden">
                                     <div className="flex items-center gap-2 sm:gap-4 flex-1">
@@ -195,15 +196,21 @@ export default function CommunityPage() {
                                             </span>
                                         </Link>
                                     </div>
+                                </div>
 
-                                    {/* Date/Meta (Far Right) */}
-                                    <div className="hidden sm:flex flex-col items-end">
-                                        <span className="text-[9px] text-zinc-600 font-black uppercase tracking-widest">{post.time}</span>
-                                        <span className="text-[9px] text-blue-500/40 font-black uppercase tracking-tighter">{post.city}</span>
+                                {/* Meta Info (Now between photos and ratings) */}
+                                <div className="flex items-center gap-4 px-2">
+                                    <div className="flex items-center gap-1.5 text-zinc-500">
+                                        <Calendar className="h-3 w-3" />
+                                        <span className="text-[10px] font-black uppercase tracking-wider">{post.time}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-blue-500/60">
+                                        <MapPin className="h-3 w-3" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">{post.city}</span>
                                     </div>
                                 </div>
 
-                                {/* Consolidated Ratings Bar (Immediately below) */}
+                                {/* Consolidated Ratings Bar */}
                                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 bg-white/[0.03] rounded-2xl border border-white/5">
                                     {/* 1. Main Service Rating */}
                                     <div className="flex items-center gap-2 bg-yellow-500/10 text-yellow-500 px-2.5 py-1 rounded-lg border border-yellow-500/20">
@@ -234,11 +241,6 @@ export default function CommunityPage() {
                                                 {Number(post.driver_avg_rating || 5).toFixed(1)}
                                             </span>
                                         </div>
-                                    </div>
-
-                                    {/* Mobile-only metadata */}
-                                    <div className="sm:hidden ml-auto">
-                                        <span className="text-[9px] text-zinc-700 font-black uppercase tracking-widest">{post.time}</span>
                                     </div>
                                 </div>
                             </div>
