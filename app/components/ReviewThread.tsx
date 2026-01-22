@@ -75,7 +75,6 @@ export default function ReviewThread({ review, currentUserId }: ReviewThreadProp
 
     return (
         <div className="space-y-4 w-full">
-            {/* Driver Rating Passenger Section (Visible to Driver only if not rated yet) */}
             {isDriver && !review.passenger_rating && (
                 <div className="mb-4">
                     {!rateOpen ? (

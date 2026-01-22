@@ -30,8 +30,9 @@ export default function CommunityPage() {
         const fetchData = async () => {
             setLoading(true)
 
-            // 1. Fetch real reviews
-            const { data: { user } } = await supabase.auth.getUser()
+            // 1. Fetch real session
+            const { data: { session } } = await supabase.auth.getSession()
+            const user = session?.user
             setCurrentUserId(user?.id)
 
             const { data: reviewsData, error: reviewsError } = await supabase
