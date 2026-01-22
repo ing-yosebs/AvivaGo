@@ -211,36 +211,28 @@ export default function CommunityPage() {
                                 </div>
 
                                 {/* Consolidated Ratings Bar */}
-                                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 bg-white/[0.03] rounded-2xl border border-white/5">
-                                    {/* 1. Main Service Rating */}
-                                    <div className="flex items-center gap-2 bg-yellow-500/10 text-yellow-500 px-2.5 py-1 rounded-lg border border-yellow-500/20">
+                                <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-white/[0.03] rounded-2xl border border-white/5">
+                                    {/* 1. Passenger Reputation (What driver said) */}
+                                    <div className={`flex items-center gap-2 px-2.5 py-1 rounded-xl border transition-all ${post.reviewer_avg_rating > 0 ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20 shadow-lg shadow-yellow-500/5' : 'bg-zinc-800/50 text-zinc-500 border-white/5'}`}>
+                                        <Star className={`h-3 w-3 ${post.reviewer_avg_rating > 0 ? 'fill-current' : ''}`} />
+                                        <span className="text-[10px] sm:text-xs font-black">
+                                            {post.reviewer_avg_rating > 0 ? post.reviewer_avg_rating.toFixed(1) : 'S/C'}
+                                        </span>
+                                        <span className="text-[8px] opacity-50 font-black tracking-tighter uppercase">Pasajero</span>
+                                    </div>
+
+                                    {/* 2. Driver Reputation (Historical) */}
+                                    <div className="flex items-center gap-2 bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-xl border border-blue-500/20 shadow-lg shadow-blue-500/5">
+                                        <Star className="h-3 w-3 fill-current" />
+                                        <span className="text-[10px] sm:text-xs font-black">{Number(post.driver_avg_rating || 5).toFixed(1)}</span>
+                                        <span className="text-[8px] opacity-50 font-black tracking-tighter uppercase">Conductor</span>
+                                    </div>
+
+                                    {/* 3. Main Service Rating */}
+                                    <div className="flex items-center gap-2 bg-yellow-500/10 text-yellow-500 px-2.5 py-1 rounded-xl border border-yellow-500/20 shadow-lg shadow-yellow-500/5">
                                         <Star className="h-3 w-3 fill-current" />
                                         <span className="text-[10px] sm:text-xs font-black">{post.rating}.0</span>
-                                        <span className="text-[8px] opacity-60 font-black">SERVICIO</span>
-                                    </div>
-
-                                    <div className="w-px h-4 bg-white/10 hidden sm:block" />
-
-                                    {/* 2. Passenger Reputation (What driver said) */}
-                                    <div className="flex items-center gap-1.5">
-                                        <Star className={`h-3 w-3 ${post.reviewer_avg_rating > 0 ? 'text-yellow-500/50 fill-current' : 'text-zinc-800'}`} />
-                                        <div className="flex flex-col">
-                                            <span className="text-[8px] text-zinc-600 font-black uppercase leading-none"> Calif. Pasajero</span>
-                                            <span className="text-[10px] text-zinc-400 font-black leading-tight">
-                                                {post.reviewer_avg_rating > 0 ? post.reviewer_avg_rating.toFixed(1) : 'S/C'}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* 3. Driver Reputation (Historical) */}
-                                    <div className="flex items-center gap-1.5">
-                                        <Star className="h-3 w-3 text-blue-500/50 fill-current" />
-                                        <div className="flex flex-col">
-                                            <span className="text-[8px] text-zinc-600 font-black uppercase leading-none">Reputación Cond.</span>
-                                            <span className="text-[10px] text-zinc-400 font-black leading-tight">
-                                                {Number(post.driver_avg_rating || 5).toFixed(1)}
-                                            </span>
-                                        </div>
+                                        <span className="text-[8px] opacity-50 font-black tracking-tighter uppercase">Servicio</span>
                                     </div>
                                 </div>
                             </div>
