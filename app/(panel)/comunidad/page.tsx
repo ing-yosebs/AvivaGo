@@ -154,69 +154,86 @@ export default function CommunityPage() {
                 <div className="lg:col-span-2 space-y-6">
                     {posts.map((post) => (
                         <div key={post.id} className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/[0.07] transition-all group">
-                            <div className="flex items-start justify-between mb-8">
-                                <div className="flex flex-col sm:flex-row sm:items-start gap-8 sm:gap-12 w-full">
-                                    {/* Passenger / Reviewer */}
-                                    <div className="flex flex-col items-center gap-3">
-                                        <div className="w-20 h-20 rounded-[2rem] bg-zinc-800 border-2 border-white/10 overflow-hidden shadow-2xl group-hover:scale-105 transition-transform flex-shrink-0">
+                            <div className="flex items-start gap-3 sm:gap-4 mb-6">
+                                {/* Left Side: Timeline Avatars */}
+                                <div className="flex flex-col items-center gap-2">
+                                    {/* Passenger Avatar */}
+                                    <div className="relative">
+                                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-zinc-800 border-2 border-white/10 overflow-hidden shadow-xl ring-2 ring-zinc-950">
                                             {post.reviewer_avatar ? (
                                                 <img src={post.reviewer_avatar} alt={post.reviewer_name} className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-zinc-500 font-bold text-2xl">
+                                                <div className="w-full h-full flex items-center justify-center text-zinc-500 font-bold">
                                                     {post.reviewer_name[0]}
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="flex flex-col items-center text-center">
-                                            <span className="text-sm font-black text-white leading-tight mb-1">
-                                                {post.reviewer_name}
-                                            </span>
-                                            <div className="flex items-center gap-1 text-[10px] text-zinc-500 mb-2">
-                                                <Star className={`h-3 w-3 ${post.reviewer_avg_rating > 0 ? 'text-yellow-500 fill-current' : 'text-zinc-700'}`} />
-                                                <span className="font-bold">{post.reviewer_avg_rating > 0 ? post.reviewer_avg_rating.toFixed(1) : 'S/C'}</span>
-                                            </div>
+                                        {/* Achievement/Role Badge Overlay */}
+                                        <div className="absolute -bottom-1 -right-1 bg-zinc-900 border border-white/10 rounded-full p-0.5">
+                                            <User className="h-3 w-3 text-zinc-400" />
                                         </div>
                                     </div>
 
-                                    {/* Connection Arrow */}
-                                    <div className="hidden sm:flex items-center justify-center pt-8">
-                                        <div className="h-px w-12 bg-gradient-to-r from-transparent via-blue-500/40 to-transparent relative">
-                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-zinc-950 p-1.5 rounded-full border border-white/10">
-                                                <ArrowRight className="h-3 w-3 text-blue-400" />
-                                            </div>
-                                        </div>
-                                    </div>
+                                    {/* Timeline Connector Line */}
+                                    <div className="w-0.5 h-8 sm:h-10 bg-gradient-to-b from-blue-500/40 via-blue-500/20 to-transparent rounded-full" />
 
-                                    {/* Driver */}
-                                    <Link href={`/driver/${post.driver_id}`} className="flex flex-col items-center gap-3 group/driver">
-                                        <div className="w-20 h-20 rounded-[2rem] bg-blue-600/10 border-2 border-blue-500/20 overflow-hidden shadow-2xl group-hover/driver:scale-105 group-hover/driver:border-blue-500/50 transition-all flex-shrink-0">
+                                    {/* Driver Avatar */}
+                                    <Link href={`/driver/${post.driver_id}`} className="relative group/avatar">
+                                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-blue-600/10 border-2 border-blue-500/20 overflow-hidden shadow-xl ring-2 ring-zinc-950 group-hover/avatar:border-blue-500/50 transition-all">
                                             {post.driver_avatar ? (
                                                 <img src={post.driver_avatar} alt={post.driver_name} className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-blue-400 font-bold text-2xl">
+                                                <div className="w-full h-full flex items-center justify-center text-blue-400 font-bold">
                                                     {post.driver_name[0]}
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="flex flex-col items-center text-center">
-                                            <span className="text-sm font-black text-blue-400 group-hover/driver:text-blue-300 transition-colors flex items-center gap-1.5 leading-tight mb-1">
-                                                {post.driver_name}
-                                                {post.isVerified && <CheckCircle2 className="h-3.5 w-3.5" />}
-                                            </span>
-                                            <div className="flex items-center gap-1 text-[10px] text-yellow-500 mb-2">
-                                                <Star className="h-3 w-3 fill-current" />
-                                                <span className="font-bold">{Number(post.driver_avg_rating || 5).toFixed(1)}</span>
-                                            </div>
+                                        <div className="absolute -bottom-1 -right-1 bg-zinc-900 border border-blue-500/30 rounded-full p-0.5">
+                                            <CheckCircle2 className="h-3 w-3 text-blue-400" />
                                         </div>
                                     </Link>
+                                </div>
 
-                                    <div className="ml-auto text-right self-start pt-2">
-                                        <div className="flex items-center gap-2 bg-yellow-500/10 text-yellow-500 px-4 py-2 rounded-2xl text-xs font-black border border-yellow-500/20 mb-2">
-                                            <Star className="h-4 w-4 fill-current" />
-                                            {post.rating}.0
+                                {/* Right Side: Content Area */}
+                                <div className="flex-1 space-y-2 pt-1">
+                                    {/* Authors & Meta */}
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                            <span className="text-[13px] sm:text-sm font-black text-white hover:underline cursor-pointer">
+                                                {post.reviewer_name}
+                                            </span>
+                                            <ArrowRight className="h-3 w-3 text-zinc-600" />
+                                            <Link href={`/driver/${post.driver_id}`} className="text-[13px] sm:text-sm font-black text-blue-400 hover:underline">
+                                                {post.driver_name}
+                                            </Link>
+                                            <span className="text-[10px] text-zinc-500 font-medium ml-1">
+                                                • {post.time}
+                                            </span>
                                         </div>
-                                        <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">{post.time}</p>
-                                        <p className="text-[10px] text-blue-500/60 font-black uppercase tracking-widest">{post.city}</p>
+
+                                        {/* Star Rating for the specific service */}
+                                        <div className="flex items-center gap-1.5 bg-yellow-500/5 text-yellow-500 px-2 py-0.5 rounded-lg border border-yellow-500/10 w-fit">
+                                            <Star className="h-3 w-3 fill-current" />
+                                            <span className="text-[11px] font-black">{post.rating}.0</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Extra Bio info/Reputation Row */}
+                                    <div className="flex items-center gap-4 text-[10px] sm:text-[11px] font-bold">
+                                        <div className="flex items-center gap-1 text-zinc-500">
+                                            <Star className={`h-2.5 w-2.5 ${post.reviewer_avg_rating > 0 ? 'text-yellow-500/50 fill-current' : 'text-zinc-700'}`} />
+                                            <span>Pasajero: {post.reviewer_avg_rating > 0 ? post.reviewer_avg_rating.toFixed(1) : 'S/C'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-blue-400/70">
+                                            <Star className="h-2.5 w-2.5 fill-current" />
+                                            <span>Conductor: {Number(post.driver_avg_rating || 5).toFixed(1)}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Location */}
+                                    <div className="text-[10px] text-zinc-500 font-black uppercase tracking-widest flex items-center gap-1">
+                                        <div className="w-1 h-1 rounded-full bg-blue-500" />
+                                        {post.city}
                                     </div>
                                 </div>
                             </div>
