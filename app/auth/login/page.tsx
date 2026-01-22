@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Mail, Lock, Loader2, Eye, EyeOff, CheckCircle, Rocket } from 'lucide-react'
+import { Mail, Lock, Loader2, Eye, EyeOff, CheckCircle, Rocket, X } from 'lucide-react'
 
 export default function LoginPage() {
     const [email, setEmail] = useState('')
@@ -42,7 +42,14 @@ export default function LoginPage() {
             </div>
 
             <main className="w-full max-w-md p-6 relative z-10">
-                <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl">
+                <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl relative">
+                    {/* Close Button */}
+                    <Link
+                        href="/"
+                        className="absolute top-6 right-6 p-2 text-zinc-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all border border-white/5"
+                    >
+                        <X className="h-4 w-4" />
+                    </Link>
                     <div className="text-center mb-8">
                         {/* Logo */}
                         <div className="flex justify-center mb-4">
