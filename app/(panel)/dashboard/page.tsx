@@ -13,16 +13,20 @@ import {
     Eye,
     ChevronRight,
     Rocket,
-    User
+    User,
+    Heart
 } from 'lucide-react'
 
 export default function DriverDashboard() {
     const [user, setUser] = useState<any>(null)
+    const [isDriver, setIsDriver] = useState(false)
     const [stats, setStats] = useState({
         views: 128,
         unlocks: 12,
         rating: 4.9,
-        active_days: 14
+        active_days: 14,
+        favorites: 5,
+        recent_views: 42
     })
 
     const supabase = createClient()
@@ -31,6 +35,18 @@ export default function DriverDashboard() {
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser()
             setUser(user)
+
+            if (user) {
+                const { data: userData } = await supabase
+                    .from('users')
+                    .select('roles')
+                    .eq('id', user.id)
+                    .single()
+
+                if (userData?.roles?.includes('driver')) {
+                    setIsDriver(true)
+                }
+            }
         }
         checkUser()
     }, [supabase])
@@ -40,24 +56,35 @@ export default function DriverDashboard() {
             {/* Welcome Header */}
             <div>
                 <div className="flex items-center gap-3 mb-2">
-                    <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-xs font-semibold border border-green-500/20">
-                        Perfil Activo
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${isDriver ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'}`}>
+                        {isDriver ? 'Perfil Conductor Activo' : 'Perfil Pasajero'}
                     </span>
                 </div>
                 <h1 className="text-4xl font-bold tracking-tight mb-2">
-                    Panel de Control
+                    {isDriver ? 'Panel de Control' : 'Mi Actividad'}
                 </h1>
                 <p className="text-zinc-400">
-                    Hola {user?.user_metadata?.full_name || 'Conductor'}, aquí está el resumen de tu actividad.
+                    Hola {user?.user_metadata?.full_name || (isDriver ? 'Conductor' : 'Pasajero')}, aquí está el resumen de tu actividad.
                 </p>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard icon={<Eye className="h-5 w-5 text-blue-500" />} label="Visualizaciones" value={stats.views} change="+12%" />
-                <StatCard icon={<Unlock className="h-5 w-5 text-purple-500" />} label="Contactos Desbloqueados" value={stats.unlocks} change="+2" />
-                <StatCard icon={<Star className="h-5 w-5 text-yellow-500" />} label="Calificación Media" value={stats.rating} />
-                <StatCard icon={<Calendar className="h-5 w-5 text-green-500" />} label="Días en Prueba" value={stats.active_days} />
+                {isDriver ? (
+                    <>
+                        <StatCard icon={<Eye className="h-5 w-5 text-blue-500" />} label="Visualizaciones" value={stats.views} change="+12%" />
+                        <StatCard icon={<Unlock className="h-5 w-5 text-purple-500" />} label="Contactos Desbloqueados" value={stats.unlocks} change="+2" />
+                        <StatCard icon={<Star className="h-5 w-5 text-yellow-500" />} label="Calificación Media" value={stats.rating} />
+                        <StatCard icon={<Calendar className="h-5 w-5 text-green-500" />} label="Días en Prueba" value={stats.active_days} />
+                    </>
+                ) : (
+                    <>
+                        <StatCard icon={<Heart className="h-5 w-5 text-red-500" />} label="Conductores Favoritos" value={stats.favorites} />
+                        <StatCard icon={<Eye className="h-5 w-5 text-blue-500" />} label="Perfiles Visitados" value={stats.recent_views} />
+                        <StatCard icon={<MessageSquare className="h-5 w-5 text-purple-500" />} label="Consultas Realizadas" value={0} />
+                        <StatCard icon={<Rocket className="h-5 w-5 text-yellow-500" />} label="Viajes Planeados" value={0} />
+                    </>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -66,21 +93,43 @@ export default function DriverDashboard() {
                     <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8">
                         <h3 className="text-xl font-bold mb-6">Actividad Reciente</h3>
                         <div className="space-y-6">
-                            <ActivityItem
-                                icon={<Users className="h-4 w-4" />}
-                                text="Un cliente de Santa Tecla visualizó tu perfil"
-                                time="Hace 2 horas"
-                            />
-                            <ActivityItem
-                                icon={<Unlock className="h-4 w-4 text-purple-400" />}
-                                text="Alguien desbloqueó tu número de WhatsApp"
-                                time="Ayer, 4:30 PM"
-                            />
-                            <ActivityItem
-                                icon={<Rocket className="h-4 w-4 text-white" />}
-                                text="Tu perfil ha sido verificado satisfactoriamente"
-                                time="Hace 2 días"
-                            />
+                            {isDriver ? (
+                                <>
+                                    <ActivityItem
+                                        icon={<Users className="h-4 w-4" />}
+                                        text="Un cliente de Santa Tecla visualizó tu perfil"
+                                        time="Hace 2 horas"
+                                    />
+                                    <ActivityItem
+                                        icon={<Unlock className="h-4 w-4 text-purple-400" />}
+                                        text="Alguien desbloqueó tu número de WhatsApp"
+                                        time="Ayer, 4:30 PM"
+                                    />
+                                    <ActivityItem
+                                        icon={<Rocket className="h-4 w-4 text-white" />}
+                                        text="Tu perfil ha sido verificado satisfactoriamente"
+                                        time="Hace 2 días"
+                                    />
+                                </>
+                            ) : (
+                                <>
+                                    <ActivityItem
+                                        icon={<Heart className="h-4 w-4 text-red-500" />}
+                                        text="Agregaste a 'Juan Pérez' a tus favoritos"
+                                        time="Hace 3 horas"
+                                    />
+                                    <ActivityItem
+                                        icon={<Eye className="h-4 w-4 text-blue-500" />}
+                                        text="Consultaste el perfil de 'María García'"
+                                        time="Ayer, 6:15 PM"
+                                    />
+                                    <ActivityItem
+                                        icon={<Settings className="h-4 w-4 text-zinc-400" />}
+                                        text="Actualizaste tu información de contacto"
+                                        time="Hace 3 días"
+                                    />
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -105,7 +154,8 @@ export default function DriverDashboard() {
                     <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6">
                         <h3 className="font-bold mb-4">Accesos Rápidos</h3>
                         <div className="space-y-3">
-                            <QuickLink icon={<User className="h-4 w-4" />} text="Ver mi Perfil Público" />
+                            {isDriver && <QuickLink icon={<User className="h-4 w-4" />} text="Ver mi Perfil Público" />}
+                            {!isDriver && <QuickLink icon={<Users className="h-4 w-4" />} text="Buscar Conductores" />}
                             <QuickLink icon={<Settings className="h-4 w-4" />} text="Configuración" />
                             <QuickLink icon={<MessageSquare className="h-4 w-4" />} text="Soporte Técnico" />
                         </div>

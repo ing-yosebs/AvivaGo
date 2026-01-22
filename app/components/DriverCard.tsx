@@ -21,9 +21,13 @@ interface DriverCardProps {
 }
 
 export default function DriverCard({ driver }: DriverCardProps) {
-    const fullName = driver.users?.full_name || 'Conductor AvivaGo';
-    const vehicle = driver.vehicles?.[0]
-        ? `${driver.vehicles[0].brand} ${driver.vehicles[0].model} ${driver.vehicles[0].year}`
+    const userObj = Array.isArray(driver.users) ? driver.users[0] : driver.users;
+    const fullName = userObj?.full_name || 'Conductor AvivaGo';
+
+    const vehicleArr = Array.isArray(driver.vehicles) ? driver.vehicles : (driver.vehicles ? [driver.vehicles] : []);
+    const vehicleObj = vehicleArr[0];
+    const vehicle = vehicleObj
+        ? `${vehicleObj.brand} ${vehicleObj.model} ${vehicleObj.year || ''}`
         : 'Vehículo Confort';
 
     const services = Array.isArray(driver.driver_services) ? driver.driver_services[0] : driver.driver_services;
@@ -78,46 +82,56 @@ export default function DriverCard({ driver }: DriverCardProps) {
         >
             <div className="flex flex-col md:flex-row">
                 {/* Image Section */}
-                <div className="relative md:w-[35%] h-56 md:h-auto overflow-hidden">
+                <div className="relative md:w-[35%] h-64 md:h-auto overflow-hidden">
                     <img
-                        src={driver.users?.avatar_url || driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop'}
+                        src={userObj?.avatar_url || driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop'}
                         alt={fullName}
                         onError={(e) => {
                             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop';
                         }}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-60 md:hidden" />
+                    {/* Overlay for Name and Rating */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent" />
 
+                    {/* Rating at Top Right */}
+                    <div className="absolute top-3 right-3 z-10">
+                        <div className="flex items-center gap-1.5 bg-yellow-500 text-black px-2.5 py-1 rounded-full shadow-lg shadow-yellow-500/20">
+                            <Star className="h-3 w-3 fill-current" />
+                            <span className="text-[11px] font-black">{driver.average_rating || '5.0'}</span>
+                        </div>
+                    </div>
+
+                    {/* Name at Bottom Centered */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4 z-10 text-center">
+                        <h3 className="text-lg font-bold text-white leading-tight drop-shadow-md">
+                            {fullName}
+                        </h3>
+                    </div>
                 </div>
 
                 {/* Content Section */}
                 <div className="flex-1 p-6 flex flex-col justify-between">
                     <div>
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">
-                                    {fullName}
-                                </h3>
-                                <div className="flex items-center gap-2 text-zinc-500 mt-1">
-                                    <MapPin className="h-3 w-3" />
-                                    <span className="text-sm">{driver.users?.address_state || driver.city}</span>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-xl">
-                                <Star className="h-3.5 w-3.5 text-yellow-500 fill-current" />
-                                <span className="text-sm font-bold text-white">{driver.average_rating || '5.0'}</span>
-                            </div>
-                        </div>
-
-                        <div className="space-y-3 mb-6">
-                            <div className="flex items-center gap-3 text-zinc-400">
-                                <Car className="h-4 w-4 opacity-50" />
-                                <span className="text-sm truncate">{vehicle}</span>
-                            </div>
-                            <p className="text-sm text-zinc-500 line-clamp-2 leading-relaxed italic">
+                        <div className="space-y-4 mb-6">
+                            {/* 1. Professional Bio */}
+                            <p className="text-sm text-zinc-300 line-clamp-3 leading-relaxed italic">
                                 "{bio}"
                             </p>
+
+                            {/* 2. Main Vehicle */}
+                            <div className="flex items-center gap-3 text-zinc-400">
+                                <Car className="h-4 w-4 text-blue-500 opacity-70" />
+                                <span className="text-sm font-medium truncate">{vehicle}</span>
+                            </div>
+
+                            {/* 3. City of Origin */}
+                            <div className="flex items-center gap-3 text-zinc-400">
+                                <MapPin className="h-4 w-4 text-emerald-500 opacity-70" />
+                                <span className="text-sm font-medium">{userObj?.address_state || driver.city}</span>
+                            </div>
+
+                            {/* Personality Tags */}
                             <div className="flex flex-wrap gap-2 pt-1">
                                 {questionnaire.social && (
                                     <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[9px] font-bold uppercase tracking-wider border border-blue-500/20">

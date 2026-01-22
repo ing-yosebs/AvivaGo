@@ -145,7 +145,10 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
             social: personalityOptions.social[questionnaire.social],
             driving: personalityOptions.driving[questionnaire.driving],
             assistance: personalityOptions.assistance[questionnaire.assistance]
-        }
+        },
+        personal_bio: services?.personal_bio || "",
+        transport_platforms: services?.transport_platforms || [],
+        knows_sign_language: services?.knows_sign_language || false
     };
 
     return <ProfileView driver={formattedDriver} />;

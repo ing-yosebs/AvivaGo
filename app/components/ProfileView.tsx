@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Header from './Header';
+import { createClient } from '@/lib/supabase/client';
 import {
     MapPin,
     Star,
@@ -19,8 +20,12 @@ import {
     Zap,
     Stethoscope,
     Users,
-    Map
+    Map,
+    User,
+    Heart,
+    Edit3
 } from 'lucide-react';
+import ReviewModal from './ReviewModal';
 
 interface ProfileViewProps {
     driver: {
@@ -46,13 +51,86 @@ interface ProfileViewProps {
             social?: { label: string; desc: string };
             driving?: { label: string; desc: string };
             assistance?: { label: string; desc: string };
-        }
+        };
+        personal_bio?: string;
+        transport_platforms?: string[];
+        knows_sign_language?: boolean;
     }
 }
 
 const ProfileView = ({ driver }: ProfileViewProps) => {
+    const supabase = createClient();
     // Initial state is locked (false) to show the contact information hidden
     const [isUnlocked, setIsUnlocked] = useState(false);
+    const [isFavorite, setIsFavorite] = useState(false);
+    const [loadingFav, setLoadingFav] = useState(true);
+    const [isReviewOpen, setIsReviewOpen] = useState(false);
+
+    useEffect(() => {
+        const checkFavorite = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                setLoadingFav(false);
+                return;
+            }
+
+            const { data } = await supabase
+                .from('favorites')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('driver_profile_id', driver.id)
+                .single();
+
+            if (data) setIsFavorite(true);
+            setLoadingFav(false);
+        };
+        checkFavorite();
+    }, [driver.id, supabase]);
+
+    // Check if unlocked on mount
+    useEffect(() => {
+        const checkUnlock = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return;
+
+            const { data } = await supabase
+                .from('unlocks') // Assuming table name
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('driver_profile_id', driver.id)
+                .single();
+
+            if (data) setIsUnlocked(true);
+        };
+        checkUnlock();
+    }, [driver.id, supabase]);
+
+    const toggleFavorite = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            alert('Debes iniciar sesión para agregar a favoritos');
+            return;
+        }
+
+        if (isFavorite) {
+            const { error } = await supabase
+                .from('favorites')
+                .delete()
+                .eq('user_id', user.id)
+                .eq('driver_profile_id', driver.id);
+
+            if (!error) setIsFavorite(false);
+        } else {
+            const { error } = await supabase
+                .from('favorites')
+                .insert({
+                    user_id: user.id,
+                    driver_profile_id: driver.id
+                });
+
+            if (!error) setIsFavorite(true);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative overflow-hidden">
@@ -129,6 +207,14 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                                 </a>
                                             </div>
                                             <p className="text-[10px] text-center text-zinc-500 uppercase font-bold">Sin cargos adicionales por contacto directo</p>
+
+                                            <button
+                                                onClick={() => setIsReviewOpen(true)}
+                                                className="w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 text-white font-bold py-3 rounded-2xl transition-all border border-white/10"
+                                            >
+                                                <Edit3 className="h-4 w-4 text-yellow-500" />
+                                                Calificar Servicio
+                                            </button>
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
@@ -136,7 +222,34 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                                 <p className="text-zinc-500 text-sm mb-2">Costo para contactar</p>
                                                 <h4 className="text-4xl font-bold text-black mb-6">${driver.price.toFixed(2)} <span className="text-sm font-medium text-zinc-400">USD</span></h4>
                                                 <button
-                                                    onClick={() => setIsUnlocked(true)}
+                                                    onClick={async () => {
+                                                        const { data: { user } } = await supabase.auth.getUser();
+                                                        if (!user) {
+                                                            alert('Inicia sesión para desbloquear');
+                                                            return;
+                                                        }
+
+                                                        // Mock payment / Create unlock
+                                                        const { error } = await supabase
+                                                            .from('unlocks')
+                                                            .insert({
+                                                                user_id: user.id,
+                                                                driver_profile_id: driver.id,
+                                                                amount_paid: driver.price || 10.00
+                                                            });
+
+                                                        if (!error) {
+                                                            setIsUnlocked(true);
+                                                        } else {
+                                                            console.error('Error unlocking:', error);
+                                                            // If error is duplicate key, just unlock
+                                                            if (error.code === '23505') {
+                                                                setIsUnlocked(true);
+                                                            } else {
+                                                                alert('Error al desbloquear contacto');
+                                                            }
+                                                        }
+                                                    }}
                                                     className="w-full flex items-center justify-center gap-3 bg-zinc-950 text-white font-bold py-4 rounded-2xl hover:bg-blue-600 transition-all shadow-lg group active:scale-[0.98]"
                                                 >
                                                     <Lock className="h-4 w-4 group-hover:rotate-12 transition-transform" />
@@ -149,6 +262,18 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                             </div>
                                         </div>
                                     )}
+
+                                    <button
+                                        onClick={toggleFavorite}
+                                        disabled={loadingFav}
+                                        className={`w-full flex items-center justify-center gap-3 font-bold py-4 rounded-2xl transition-all active:scale-[0.98] ${isFavorite
+                                            ? 'bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20'
+                                            : 'bg-white/5 text-white border border-white/10 hover:bg-white/10'
+                                            }`}
+                                    >
+                                        <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
+                                        {isFavorite ? 'En mis Favoritos' : 'Agregar a Favoritos'}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -164,28 +289,48 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                         </div>
                                         <h3 className="text-xl font-bold tracking-tight">Experiencia Profesional</h3>
                                     </div>
-                                    <p className="text-zinc-400 text-lg leading-relaxed font-medium line-height-relaxed">
+                                    <p className="text-zinc-400 text-lg leading-relaxed font-medium">
                                         {driver.bio}
                                     </p>
                                 </section>
 
-                                <section className="grid grid-cols-1 gap-8 mb-10">
-                                    <div className="space-y-4 p-6 bg-white/5 border border-white/10 rounded-3xl">
-                                        <div className="flex items-center gap-3 text-sm font-bold text-zinc-500 uppercase tracking-widest">
-                                            <Car className="h-4 w-4" />
-                                            Vehículo Registrado
+                                {driver.personal_bio && (
+                                    <section className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <div className="bg-purple-600/10 p-2 rounded-xl">
+                                                <User className="h-5 w-5 text-purple-400" />
+                                            </div>
+                                            <h3 className="text-xl font-bold tracking-tight">Sobre mí (Reseña Personal)</h3>
                                         </div>
-                                        <div className="text-xl font-bold">{driver.vehicle}</div>
-                                        <div className="text-sm text-zinc-500">Modelo {driver.year} • Capacidad para 4 pasajeros</div>
+                                        <p className="text-zinc-400 text-lg leading-relaxed font-medium">
+                                            {driver.personal_bio}
+                                        </p>
+                                    </section>
+                                )}
+
+                                {/* Vehicle */}
+                                <section className="mb-10">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-blue-600/10 p-2 rounded-xl">
+                                            <Car className="h-5 w-5 text-blue-500" />
+                                        </div>
+                                        <h3 className="text-xl font-bold tracking-tight">Vehículo Registrado</h3>
+                                    </div>
+                                    <div className="p-6 bg-white/5 border border-white/10 rounded-3xl">
+                                        <div className="text-xl font-bold text-white mb-1">{driver.vehicle}</div>
+                                        <div className="text-sm text-zinc-500 font-medium">Modelo {driver.year} • Capacidad para 4 pasajeros</div>
                                     </div>
                                 </section>
 
-                                <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-                                    <div className="space-y-4 p-6 bg-white/5 border border-white/10 rounded-3xl">
-                                        <div className="flex items-center gap-3 text-sm font-bold text-zinc-500 uppercase tracking-widest">
-                                            <MapPin className="h-4 w-4" />
-                                            Zonas de Cobertura
+                                {/* Zones */}
+                                <section className="mb-10">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-blue-600/10 p-2 rounded-xl">
+                                            <MapPin className="h-5 w-5 text-blue-500" />
                                         </div>
+                                        <h3 className="text-xl font-bold tracking-tight">Zonas de Cobertura</h3>
+                                    </div>
+                                    <div className="p-6 bg-white/5 border border-white/10 rounded-3xl">
                                         <div className="flex flex-wrap gap-2">
                                             {(driver.zones || []).length > 0 ? (
                                                 (driver.zones || []).map(zone => (
@@ -194,11 +339,17 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                             ) : <span className="text-zinc-500 italic">No especificado</span>}
                                         </div>
                                     </div>
-                                    <div className="space-y-4 p-6 bg-white/5 border border-white/10 rounded-3xl">
-                                        <div className="flex items-center gap-3 text-sm font-bold text-zinc-500 uppercase tracking-widest">
-                                            <Globe className="h-4 w-4" />
-                                            Idiomas
+                                </section>
+
+                                {/* Languages */}
+                                <section className="mb-10">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-blue-600/10 p-2 rounded-xl">
+                                            <Globe className="h-5 w-5 text-purple-400" />
                                         </div>
+                                        <h3 className="text-xl font-bold tracking-tight">Idiomas</h3>
+                                    </div>
+                                    <div className="p-6 bg-white/5 border border-white/10 rounded-3xl">
                                         <div className="flex flex-wrap gap-2">
                                             {(driver.languages || []).length > 0 ? (
                                                 (driver.languages || []).map(lang => (
@@ -215,7 +366,7 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                         <div className="bg-blue-600/10 p-2 rounded-xl">
                                             <Globe className="h-5 w-5 text-emerald-400" />
                                         </div>
-                                        <h3 className="text-xl font-bold tracking-tight">Idiomas Indígenas</h3>
+                                        <h3 className="text-xl font-bold tracking-tight">Lenguas Indígenas</h3>
                                     </div>
                                     <div className="p-6 bg-white/5 border border-white/10 rounded-3xl">
                                         {(driver.indigenous || []).length > 0 ? (
@@ -227,10 +378,50 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <span className="text-zinc-500 italic">No especificado</span>
+                                            <span className="text-zinc-500 italic">No se especificaron lenguas indígenas</span>
                                         )}
                                     </div>
                                 </section>
+
+                                {/* Inclusive Communication (Sign Language) */}
+                                {driver.knows_sign_language && (
+                                    <section className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <div className="bg-blue-600/20 p-2 rounded-xl">
+                                                <Zap className="h-5 w-5 text-blue-400" />
+                                            </div>
+                                            <h3 className="text-xl font-bold tracking-tight">Comunicación Inclusiva</h3>
+                                        </div>
+                                        <div className="p-6 bg-blue-600/5 border border-blue-500/20 rounded-3xl flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-blue-600/20 rounded-2xl flex items-center justify-center">
+                                                <CheckCircle className="h-6 w-6 text-blue-400" />
+                                            </div>
+                                            <div>
+                                                <p className="text-white font-bold text-lg">Intérprete de Lenguaje de Señas (LSM)</p>
+                                                <p className="text-zinc-400 text-sm">Este conductor está capacitado para comunicarse con personas con discapacidad auditiva.</p>
+                                            </div>
+                                        </div>
+                                    </section>
+                                )}
+
+                                {/* Transport Platforms */}
+                                {driver.transport_platforms && driver.transport_platforms.length > 0 && (
+                                    <section className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <div className="bg-emerald-600/10 p-2 rounded-xl">
+                                                <Car className="h-5 w-5 text-emerald-500" />
+                                            </div>
+                                            <h3 className="text-xl font-bold tracking-tight">Plataformas donde opero</h3>
+                                        </div>
+                                        <div className="flex flex-wrap gap-3">
+                                            {driver.transport_platforms.map(platform => (
+                                                <div key={platform} className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm font-bold text-zinc-300">
+                                                    {platform}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
 
                                 <section className="mb-10">
                                     <div className="flex items-center gap-3 mb-6">
@@ -408,6 +599,13 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                     </div>
                 </div>
             </main>
+
+            <ReviewModal
+                isOpen={isReviewOpen}
+                onClose={() => setIsReviewOpen(false)}
+                driverId={String(driver.id)}
+                driverName={driver.name}
+            />
         </div>
     );
 };

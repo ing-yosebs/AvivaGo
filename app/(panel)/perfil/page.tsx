@@ -26,8 +26,13 @@ import {
     Info,
     Loader2,
     Check,
-    Search
+    Search,
+    Shield,
+    Star,
+    CheckCircle,
+    MessageSquare
 } from 'lucide-react'
+import ReviewModal from '../../components/ReviewModal'
 import { GoogleMap, useJsApiLoader, Autocomplete, MarkerF } from '@react-google-maps/api'
 
 const LIBRARIES: ("places" | "drawing" | "geometry" | "visualization")[] = ['places']
@@ -115,22 +120,28 @@ function ProfileContent() {
     }
 
     useEffect(() => {
-        if (urlTab) {
-            setActiveTab(urlTab)
-        }
-    }, [urlTab])
-
-    useEffect(() => {
         const init = async () => {
             const userData = await loadProfile()
-            if (userData?.roles?.includes('driver')) {
+            const isUserDriver = userData?.roles?.includes('driver')
+
+            if (isUserDriver) {
                 await loadVehicles(userData.id)
                 await loadServices(userData.id)
+                // If we have a tab in URL, set it
+                if (urlTab) setActiveTab(urlTab)
+            } else {
+                // If not a driver and trying to access driver-only tabs, force 'personal'
+                if (urlTab === 'vehicles' || urlTab === 'services') {
+                    setActiveTab('personal')
+                } else if (urlTab) {
+                    // Other valid tabs are allowed
+                    setActiveTab(urlTab)
+                }
             }
             setLoading(false)
         }
         init()
-    }, [supabase])
+    }, [supabase, urlTab])
 
     const handleSaveProfile = async (formData: any) => {
         setSaving(true)
@@ -184,8 +195,10 @@ function ProfileContent() {
         ...(isDriver ? [
             { id: 'vehicles', label: 'Mis Vehículos', icon: Car },
             { id: 'services', label: 'Mis Servicios', icon: Clock }
-        ] : []),
-        { id: 'payments', label: 'Pagos y Membresía', icon: CreditCard },
+        ] : [
+            { id: 'trusted_drivers', label: 'Conductores de Confianza', icon: Shield }
+        ]),
+        { id: 'payments', label: isDriver ? 'Pagos y Membresía' : 'Mis Pagos', icon: CreditCard },
         { id: 'security', label: 'Seguridad', icon: Lock },
     ]
 
@@ -217,6 +230,10 @@ function ProfileContent() {
 
                 {activeTab === 'services' && (
                     <ServicesSection services={driverServices} onSave={handleSaveServices} saving={saving} />
+                )}
+
+                {activeTab === 'trusted_drivers' && !isDriver && (
+                    <TrustedDriversSection />
                 )}
 
                 {activeTab === 'payments' && (
@@ -679,6 +696,24 @@ function VehiclesSection({ vehicles, onAdd }: any) {
     const insuranceRef = useRef<HTMLInputElement>(null)
     const photoRefs = useRef<(HTMLInputElement | null)[]>([])
 
+    const carBrands: Record<string, string[]> = {
+        'Toyota': ['Camry', 'Corolla', 'RAV4', 'Hilux', 'Yaris', 'Prius', 'Avanza'],
+        'Nissan': ['Sentra', 'Versa', 'March', 'Altima', 'Kicks', 'X-Trail', 'NP300'],
+        'Chevrolet': ['Aveo', 'Onix', 'Cavalier', 'Captiva', 'Tracker', 'S10', 'Silverado'],
+        'Volkswagen': ['Jetta', 'Vento', 'Polo', 'Tiguan', 'Taos', 'Virtus', 'Gol'],
+        'Honda': ['Civic', 'Accord', 'CR-V', 'HR-V', 'City', 'Fit'],
+        'Kia': ['Rio', 'Forte', 'Sportage', 'Seltos', 'Soul', 'Optima'],
+        'Hyundai': ['Accent', 'Elantra', 'Tucson', 'Santa Fe', 'Creta', 'Grand i10'],
+        'Mazda': ['Mazda 3', 'Mazda 2', 'CX-5', 'CX-3', 'CX-30', 'MX-5'],
+        'Ford': ['Figo', 'Focus', 'Fusion', 'Escape', 'Explorer', 'Ranger', 'F-150'],
+        'BMW': ['Serie 3', 'Serie 1', 'X3', 'X1', 'Serie 5', 'X5'],
+        'Mercedes-Benz': ['Clase C', 'Clase A', 'GLA', 'GLC', 'Clase E', 'GLE'],
+        'Audi': ['A4', 'A3', 'Q5', 'Q3', 'A1', 'Q7'],
+        'Suzuki': ['Swift', 'Ignis', 'Ertiga', 'Vitara', 'Jimny'],
+        'MG': ['ZS', 'MG5', 'HS', 'RX5'],
+        'Cupra': ['Formentor', 'Leon', 'Ateca']
+    }
+
     const [form, setForm] = useState<any>({
         brand: '',
         model: '',
@@ -745,6 +780,18 @@ function VehiclesSection({ vehicles, onAdd }: any) {
         }
     }
 
+    const handleDelete = async (id: string) => {
+        if (!confirm('¿Estás seguro de que deseas eliminar este vehículo?')) return
+
+        try {
+            const { error } = await supabase.from('vehicles').delete().eq('id', id)
+            if (error) throw error
+            onAdd() // Refresh list
+        } catch (error: any) {
+            alert('Error al eliminar: ' + error.message)
+        }
+    }
+
     if (isAdding) {
         return (
             <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
@@ -760,11 +807,73 @@ function VehiclesSection({ vehicles, onAdd }: any) {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase text-zinc-500">Marca *</label>
-                                <input value={form.brand} onChange={e => setForm({ ...form, brand: e.target.value })} placeholder="Ej. Toyota" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                <select
+                                    value={form.brand === 'Otra' ? 'Otra' : (carBrands[form.brand] ? form.brand : (form.brand ? 'Otra' : ''))}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        if (val === 'Otra') {
+                                            setForm({ ...form, brand: '', model: '', isCustomBrand: true });
+                                        } else {
+                                            setForm({ ...form, brand: val, model: '', isCustomBrand: false });
+                                        }
+                                    }}
+                                    className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-white appearance-none cursor-pointer"
+                                >
+                                    <option value="" disabled>Selecciona una marca</option>
+                                    {Object.keys(carBrands).sort().map(brand => (
+                                        <option key={brand} value={brand}>{brand}</option>
+                                    ))}
+                                    <option value="Otra">Otra marca...</option>
+                                </select>
+                                {form.isCustomBrand && (
+                                    <input
+                                        value={form.brand}
+                                        onChange={e => setForm({ ...form, brand: e.target.value })}
+                                        placeholder="Especifica la marca"
+                                        className="w-full mt-2 bg-white/5 border border-blue-500/30 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 animate-in slide-in-from-top-2 duration-300"
+                                    />
+                                )}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase text-zinc-500">Modelo *</label>
-                                <input value={form.model} onChange={e => setForm({ ...form, model: e.target.value })} placeholder="Ej. Camry" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                {!form.isCustomBrand && carBrands[form.brand] ? (
+                                    <>
+                                        <select
+                                            value={form.isCustomModel ? 'Otro' : form.model}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                if (val === 'Otro') {
+                                                    setForm({ ...form, model: '', isCustomModel: true });
+                                                } else {
+                                                    setForm({ ...form, model: val, isCustomModel: false });
+                                                }
+                                            }}
+                                            className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-white appearance-none cursor-pointer"
+                                        >
+                                            <option value="" disabled>Selecciona un modelo</option>
+                                            {carBrands[form.brand]?.sort().map(model => (
+                                                <option key={model} value={model}>{model}</option>
+                                            ))}
+                                            <option value="Otro">Otro modelo...</option>
+                                        </select>
+                                        {form.isCustomModel && (
+                                            <input
+                                                value={form.model}
+                                                onChange={e => setForm({ ...form, model: e.target.value })}
+                                                placeholder="Especifica el modelo"
+                                                className="w-full mt-2 bg-white/5 border border-blue-500/30 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 animate-in slide-in-from-top-2 duration-300"
+                                            />
+                                        )}
+                                    </>
+                                ) : (
+                                    <input
+                                        value={form.model}
+                                        onChange={e => setForm({ ...form, model: e.target.value })}
+                                        placeholder={form.isCustomBrand ? "Escribe el modelo" : "Selecciona una marca primero"}
+                                        disabled={!form.brand && !form.isCustomBrand}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                                    />
+                                )}
                             </div>
                         </div>
 
@@ -908,7 +1017,10 @@ function VehiclesSection({ vehicles, onAdd }: any) {
                                     </button>
                                 </div>
                             </div>
-                            <button className="absolute top-6 right-6 p-2 text-zinc-500 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                            <button
+                                onClick={() => handleDelete(v.id)}
+                                className="absolute top-6 right-6 p-2 text-zinc-500 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                            >
                                 <Trash2 className="h-4 w-4" />
                             </button>
                         </div>
@@ -934,7 +1046,10 @@ function ServicesSection({ services, onSave, saving }: any) {
         languages: services?.languages || ['Español'],
         indigenous_languages: services?.indigenous_languages || [],
         work_schedule: services?.work_schedule || {},
-        professional_questionnaire: services?.professional_questionnaire || { bio: '' }
+        professional_questionnaire: services?.professional_questionnaire || { bio: '' },
+        personal_bio: services?.personal_bio || '',
+        transport_platforms: services?.transport_platforms || [],
+        knows_sign_language: services?.knows_sign_language || false
     })
 
     useEffect(() => {
@@ -944,7 +1059,10 @@ function ServicesSection({ services, onSave, saving }: any) {
                 languages: services.languages || ['Español'],
                 indigenous_languages: services.indigenous_languages || [],
                 work_schedule: services.work_schedule || {},
-                professional_questionnaire: services.professional_questionnaire || { bio: '' }
+                professional_questionnaire: services.professional_questionnaire || { bio: '' },
+                personal_bio: services.personal_bio || '',
+                transport_platforms: services.transport_platforms || [],
+                knows_sign_language: services.knows_sign_language || false
             })
         }
     }, [services])
@@ -970,27 +1088,72 @@ function ServicesSection({ services, onSave, saving }: any) {
         setFormData({ ...formData, [listName]: list })
     }
 
+    const platformOptions = ['Uber', 'Didi', 'inDrive', 'Cabify', 'Bolt', 'Taxi tradicional']
+
     return (
         <div className="space-y-12 max-w-5xl">
-            {/* Header */}
+            {/* Reseñas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Professional Bio */}
+                <div className="space-y-6 bg-white/5 p-8 rounded-[2.5rem] border border-white/10">
+                    <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                        <FileText className="h-4 w-4" /> Reseña Profesional
+                    </h4>
+                    <div className="space-y-2">
+                        <p className="text-sm text-zinc-400">Describe tu servicio con tus propias palabras.</p>
+                        <textarea
+                            value={formData.professional_questionnaire?.bio || ''}
+                            onChange={(e) => setFormData({
+                                ...formData,
+                                professional_questionnaire: {
+                                    ...formData.professional_questionnaire,
+                                    bio: e.target.value
+                                }
+                            })}
+                            placeholder="Ej. Soy un conductor con 10 años de experiencia..."
+                            className="w-full bg-zinc-900 border border-white/10 rounded-2xl p-6 min-h-[120px] text-white focus:border-blue-500 transition-colors resize-none"
+                        />
+                    </div>
+                </div>
+
+                {/* Personal Bio */}
+                <div className="space-y-6 bg-white/5 p-8 rounded-[2.5rem] border border-white/10">
+                    <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                        <User className="h-4 w-4" /> Reseña Personal
+                    </h4>
+                    <div className="space-y-2">
+                        <p className="text-sm text-zinc-400">Cuéntanos sobre tus gustos, pasatiempos y cosas de interés.</p>
+                        <textarea
+                            value={formData.personal_bio}
+                            onChange={(e) => setFormData({ ...formData, personal_bio: e.target.value })}
+                            placeholder="Ej. Me gusta el senderismo, la música clásica y conocer nuevos lugares..."
+                            className="w-full bg-zinc-900 border border-white/10 rounded-2xl p-6 min-h-[120px] text-white focus:border-blue-500 transition-colors resize-none"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Platforms */}
             <div className="space-y-6 bg-white/5 p-8 rounded-[2.5rem] border border-white/10">
                 <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
-                    <FileText className="h-4 w-4" /> Reseña Profesional
+                    <Car className="h-4 w-4" /> Plataformas de Transporte
                 </h4>
-                <div className="space-y-2">
-                    <p className="text-sm text-zinc-400">Describe tu servicio con tus propias palabras para que los clientes te conozcan mejor.</p>
-                    <textarea
-                        value={formData.professional_questionnaire?.bio || ''}
-                        onChange={(e) => setFormData({
-                            ...formData,
-                            professional_questionnaire: {
-                                ...formData.professional_questionnaire,
-                                bio: e.target.value
-                            }
-                        })}
-                        placeholder="Ej. Soy un conductor con 10 años de experiencia, especializado en traslados ejecutivos y turismo local..."
-                        className="w-full bg-zinc-900 border border-white/10 rounded-2xl p-6 min-h-[150px] text-white focus:border-blue-500 transition-colors resize-none"
-                    />
+                <div className="space-y-4">
+                    <p className="text-sm text-zinc-400">Señala las plataformas donde ofreces tus servicios:</p>
+                    <div className="flex flex-wrap gap-3">
+                        {platformOptions.map(platform => (
+                            <button
+                                key={platform}
+                                onClick={() => toggleItem('transport_platforms', platform)}
+                                className={`px-6 py-3 rounded-xl text-sm font-bold transition-all ${formData.transport_platforms.includes(platform)
+                                    ? 'bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.2)]'
+                                    : 'bg-white/5 border border-white/10 text-zinc-500 hover:border-white/20'
+                                    }`}
+                            >
+                                {platform}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
@@ -1052,6 +1215,25 @@ function ServicesSection({ services, onSave, saving }: any) {
                                     {lang}
                                 </button>
                             ))}
+                        </div>
+                    </div>
+
+                    {/* Sign Language Question */}
+                    <div className="pt-6 border-t border-white/10 space-y-4">
+                        <div className="flex flex-col gap-4">
+                            <p className="text-sm font-bold text-zinc-300">¿Conoces el lenguaje de señas para comunicarte con personas con discapacidad auditiva?</p>
+                            <button
+                                onClick={() => setFormData({ ...formData, knows_sign_language: !formData.knows_sign_language })}
+                                className={`flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all text-left w-full sm:w-fit ${formData.knows_sign_language
+                                    ? 'bg-blue-600/10 border-blue-500/50 text-blue-400 shadow-[0_0_20px_rgba(37,99,235,0.1)]'
+                                    : 'bg-white/5 border-white/10 text-zinc-500 hover:border-white/20'
+                                    }`}
+                            >
+                                <div className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${formData.knows_sign_language ? 'bg-blue-600 border-transparent' : 'border-white/20'}`}>
+                                    {formData.knows_sign_language && <CheckCircle2 className="h-4 w-4 text-white" />}
+                                </div>
+                                <span className={`font-bold text-sm ${formData.knows_sign_language ? 'text-white' : ''}`}>Sí, domino el lenguaje de señas (LSM)</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1133,9 +1315,61 @@ function ServicesSection({ services, onSave, saving }: any) {
 
 
 function PaymentsSection({ isDriver }: { isDriver: boolean }) {
+    const supabase = createClient()
+    const [unlocks, setUnlocks] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+    const [reviewModal, setReviewModal] = useState<{ open: boolean, driverId: string, driverName: string } | null>(null)
+
+    useEffect(() => {
+        const fetchHistory = async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) return
+
+            // 1. Fetch Unlocks
+            const { data: unlocksData, error: unlockError } = await supabase
+                .from('unlocks')
+                .select(`
+                    id,
+                    amount_paid,
+                    created_at,
+                    driver_profile_id,
+                    driver_profiles (
+                        users (full_name)
+                    )
+                `)
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+
+            if (unlockError) {
+                console.error('Error fetching unlocks:', unlockError)
+                setLoading(false)
+                return
+            }
+
+            // 2. Fetch Reviews for these unlocks
+            const unlockIds = (unlocksData || []).map(u => u.id)
+            const { data: reviewsData, error: reviewError } = await supabase
+                .from('reviews')
+                .select('id, rating, passenger_rating, unlock_id')
+                .in('unlock_id', unlockIds)
+
+            // 3. Merge them
+            const merged = (unlocksData || []).map(unlock => ({
+                ...unlock,
+                reviews: (reviewsData || []).filter(r => r.unlock_id === unlock.id)
+            }))
+
+            setUnlocks(merged)
+            setLoading(false)
+        }
+        fetchHistory()
+    }, [isDriver, reviewModal])
+
+    if (loading) return <div className="animate-pulse h-40 bg-white/5 rounded-3xl" />
+
     return (
         <div className="space-y-8">
-            {isDriver && (
+            {isDriver ? (
                 <div className="backdrop-blur-xl bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-white/10 rounded-3xl p-8 relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-8 opacity-10">
                         <BadgeCheck className="h-32 w-32" />
@@ -1155,29 +1389,325 @@ function PaymentsSection({ isDriver }: { isDriver: boolean }) {
                         </div>
                     </div>
                 </div>
+            ) : (
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-3xl p-6 flex items-start gap-4">
+                    <div className="p-3 bg-blue-500/20 rounded-2xl text-blue-400">
+                        <Info className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-blue-100">Transparencia en tus pagos</h4>
+                        <p className="text-sm text-blue-200/60 mt-1">Aquí puedes ver el historial de conductores que has desbloqueado. Cada pago te garantiza acceso ilimitado a su contacto por tiempo indefinido.</p>
+                    </div>
+                </div>
             )}
 
             <div className="space-y-4">
-                <h3 className="font-bold text-lg">Historial de Transacciones</h3>
+                <h3 className="font-bold text-lg">{isDriver ? 'Historial de Membresía' : 'Historial de Desbloqueos'}</h3>
                 <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-white/5 text-zinc-500 uppercase text-[10px] font-bold tracking-wider">
                             <tr>
-                                <th className="px-6 py-4">Concepto</th>
+                                <th className="px-6 py-4">{isDriver ? 'Concepto' : 'Conductor'}</th>
                                 <th className="px-6 py-4">Fecha</th>
                                 <th className="px-6 py-4 text-right">Monto</th>
+                                {!isDriver && (
+                                    <>
+                                        <th className="px-6 py-4 text-center">Tu Calif.</th>
+                                        <th className="px-6 py-4 text-center">Calif. Conductor</th>
+                                        <th className="px-6 py-4 text-right">Acción</th>
+                                    </>
+                                )}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
-                            <tr className="hover:bg-white/5 transition-colors">
-                                <td className="px-6 py-4 font-medium">Pago de Membresía Anual</td>
-                                <td className="px-6 py-4 text-zinc-500">15/01/2026</td>
-                                <td className="px-6 py-4 text-right font-bold">$49.99</td>
-                            </tr>
+                            {unlocks.length > 0 ? (
+                                unlocks.map((item) => (
+                                    <tr key={item.id} className="hover:bg-white/5 transition-colors">
+                                        <td className="px-6 py-4 font-medium">
+                                            {isDriver ? 'Pago de Membresía' : (item.driver_profiles?.users?.full_name || 'Conductor Desconocido')}
+                                        </td>
+                                        <td className="px-6 py-4 text-zinc-500">
+                                            {new Date(item.created_at).toLocaleDateString('es-MX', {
+                                                day: '2-digit',
+                                                month: '2-digit',
+                                                year: 'numeric'
+                                            })}
+                                        </td>
+                                        <td className="px-6 py-4 text-right font-bold text-emerald-400">
+                                            ${item.amount_paid}
+                                        </td>
+                                        {!isDriver && (
+                                            <>
+                                                <td className="px-6 py-4 text-center">
+                                                    {item.reviews && item.reviews.length > 0 ? (
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold border border-emerald-500/20">
+                                                            <Star className="h-3 w-3 fill-current" />
+                                                            {item.reviews[0].rating}.0 - CALIFICADO
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">SIN CALIFICAR</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    {item.reviews && item.reviews.length > 0 && item.reviews[0].passenger_rating ? (
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20">
+                                                            <Star className="h-3 w-3 fill-current" />
+                                                            {item.reviews[0].passenger_rating}.0 - CALIFICADO
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter italic">PENDIENTE</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 text-right">
+                                                    {item.reviews && item.reviews.length > 0 ? (
+                                                        <div className="flex items-center justify-end gap-1.5 text-zinc-500 opacity-50">
+                                                            <CheckCircle className="h-4 w-4" />
+                                                            <span className="text-[10px] font-black uppercase">Completado</span>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => setReviewModal({
+                                                                open: true,
+                                                                driverId: item.driver_profile_id,
+                                                                driverName: item.driver_profiles?.users?.full_name || 'Conductor'
+                                                            })}
+                                                            className="text-[10px] font-black bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest active:scale-95"
+                                                        >
+                                                            Calificar
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </>
+                                        )}
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={3} className="px-6 py-12 text-center text-zinc-500 italic">
+                                        No se encontraron transacciones recientes.
+                                    </td>
+                                </tr>
+                            )}
                         </tbody>
                     </table>
                 </div>
             </div>
+            {reviewModal && (
+                <ReviewModal
+                    isOpen={reviewModal.open}
+                    onClose={() => setReviewModal(null)}
+                    driverId={reviewModal.driverId}
+                    driverName={reviewModal.driverName}
+                />
+            )}
+        </div>
+    )
+}
+
+function TrustedDriversSection() {
+    const supabase = createClient()
+    const [unlocks, setUnlocks] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+    const [ratingModal, setRatingModal] = useState<{ open: boolean, unlock: any } | null>(null)
+    const [comment, setComment] = useState('')
+    const [rating, setRating] = useState(5)
+    const [submitting, setSubmitting] = useState(false)
+
+    const fetchTrusted = async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        const { data, error } = await supabase
+            .from('unlocks')
+            .select(`
+                id,
+                created_at,
+                driver_profile_id,
+                driver_profiles (
+                    id,
+                    users (full_name, avatar_url, phone_number),
+                    vehicles (brand, model, plate_number)
+                ),
+                reviews (id, rating, comment)
+            `)
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+
+        if (!error) setUnlocks(data || [])
+        setLoading(false)
+    }
+
+    useEffect(() => {
+        fetchTrusted()
+    }, [])
+
+    const handleSubmitReview = async () => {
+        if (!ratingModal?.unlock) return
+        setSubmitting(true)
+
+        try {
+            const { data: { user } } = await supabase.auth.getUser()
+            const { error } = await supabase.from('reviews').insert({
+                unlock_id: ratingModal.unlock.id,
+                driver_profile_id: ratingModal.unlock.driver_profile_id,
+                reviewer_id: user?.id,
+                rating,
+                comment
+            })
+
+            if (error) throw error
+            setRatingModal(null)
+            setComment('')
+            setRating(5)
+            fetchTrusted()
+        } catch (error: any) {
+            alert('Error al calificar: ' + error.message)
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    if (loading) return <div className="space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-24 bg-white/5 rounded-2xl animate-pulse" />)}</div>
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-xl font-bold">Conductores de Confianza</h2>
+                    <p className="text-zinc-400 text-sm">Conductores que has desbloqueado y con los que puedes contactar.</p>
+                </div>
+                <Shield className="h-8 w-8 text-blue-500 opacity-20" />
+            </div>
+
+            {unlocks.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {unlocks.map((unlock) => {
+                        const driver = unlock.driver_profiles
+                        const user = driver?.users
+                        const vehicle = driver?.vehicles?.[0]
+                        const hasReview = unlock.reviews && unlock.reviews.length > 0
+                        const review = hasReview ? unlock.reviews[0] : null
+
+                        return (
+                            <div key={unlock.id} className="group relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-all duration-300">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-14 h-14 rounded-2xl bg-zinc-800 border-2 border-white/10 overflow-hidden">
+                                        {user?.avatar_url ? (
+                                            <img src={user.avatar_url} alt={user.full_name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-zinc-600">
+                                                <User className="h-6 w-6" />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-bold text-white truncate">{user?.full_name}</h4>
+                                        <p className="text-xs text-zinc-500 mb-2">Desbloqueado el {new Date(unlock.created_at).toLocaleDateString()}</p>
+
+                                        {vehicle && (
+                                            <div className="flex items-center gap-2 text-[10px] text-zinc-400 font-mono bg-white/5 px-2 py-1 rounded-md w-fit">
+                                                <Car className="h-3 w-3" />
+                                                {vehicle.brand} {vehicle.model} • {vehicle.plate_number}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="mt-6 flex items-center justify-between pt-4 border-t border-white/5">
+                                    <a
+                                        href={`https://wa.me/${user?.phone_number?.replace(/\D/g, '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors"
+                                    >
+                                        <MessageSquare className="h-3.5 w-3.5" />
+                                        Contactar WhatsApp
+                                    </a>
+
+                                    {hasReview ? (
+                                        <div className="flex items-center gap-1.5 bg-yellow-500/10 text-yellow-500 px-3 py-1.5 rounded-xl border border-yellow-500/20">
+                                            <Star className="h-3 w-3 fill-current" />
+                                            <span className="text-xs font-black">{review.rating}.0</span>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => setRatingModal({ open: true, unlock })}
+                                            className="px-4 py-1.5 bg-white text-black text-xs font-bold rounded-xl hover:bg-zinc-200 transition-colors"
+                                        >
+                                            Calificar
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+            ) : (
+                <div className="py-20 text-center bg-white/5 rounded-3xl border border-dashed border-white/10">
+                    <Shield className="h-12 w-12 text-zinc-700 mx-auto mb-4" />
+                    <p className="text-zinc-500">Aún no tienes conductores de confianza.</p>
+                </div>
+            )}
+
+            {/* Rating Modal */}
+            {ratingModal?.open && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setRatingModal(null)} />
+                    <div className="relative bg-zinc-900 border border-white/10 rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-300">
+                        <div className="text-center space-y-4 mb-8">
+                            <div className="w-20 h-20 rounded-full bg-yellow-500/10 flex items-center justify-center mx-auto">
+                                <Star className="h-10 w-10 text-yellow-500" />
+                            </div>
+                            <h3 className="text-2xl font-bold">Calificar a {ratingModal.unlock.driver_profiles?.users?.full_name}</h3>
+                            <p className="text-zinc-400 text-sm">Tu opinión ayuda a mantener la comunidad segura y confiable.</p>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-bold uppercase text-zinc-500 text-center block">¿Qué calificación le das?</label>
+                                <div className="flex justify-center gap-3">
+                                    {[1, 2, 3, 4, 5].map((num) => (
+                                        <button
+                                            key={num}
+                                            onClick={() => setRating(num)}
+                                            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${rating >= num ? 'bg-yellow-500 text-black' : 'bg-white/5 text-zinc-500 hover:bg-white/10'
+                                                }`}
+                                        >
+                                            <Star className={`h-6 w-6 ${rating >= num ? 'fill-current' : ''}`} />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase text-zinc-500">¿Tienes algún comentario? (Opcional)</label>
+                                <textarea
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                    placeholder="Ej. Excelente servicio, muy puntual y amable..."
+                                    className="w-full bg-zinc-800 border border-white/10 rounded-2xl p-4 min-h-[100px] text-white focus:border-yellow-500 transition-colors resize-none"
+                                />
+                            </div>
+
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    onClick={() => setRatingModal(null)}
+                                    className="flex-1 px-6 py-3 rounded-2xl text-sm font-bold bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={handleSubmitReview}
+                                    disabled={submitting}
+                                    className="flex-1 px-6 py-3 rounded-2xl text-sm font-bold bg-yellow-500 text-black hover:bg-yellow-600 transition-all disabled:opacity-50 shadow-lg shadow-yellow-500/20"
+                                >
+                                    {submitting ? 'Enviando...' : 'Publicar Reseña'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

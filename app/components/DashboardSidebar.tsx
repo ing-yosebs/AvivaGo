@@ -15,32 +15,55 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-
-const menuItems = [
-    { icon: Home, label: 'Inicio', href: '/' },
-    { icon: Shield, label: 'Panel Principal', href: '/dashboard' },
-    {
-        icon: User,
-        label: 'Mi Perfil',
-        href: '/perfil',
-        subItems: [
-            { label: 'Datos Personales', href: '/perfil?tab=personal' },
-            { label: 'Mis Vehículos', href: '/perfil?tab=vehicles' },
-            { label: 'Mis Servicios', href: '/perfil?tab=services' },
-            { label: 'Pagos y Membresía', href: '/perfil?tab=payments' },
-            { label: 'Seguridad', href: '/perfil?tab=security' },
-        ]
-    },
-    { icon: Users, label: 'Comunidad', href: '/comunidad' },
-    { icon: Heart, label: 'Mis Favoritos', href: '/favoritos' },
-]
+import { useState, useEffect } from 'react'
 
 export default function DashboardSidebar() {
     const pathname = usePathname()
     const router = useRouter()
     const supabase = createClient()
     const [isOpen, setIsOpen] = useState(false)
+    const [isDriver, setIsDriver] = useState(false)
+
+    useEffect(() => {
+        const checkRole = async () => {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) return
+
+            const { data: userData } = await supabase
+                .from('users')
+                .select('roles')
+                .eq('id', user.id)
+                .single()
+
+            if (userData?.roles?.includes('driver')) {
+                setIsDriver(true)
+            }
+        }
+        checkRole()
+    }, [supabase])
+
+    const menuItems = [
+        { icon: Home, label: 'Inicio', href: '/' },
+        { icon: Shield, label: 'Panel Principal', href: '/dashboard' },
+        {
+            icon: User,
+            label: 'Mi Perfil',
+            href: '/perfil',
+            subItems: [
+                { label: 'Datos Personales', href: '/perfil?tab=personal' },
+                ...(isDriver ? [
+                    { label: 'Mis Vehículos', href: '/perfil?tab=vehicles' },
+                    { label: 'Mis Servicios', href: '/perfil?tab=services' }
+                ] : [
+                    { label: 'Conductores de Confianza', href: '/perfil?tab=trusted_drivers' }
+                ]),
+                { label: isDriver ? 'Pagos y Membresía' : 'Mis Pagos', href: '/perfil?tab=payments' },
+                { label: 'Seguridad', href: '/perfil?tab=security' },
+            ]
+        },
+        { icon: Users, label: 'Comunidad', href: '/comunidad' },
+        { icon: Heart, label: 'Mis Favoritos', href: '/favoritos' },
+    ]
 
     const handleLogout = async () => {
         await supabase.auth.signOut()
