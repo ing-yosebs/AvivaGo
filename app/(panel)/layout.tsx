@@ -3,7 +3,9 @@
 import DashboardSidebar from '@/app/components/DashboardSidebar'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
+import Link from 'next/link'
+import { Rocket } from 'lucide-react'
 
 export default function PanelLayout({
     children,
@@ -14,11 +16,14 @@ export default function PanelLayout({
     const [user, setUser] = useState<any>(null)
     const supabase = createClient()
     const router = useRouter()
+    const pathname = usePathname()
 
     useEffect(() => {
         const checkAuth = async () => {
             const { data: { user } } = await supabase.auth.getUser()
-            if (!user) {
+            const isPublicRoute = pathname === '/comunidad'
+
+            if (!user && !isPublicRoute) {
                 router.push('/auth/login')
             } else {
                 setUser(user)
@@ -26,7 +31,7 @@ export default function PanelLayout({
             }
         }
         checkAuth()
-    }, [supabase, router])
+    }, [supabase, router, pathname])
 
     if (loading) {
         return (

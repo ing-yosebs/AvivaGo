@@ -43,6 +43,16 @@ export default function Header() {
                         <span className="text-xl font-bold tracking-tight text-white">AvivaGo</span>
                     </Link>
 
+                    {/* Navigation */}
+                    <nav className="hidden md:flex items-center gap-8 flex-1 ml-8">
+                        <Link href="/" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
+                            Inicio
+                        </Link>
+                        <Link href="/comunidad" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
+                            Comunidad
+                        </Link>
+                    </nav>
+
 
                     {/* Nav actions */}
                     <nav className="flex items-center gap-2 md:gap-4 flex-shrink-0">
