@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import {
     Home,
     User,
@@ -11,7 +11,12 @@ import {
     ChevronRight,
     Shield,
     Menu,
-    X
+    X,
+    Wallet,
+    CreditCard,
+    Lock,
+    Briefcase,
+    LayoutDashboard
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -19,6 +24,7 @@ import { useState, useEffect } from 'react'
 
 export default function DashboardSidebar() {
     const pathname = usePathname()
+    const searchParams = useSearchParams()
     const router = useRouter()
     const supabase = createClient()
     const [isOpen, setIsOpen] = useState(false)
@@ -43,24 +49,23 @@ export default function DashboardSidebar() {
     }, [supabase])
 
     const menuItems = [
-        { icon: Home, label: 'Inicio', href: '/' },
-        { icon: Shield, label: 'Panel Principal', href: '/dashboard' },
-        {
-            icon: User,
-            label: 'Mi Perfil',
-            href: '/perfil',
-            subItems: [
-                { label: 'Datos Personales', href: '/perfil?tab=personal' },
-                ...(isDriver ? [
-                    { label: 'Mis Vehículos', href: '/perfil?tab=vehicles' },
-                    { label: 'Mis Servicios', href: '/perfil?tab=services' }
-                ] : [
-                    { label: 'Conductores de Confianza', href: '/perfil?tab=trusted_drivers' }
-                ]),
-                { label: isDriver ? 'Pagos y Membresía' : 'Mis Pagos', href: '/perfil?tab=payments' },
-                { label: 'Seguridad', href: '/perfil?tab=security' },
-            ]
-        },
+        { icon: LayoutDashboard, label: 'Panel Principal', href: '/dashboard' },
+        { icon: User, label: 'Datos Personales', href: '/perfil?tab=personal' },
+        ...(isDriver ? [{ icon: Wallet, label: 'Mi Billetera', href: '/billetera' }] : []),
+        ...(isDriver ? [{ icon: CreditCard, label: 'Membresía', href: '/perfil?tab=payments' }] : []),
+        ...(isDriver ? [
+            {
+                icon: Briefcase,
+                label: 'Gestión de Servicio',
+                href: '/perfil?tab=services',
+                subItems: [
+                    { label: 'Mis Servicios', href: '/perfil?tab=services' },
+                    { label: 'Mis Vehículos', href: '/perfil?tab=vehicles' }
+                ]
+            }
+        ] : []),
+        ...(!isDriver ? [{ icon: Shield, label: 'Mis Conductores', href: '/perfil?tab=trusted_drivers' }] : []),
+        { icon: Lock, label: 'Seguridad', href: '/perfil?tab=security' },
         { icon: Users, label: 'Comunidad', href: '/comunidad' },
         { icon: Heart, label: 'Mis Favoritos', href: '/favoritos' },
     ]
@@ -118,8 +123,22 @@ export default function DashboardSidebar() {
 
                 <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                     {menuItems.map((item) => {
-                        const isActive = pathname === item.href || (item.subItems && pathname.startsWith(item.href))
+                        const currentTab = searchParams.get('tab')
+                        const itemTab = item.href.includes('tab=') ? item.href.split('tab=')[1] : null
                         const hasSubItems = item.subItems && item.subItems.length > 0
+
+                        let isActive = false
+                        if (hasSubItems) {
+                            const isAnySubActive = (item.subItems as any[]).some(sub => {
+                                const subTab = sub.href.includes('tab=') ? sub.href.split('tab=')[1] : null
+                                return pathname === '/perfil' && currentTab === subTab
+                            })
+                            isActive = isAnySubActive || (pathname === '/perfil' && currentTab === itemTab) || (pathname === item.href && !currentTab)
+                        } else if (itemTab) {
+                            isActive = pathname === '/perfil' && currentTab === itemTab
+                        } else {
+                            isActive = pathname === item.href && !currentTab
+                        }
 
                         return (
                             <div key={item.label} className="space-y-1">
@@ -141,7 +160,8 @@ export default function DashboardSidebar() {
                                 {hasSubItems && (
                                     <div className="pl-9 space-y-1 mt-1 border-l border-white/5 ml-5">
                                         {item.subItems.map((sub) => {
-                                            const isSubActive = pathname === '/perfil' && typeof window !== 'undefined' && window.location.search.includes(sub.href.split('?')[1]);
+                                            const subTab = sub.href.includes('tab=') ? sub.href.split('tab=')[1] : null
+                                            const isSubActive = pathname === '/perfil' && currentTab === subTab;
 
                                             return (
                                                 <Link

@@ -132,7 +132,7 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         photo: driver.users?.avatar_url || driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop',
         rating: Number(driver.average_rating) || 5.0,
         reviews: driver.total_reviews || 0,
-        price: 2.00,
+        price: 18.00,
         year_joined: new Date(driver.created_at).getFullYear().toString(),
         tags: rawTags, // Pass raw tags for categorization in ProfileView
         zones: services?.preferred_zones || [],
@@ -148,7 +148,10 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         },
         personal_bio: services?.personal_bio || "",
         transport_platforms: services?.transport_platforms || [],
-        knows_sign_language: services?.knows_sign_language || false
+        knows_sign_language: services?.knows_sign_language || false,
+        social_commitment: services?.social_commitment || false,
+        payment_methods: services?.payment_methods || [],
+        payment_link: services?.payment_link || ""
     };
 
     return <ProfileView driver={formattedDriver} />;

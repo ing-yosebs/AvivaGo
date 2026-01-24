@@ -5,6 +5,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 export default function RegisterPage() {
+    const [fullName, setFullName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
@@ -20,6 +21,11 @@ export default function RegisterPage() {
         const { error } = await supabase.auth.signUp({
             email,
             password,
+            options: {
+                data: {
+                    full_name: fullName,
+                },
+            },
         })
 
         if (error) {
@@ -45,9 +51,19 @@ export default function RegisterPage() {
                     <div className="-space-y-px rounded-md shadow-sm">
                         <div>
                             <input
-                                type="email"
+                                type="text"
                                 required
                                 className="relative block w-full rounded-t-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3"
+                                placeholder="Nombre Completo"
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <input
+                                type="email"
+                                required
+                                className="relative block w-full border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3"
                                 placeholder="Email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}

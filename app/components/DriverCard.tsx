@@ -13,7 +13,9 @@ import {
     PawPrint,
     Languages,
     Landmark,
-    Zap
+    Zap,
+    Users,
+    ShieldCheck
 } from 'lucide-react';
 
 interface DriverCardProps {
@@ -33,6 +35,7 @@ export default function DriverCard({ driver }: DriverCardProps) {
     const services = Array.isArray(driver.driver_services) ? driver.driver_services[0] : driver.driver_services;
     const questionnaire = services?.professional_questionnaire || {};
     const bio = questionnaire.bio || driver.bio || 'Preparado para brindarte el mejor servicio de transporte privado con seguridad y puntualidad.';
+    const hasSocialCommitment = services?.social_commitment || false;
 
     const personalityLabels: any = {
         social: { '1a': 'Privacidad', '1b': 'Empático', '1c': 'Anfitrión' },
@@ -95,11 +98,23 @@ export default function DriverCard({ driver }: DriverCardProps) {
                     <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent" />
 
                     {/* Rating at Top Right */}
-                    <div className="absolute top-3 right-3 z-10">
+                    <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
                         <div className="flex items-center gap-1.5 bg-yellow-500 text-black px-2.5 py-1 rounded-full shadow-lg shadow-yellow-500/20">
                             <Star className="h-3 w-3 fill-current" />
                             <span className="text-[11px] font-black">{driver.average_rating || '5.0'}</span>
                         </div>
+                    </div>
+
+                    {/* Recognition Badges */}
+                    <div className="absolute bottom-12 left-0 right-0 px-4 z-10 flex items-center justify-center gap-2">
+                        <div className="bg-green-500 p-1 rounded-full ring-2 ring-zinc-950 shadow-lg">
+                            <ShieldCheck className="h-3 w-3 text-white" />
+                        </div>
+                        {hasSocialCommitment && (
+                            <div className="bg-indigo-500 p-1 rounded-full ring-2 ring-zinc-950 shadow-lg animate-pulse">
+                                <Users className="h-3 w-3 text-white fill-current" />
+                            </div>
+                        )}
                     </div>
 
                     {/* Name at Bottom Centered */}

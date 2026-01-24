@@ -4,11 +4,12 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { uploadFile } from '@/lib/supabase/storage'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import {
     User,
     Car,
     CreditCard,
+    Globe,
     Lock,
     Camera,
     Save,
@@ -56,6 +57,7 @@ function ProfileContent() {
     const [vehicles, setVehicles] = useState<any[]>([])
     const [driverServices, setDriverServices] = useState<any>(null)
     const [saving, setSaving] = useState(false)
+    const [hasMembership, setHasMembership] = useState(false)
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
     const supabase = createClient()
@@ -72,9 +74,20 @@ function ProfileContent() {
             .single()
 
         if (userData) {
-            setProfile(userData)
+            let drvData = null
+            if (userData.roles?.includes('driver')) {
+                const { data } = await supabase
+                    .from('driver_profiles')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .single()
+                drvData = data
+            }
+
+            const enriched = { ...userData, driver_profile: drvData }
+            setProfile(enriched)
             setIsDriver(userData.roles?.includes('driver'))
-            return userData
+            return enriched
         }
     }
 
@@ -127,6 +140,20 @@ function ProfileContent() {
             if (isUserDriver) {
                 await loadVehicles(userData.id)
                 await loadServices(userData.id)
+
+                // Check membership
+                const { data: membershipData } = await supabase
+                    .from('driver_memberships')
+                    .select('status, expires_at')
+                    .eq('driver_profile_id', userData.driver_profile?.id)
+                    .eq('status', 'active')
+                    .gt('expires_at', new Date().toISOString())
+                    .maybeSingle()
+
+                if (membershipData) {
+                    setHasMembership(true)
+                }
+
                 // If we have a tab in URL, set it
                 if (urlTab) setActiveTab(urlTab)
             } else {
@@ -147,12 +174,31 @@ function ProfileContent() {
         setSaving(true)
         setMessage(null)
         try {
-            const { error } = await supabase
+            // Extract driver specific fields
+            const { bio, ...userFormData } = formData
+
+            // Sanitize empty strings to null for date fields
+            if (userFormData.birthday === '') userFormData.birthday = null
+            if (userFormData.education_level === '') userFormData.education_level = null
+
+            // 1. Update public.users
+            const { error: userError } = await supabase
                 .from('users')
-                .update(formData)
+                .update(userFormData)
                 .eq('id', user.id)
 
-            if (error) throw error
+            if (userError) throw userError
+
+            // 2. Update driver_profiles if driver
+            if (isDriver) {
+                const { error: driverError } = await supabase
+                    .from('driver_profiles')
+                    .update({ bio: bio })
+                    .eq('user_id', user.id)
+
+                if (driverError) throw driverError
+            }
+
             await loadProfile() // Refresh local state
             setMessage({ type: 'success', text: 'Perfil actualizado correctamente' })
         } catch (error: any) {
@@ -193,8 +239,8 @@ function ProfileContent() {
     const tabs = [
         { id: 'personal', label: 'Datos Personales', icon: User },
         ...(isDriver ? [
-            { id: 'vehicles', label: 'Mis Vehículos', icon: Car },
-            { id: 'services', label: 'Mis Servicios', icon: Clock }
+            { id: 'services', label: 'Mis Servicios', icon: Clock },
+            { id: 'vehicles', label: 'Mis Vehículos', icon: Car }
         ] : [
             { id: 'trusted_drivers', label: 'Conductores de Confianza', icon: Shield }
         ]),
@@ -205,8 +251,14 @@ function ProfileContent() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight mb-2">Configuración</h1>
-                <p className="text-zinc-400">Gestiona tu información personal y preferencias de la cuenta.</p>
+                <h1 className="text-3xl font-bold tracking-tight mb-2">
+                    {activeTab === 'payments' ? 'Membresía' : 'Configuración'}
+                </h1>
+                <p className="text-zinc-400">
+                    {activeTab === 'payments'
+                        ? 'Gestiona tu suscripción y consulta tu historial de pagos.'
+                        : 'Gestiona tu información personal y preferencias de la cuenta.'}
+                </p>
             </div>
 
             {message && (
@@ -225,11 +277,19 @@ function ProfileContent() {
                 )}
 
                 {activeTab === 'vehicles' && (
-                    <VehiclesSection vehicles={vehicles} onAdd={() => loadVehicles(user.id)} />
+                    isDriver && !hasMembership ? (
+                        <MembershipRequiredView onGoToPayments={() => setActiveTab('payments')} />
+                    ) : (
+                        <VehiclesSection vehicles={vehicles} onAdd={() => loadVehicles(user.id)} />
+                    )
                 )}
 
                 {activeTab === 'services' && (
-                    <ServicesSection services={driverServices} onSave={handleSaveServices} saving={saving} />
+                    isDriver && !hasMembership ? (
+                        <MembershipRequiredView onGoToPayments={() => setActiveTab('payments')} />
+                    ) : (
+                        <ServicesSection services={driverServices} onSave={handleSaveServices} saving={saving} />
+                    )
                 )}
 
                 {activeTab === 'trusted_drivers' && !isDriver && (
@@ -237,12 +297,52 @@ function ProfileContent() {
                 )}
 
                 {activeTab === 'payments' && (
-                    <PaymentsSection isDriver={isDriver} />
+                    <PaymentsSection
+                        isDriver={isDriver}
+                        hasMembership={hasMembership}
+                        onPurchaseSuccess={() => setHasMembership(true)}
+                    />
                 )}
 
                 {activeTab === 'security' && (
                     <SecuritySection />
                 )}
+            </div>
+        </div>
+    )
+}
+
+function MembershipRequiredView({ onGoToPayments }: { onGoToPayments: () => void }) {
+    return (
+        <div className="py-20 flex flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-500">
+            <div className="w-24 h-24 bg-indigo-600/20 rounded-full flex items-center justify-center mb-8 ring-8 ring-indigo-600/5">
+                <Lock className="h-12 w-12 text-indigo-500" />
+            </div>
+
+            <h3 className="text-4xl font-black mb-4 tracking-tight">Acceso Bloqueado</h3>
+            <p className="text-zinc-400 text-lg mb-10 leading-relaxed max-w-xl">
+                Para poder configurar tus vehículos y los detalles de tu servicio, primero debes activar o renovar tu
+                <span className="text-white font-bold"> Membresía Driver Premium</span>.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+                <button
+                    onClick={onGoToPayments}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 px-12 rounded-2xl transition-all shadow-[0_20px_40px_-15px_rgba(79,70,229,0.3)] flex items-center gap-3 active:scale-[0.98] group"
+                >
+                    <CreditCard className="h-5 w-5 group-hover:rotate-12 transition-transform" />
+                    Pagar Membresía Ahora
+                </button>
+            </div>
+
+            <div className="mt-12 p-6 bg-white/5 border border-white/10 rounded-2xl max-w-lg">
+                <div className="flex items-center gap-3 mb-3 text-indigo-400">
+                    <Info className="h-5 w-5" />
+                    <span className="font-bold uppercase text-xs tracking-widest">¿Por qué necesito esto?</span>
+                </div>
+                <p className="text-zinc-500 text-sm italic">
+                    La membresía anual nos permite mantener la plataforma libre de comisiones por viaje y asegurar que solo conductores profesionales verificados formen parte de nuestra red.
+                </p>
             </div>
         </div>
     )
@@ -280,6 +380,7 @@ function PersonalDataSection({ profile, onSave, saving }: any) {
         avatar_url: profile?.avatar_url || '',
         id_document_url: profile?.id_document_url || '',
         address_proof_url: profile?.address_proof_url || '',
+        bio: profile?.driver_profile?.bio || '',
     })
 
     useEffect(() => {
@@ -309,6 +410,7 @@ function PersonalDataSection({ profile, onSave, saving }: any) {
                 avatar_url: profile.avatar_url || '',
                 id_document_url: profile.id_document_url || '',
                 address_proof_url: profile.address_proof_url || '',
+                bio: profile.driver_profile?.bio || '',
             })
         }
     }, [profile])
@@ -470,6 +572,21 @@ function PersonalDataSection({ profile, onSave, saving }: any) {
                         <label className="text-[10px] font-bold uppercase text-zinc-500">Correo Electrónico *</label>
                         <input name="email" value={formData.email} disabled className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 opacity-50 cursor-not-allowed" />
                     </div>
+
+                    {profile?.roles?.includes('driver') && (
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold uppercase text-zinc-500">Biografía (Perfil Conductor)</label>
+                            <textarea
+                                name="bio"
+                                value={formData.bio}
+                                onChange={handleChange}
+                                rows={4}
+                                placeholder="Cuéntanos sobre tu experiencia como conductor..."
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 resize-none"
+                            />
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold uppercase text-zinc-500">Fecha de Nacimiento</label>
@@ -679,7 +796,7 @@ function PersonalDataSection({ profile, onSave, saving }: any) {
                     {saving ? 'Guardando...' : 'Guardar Información Personal'}
                 </button>
             </div>
-        </div>
+        </div >
     )
 }
 
@@ -764,9 +881,12 @@ function VehiclesSection({ vehicles, onAdd }: any) {
             const { data: { user } } = await supabase.auth.getUser()
             const { data: drvProfile } = await supabase.from('driver_profiles').select('id').eq('user_id', user?.id).single()
 
+            // Destructure to remove frontend-only flags
+            const { isCustomBrand, isCustomModel, ...vehicleData } = form
+
             const { error } = await supabase.from('vehicles').insert({
                 driver_profile_id: drvProfile?.id,
-                ...form,
+                ...vehicleData,
                 status: 'pending' // Vehicles start as pending verification
             })
 
@@ -1049,7 +1169,10 @@ function ServicesSection({ services, onSave, saving }: any) {
         professional_questionnaire: services?.professional_questionnaire || { bio: '' },
         personal_bio: services?.personal_bio || '',
         transport_platforms: services?.transport_platforms || [],
-        knows_sign_language: services?.knows_sign_language || false
+        knows_sign_language: services?.knows_sign_language || false,
+        social_commitment: services?.social_commitment || false,
+        payment_methods: services?.payment_methods || [],
+        payment_link: services?.payment_link || ''
     })
 
     useEffect(() => {
@@ -1062,7 +1185,10 @@ function ServicesSection({ services, onSave, saving }: any) {
                 professional_questionnaire: services.professional_questionnaire || { bio: '' },
                 personal_bio: services.personal_bio || '',
                 transport_platforms: services.transport_platforms || [],
-                knows_sign_language: services.knows_sign_language || false
+                knows_sign_language: services.knows_sign_language || false,
+                social_commitment: services.social_commitment || false,
+                payment_methods: services.payment_methods || [],
+                payment_link: services.payment_link || ''
             })
         }
     }, [services])
@@ -1219,7 +1345,7 @@ function ServicesSection({ services, onSave, saving }: any) {
                     </div>
 
                     {/* Sign Language Question */}
-                    <div className="pt-6 border-t border-white/10 space-y-4">
+                    <div className="pt-6 border-t border-white/10 space-y-6">
                         <div className="flex flex-col gap-4">
                             <p className="text-sm font-bold text-zinc-300">¿Conoces el lenguaje de señas para comunicarte con personas con discapacidad auditiva?</p>
                             <button
@@ -1234,6 +1360,27 @@ function ServicesSection({ services, onSave, saving }: any) {
                                 </div>
                                 <span className={`font-bold text-sm ${formData.knows_sign_language ? 'text-white' : ''}`}>Sí, domino el lenguaje de señas (LSM)</span>
                             </button>
+                        </div>
+
+                        <div className="flex flex-col gap-4">
+                            <p className="text-sm font-bold text-zinc-300">Compromiso de Trato Igualitario</p>
+                            <button
+                                onClick={() => setFormData({ ...formData, social_commitment: !formData.social_commitment })}
+                                className={`flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all text-left w-full ${formData.social_commitment
+                                    ? 'bg-emerald-600/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.1)]'
+                                    : 'bg-white/5 border-white/10 text-zinc-500 hover:border-white/20'
+                                    }`}
+                            >
+                                <div className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all flex-shrink-0 ${formData.social_commitment ? 'bg-emerald-600 border-transparent' : 'border-white/20'}`}>
+                                    {formData.social_commitment && <CheckCircle2 className="h-4 w-4 text-white" />}
+                                </div>
+                                <span className={`font-bold text-sm leading-relaxed ${formData.social_commitment ? 'text-white' : ''}`}>
+                                    Me comprometo a brindar un trato cordial, respetuoso y equitativo a hombres, mujeres y a la comunidad LGBTQ+, sin distinción por ideologías o creencias religiosas de mis pasajeros.
+                                </span>
+                            </button>
+                            <p className="text-xs text-zinc-500 leading-relaxed px-2">
+                                Puedes marcar o no esta opción; sin embargo, al hacerlo te comprometes con la comunidad. Cualquier incumplimiento de esta verificación podrá ser considerado una falta a las normas y políticas de la comunidad.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -1299,6 +1446,54 @@ function ServicesSection({ services, onSave, saving }: any) {
                 </div>
             </div>
 
+            {/* Payment Methods */}
+            <div className="space-y-6 bg-white/5 p-8 rounded-[2.5rem] border border-white/10">
+                <h4 className="text-sm font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" /> Formas de Pago Aceptadas
+                </h4>
+                <div className="space-y-6">
+                    <p className="text-sm text-zinc-400">Selecciona los métodos de pago que aceptas directamente.</p>
+                    <div className="flex flex-wrap gap-3">
+                        {['Efectivo', 'Transferencia Bancaria', 'Tarjeta de Crédito/Débito', 'Pago en Línea'].map(method => (
+                            <button
+                                key={method}
+                                onClick={() => toggleItem('payment_methods', method)}
+                                className={`px-6 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${formData.payment_methods.includes(method)
+                                    ? 'bg-emerald-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.2)]'
+                                    : 'bg-white/5 border border-white/10 text-zinc-500 hover:border-white/20'
+                                    }`}
+                            >
+                                {method === 'Efectivo' && <span className="text-lg">💵</span>}
+                                {method === 'Transferencia Bancaria' && <span className="text-lg">🏦</span>}
+                                {method === 'Tarjeta de Crédito/Débito' && <span className="text-lg">💳</span>}
+                                {method === 'Pago en Línea' && <span className="text-lg">🌐</span>}
+                                {method}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Online Payment Link Input */}
+                    {formData.payment_methods.includes('Pago en Línea') && (
+                        <div className="animate-in fade-in slide-in-from-top-4 duration-300">
+                            <label className="text-[10px] font-bold uppercase text-blue-400 mb-2 block">Link de Pagos (Stripe, Paypal, MercadoPago, etc)</label>
+                            <div className="relative">
+                                <Globe className="absolute left-4 top-3.5 h-4 w-4 text-zinc-500" />
+                                <input
+                                    type="url"
+                                    value={formData.payment_link || ''}
+                                    onChange={(e) => setFormData({ ...formData, payment_link: e.target.value })}
+                                    placeholder="https://paypal.me/tu-usuario"
+                                    className="w-full bg-zinc-900 border border-blue-500/30 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all font-mono text-sm"
+                                />
+                            </div>
+                            <p className="text-xs text-zinc-500 mt-2">
+                                Este botón aparecerá en tu perfil público para que los clientes puedan pagarte directamente.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
             <div className="flex justify-end pt-8">
                 <button
                     onClick={() => onSave(formData)}
@@ -1314,16 +1509,35 @@ function ServicesSection({ services, onSave, saving }: any) {
 }
 
 
-function PaymentsSection({ isDriver }: { isDriver: boolean }) {
+function PaymentsSection({ isDriver, hasMembership, onPurchaseSuccess }: {
+    isDriver: boolean,
+    hasMembership: boolean,
+    onPurchaseSuccess: () => void
+}) {
     const supabase = createClient()
     const [unlocks, setUnlocks] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [reviewModal, setReviewModal] = useState<{ open: boolean, driverId: string, driverName: string } | null>(null)
+    const [purchasing, setPurchasing] = useState(false)
 
     useEffect(() => {
         const fetchHistory = async () => {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) return
+
+            // 1. Fetch Membership (Mock for now, checking if there are membership payments)
+            if (isDriver) {
+                const { data: membershipData } = await supabase
+                    .from('unlocks') // Using unlocks for now as per project structure, but filtering by type if exists or amount
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('amount_paid', 524) // Our membership price
+                    .limit(1)
+
+                if (membershipData && membershipData.length > 0) {
+                    onPurchaseSuccess()
+                }
+            }
 
             // 1. Fetch Unlocks
             const { data: unlocksData, error: unlockError } = await supabase
@@ -1363,32 +1577,115 @@ function PaymentsSection({ isDriver }: { isDriver: boolean }) {
             setLoading(false)
         }
         fetchHistory()
-    }, [isDriver, reviewModal])
+    }, [isDriver, reviewModal, hasMembership])
+
+    const searchParams = useSearchParams()
+    const router = useRouter()
+
+    useEffect(() => {
+        if (searchParams.get('success') === 'true') {
+            onPurchaseSuccess()
+            alert('¡Pago exitoso! Tu membresía ya está activa.')
+            // Clean URL
+            router.replace('/perfil?tab=payments')
+        }
+        if (searchParams.get('canceled') === 'true') {
+            alert('El pago fue cancelado.')
+            router.replace('/perfil?tab=payments')
+        }
+    }, [searchParams])
+
+    const handlePurchase = async () => {
+        setPurchasing(true)
+        try {
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+            })
+
+            if (!response.ok) {
+                const text = await response.text()
+                throw new Error(text)
+            }
+
+            const { url } = await response.json()
+            window.location.href = url
+        } catch (error: any) {
+            alert('Error al procesar el pago: ' + error.message)
+            console.error('Purchase error:', error)
+        } finally {
+            setPurchasing(false)
+        }
+    }
 
     if (loading) return <div className="animate-pulse h-40 bg-white/5 rounded-3xl" />
 
     return (
         <div className="space-y-8">
             {isDriver ? (
-                <div className="backdrop-blur-xl bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-white/10 rounded-3xl p-8 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-8 opacity-10">
-                        <BadgeCheck className="h-32 w-32" />
-                    </div>
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-2 mb-4">
-                            <span className="px-3 py-1 bg-blue-600 text-[10px] font-bold uppercase tracking-wider rounded-lg text-white">Membresía Activa</span>
+                hasMembership ? (
+                    <div className="backdrop-blur-xl bg-gradient-to-br from-indigo-600/20 to-purple-600/20 border border-white/10 rounded-3xl p-8 relative overflow-hidden animate-in fade-in zoom-in duration-500">
+                        <div className="absolute top-0 right-0 p-8 opacity-10">
+                            <BadgeCheck className="h-32 w-32" />
                         </div>
-                        <h3 className="text-2xl font-bold mb-2">Plan Driver Premium</h3>
-                        <p className="text-zinc-400 text-sm mb-6 max-w-md">Tu suscripción anual te permite aparecer en los resultados de búsqueda y recibir contactos directos.</p>
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-2 mb-4">
+                                <span className="px-3 py-1 bg-indigo-600 text-[10px] font-bold uppercase tracking-wider rounded-lg text-white">Membresía Activa</span>
+                            </div>
+                            <h3 className="text-2xl font-bold mb-2">Plan Driver Premium</h3>
+                            <p className="text-zinc-400 text-sm mb-6 max-w-md">Tu suscripción anual te permite aparecer en los resultados de búsqueda y recibir contactos directos de pasajeros.</p>
 
-                        <div className="flex items-center gap-4 text-sm font-medium">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4 text-blue-400" />
-                                <span>Próximo cobro: 15 de Octubre, 2026</span>
+                            <div className="flex items-center gap-4 text-sm font-medium">
+                                <div className="flex items-center gap-2 text-zinc-300">
+                                    <Calendar className="h-4 w-4 text-indigo-400" />
+                                    <span>Próximo cobro: {new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[3rem] p-8 md:p-12 text-center max-w-3xl mx-auto shadow-2xl relative overflow-hidden">
+                        {/* Decorative Background */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
+
+                        <div className="w-20 h-20 bg-indigo-600/20 rounded-full flex items-center justify-center mx-auto mb-8 ring-8 ring-indigo-600/5 transition-transform hover:scale-110 duration-500">
+                            <CreditCard className="h-10 w-10 text-indigo-500" />
+                        </div>
+
+                        <h3 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">Activa tu Membresía Driver</h3>
+                        <p className="text-zinc-400 text-lg mb-10 leading-relaxed">
+                            Únete a la red de conductores profesionales de AvivaGo. Al activar tu membresía anual, tu perfil será visible para pasajeros en tu zona y podrás recibir solicitudes directas.
+                        </p>
+
+                        <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-3xl p-8 mb-10 inline-block px-12 transform hover:scale-[1.02] transition-transform shadow-inner">
+                            <div className="text-[10px] text-indigo-400 uppercase tracking-[0.2em] font-black mb-2">Costo Anual de Activación</div>
+                            <div className="text-5xl font-black text-white">$524 <span className="text-sm font-medium text-zinc-500 tracking-normal">MXN</span></div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <button
+                                onClick={handlePurchase}
+                                disabled={purchasing}
+                                className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 px-16 rounded-[2rem] transition-all shadow-[0_20px_40px_-15px_rgba(79,70,229,0.3)] flex items-center justify-center gap-3 mx-auto disabled:opacity-50 active:scale-[0.98] group"
+                            >
+                                {purchasing ? (
+                                    <>
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                        Validando Pago...
+                                    </>
+                                ) : (
+                                    <>
+                                        <CheckCircle className="h-6 w-6 group-hover:rotate-12 transition-transform" />
+                                        Pagar Ahora
+                                    </>
+                                )}
+                            </button>
+                            <div className="flex items-center justify-center gap-2 opacity-40">
+                                <Shield className="h-3 w-3" />
+                                <p className="text-[10px] text-white uppercase font-bold tracking-[0.1em]">Transacción Protegida por AvivaGo Secure</p>
+                            </div>
+                        </div>
+                    </div>
+                )
             ) : (
                 <div className="bg-blue-500/10 border border-blue-500/20 rounded-3xl p-6 flex items-start gap-4">
                     <div className="p-3 bg-blue-500/20 rounded-2xl text-blue-400">
@@ -1401,97 +1698,115 @@ function PaymentsSection({ isDriver }: { isDriver: boolean }) {
                 </div>
             )}
 
-            <div className="space-y-4">
-                <h3 className="font-bold text-lg">{isDriver ? 'Historial de Membresía' : 'Historial de Desbloqueos'}</h3>
-                <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-white/5 text-zinc-500 uppercase text-[10px] font-bold tracking-wider">
-                            <tr>
-                                <th className="px-6 py-4">{isDriver ? 'Concepto' : 'Conductor'}</th>
-                                <th className="px-6 py-4">Fecha</th>
-                                <th className="px-6 py-4 text-right">Monto</th>
-                                {!isDriver && (
-                                    <>
-                                        <th className="px-6 py-4 text-center">Tu Calif.</th>
-                                        <th className="px-6 py-4 text-center">Calif. Conductor</th>
-                                        <th className="px-6 py-4 text-right">Acción</th>
-                                    </>
-                                )}
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {unlocks.length > 0 ? (
-                                unlocks.map((item) => (
-                                    <tr key={item.id} className="hover:bg-white/5 transition-colors">
-                                        <td className="px-6 py-4 font-medium">
-                                            {isDriver ? 'Pago de Membresía' : (item.driver_profiles?.users?.full_name || 'Conductor Desconocido')}
-                                        </td>
-                                        <td className="px-6 py-4 text-zinc-500">
-                                            {new Date(item.created_at).toLocaleDateString('es-MX', {
-                                                day: '2-digit',
-                                                month: '2-digit',
-                                                year: 'numeric'
-                                            })}
-                                        </td>
-                                        <td className="px-6 py-4 text-right font-bold text-emerald-400">
-                                            ${item.amount_paid}
-                                        </td>
-                                        {!isDriver && (
-                                            <>
-                                                <td className="px-6 py-4 text-center">
-                                                    {item.reviews && item.reviews.length > 0 ? (
-                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold border border-emerald-500/20">
-                                                            <Star className="h-3 w-3 fill-current" />
-                                                            {item.reviews[0].rating}.0 - CALIFICADO
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">SIN CALIFICAR</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    {item.reviews && item.reviews.length > 0 && item.reviews[0].passenger_rating ? (
-                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20">
-                                                            <Star className="h-3 w-3 fill-current" />
-                                                            {item.reviews[0].passenger_rating}.0 - CALIFICADO
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter italic">PENDIENTE</span>
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 text-right">
-                                                    {item.reviews && item.reviews.length > 0 ? (
-                                                        <div className="flex items-center justify-end gap-1.5 text-zinc-500 opacity-50">
-                                                            <CheckCircle className="h-4 w-4" />
-                                                            <span className="text-[10px] font-black uppercase">Completado</span>
-                                                        </div>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => setReviewModal({
-                                                                open: true,
-                                                                driverId: item.driver_profile_id,
-                                                                driverName: item.driver_profiles?.users?.full_name || 'Conductor'
-                                                            })}
-                                                            className="text-[10px] font-black bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest active:scale-95"
-                                                        >
-                                                            Calificar
-                                                        </button>
-                                                    )}
-                                                </td>
-                                            </>
-                                        )}
-                                    </tr>
-                                ))
-                            ) : (
+            {(!isDriver || hasMembership) && (
+                <div className="space-y-4 animate-in fade-in duration-700">
+                    <h3 className="font-bold text-lg">{isDriver ? 'Historial de Membresía' : 'Historial de Desbloqueos'}</h3>
+                    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-white/5 text-zinc-500 uppercase text-[10px] font-bold tracking-wider">
                                 <tr>
-                                    <td colSpan={3} className="px-6 py-12 text-center text-zinc-500 italic">
-                                        No se encontraron transacciones recientes.
-                                    </td>
+                                    <th className="px-6 py-4">{isDriver ? 'Concepto' : 'Conductor'}</th>
+                                    <th className="px-6 py-4">Fecha de Pago</th>
+                                    {isDriver && <th className="px-6 py-4">Expira el</th>}
+                                    <th className="px-6 py-4 text-right">Monto</th>
+                                    {!isDriver && (
+                                        <>
+                                            <th className="px-6 py-4 text-center">Tu Calif.</th>
+                                            <th className="px-6 py-4 text-center">Calif. Conductor</th>
+                                            <th className="px-6 py-4 text-right">Acción</th>
+                                        </>
+                                    )}
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {unlocks.length > 0 ? (
+                                    unlocks.map((item) => (
+                                        <tr key={item.id} className="hover:bg-white/5 transition-colors">
+                                            <td className="px-6 py-4 font-medium">
+                                                {isDriver ? (
+                                                    item.amount_paid === 524
+                                                        ? 'Membresía Anual Driver Premium'
+                                                        : 'Pago de Servicio'
+                                                ) : (
+                                                    item.driver_profiles?.users?.full_name || 'Conductor Desconocido'
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4 text-zinc-500">
+                                                {new Date(item.created_at).toLocaleDateString('es-MX', {
+                                                    day: '2-digit',
+                                                    month: '2-digit',
+                                                    year: 'numeric'
+                                                })}
+                                            </td>
+                                            {isDriver && (
+                                                <td className="px-6 py-4 text-indigo-400/70 font-medium">
+                                                    {new Date(new Date(item.created_at).setFullYear(new Date(item.created_at).getFullYear() + 1)).toLocaleDateString('es-MX', {
+                                                        day: '2-digit',
+                                                        month: '2-digit',
+                                                        year: 'numeric'
+                                                    })}
+                                                </td>
+                                            )}
+                                            <td className="px-6 py-4 text-right font-bold text-emerald-400">
+                                                ${item.amount_paid === 524 || isDriver ? 524 : item.amount_paid} MXN
+                                            </td>
+                                            {!isDriver && (
+                                                <>
+                                                    <td className="px-6 py-4 text-center">
+                                                        {item.reviews && item.reviews.length > 0 ? (
+                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold border border-emerald-500/20">
+                                                                <Star className="h-3 w-3 fill-current" />
+                                                                {item.reviews[0].rating}.0
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">SIN CALIFICAR</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        {item.reviews && item.reviews.length > 0 && item.reviews[0].passenger_rating ? (
+                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20">
+                                                                <Star className="h-3 w-3 fill-current" />
+                                                                {item.reviews[0].passenger_rating}.0
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter italic">PENDIENTE</span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        {item.reviews && item.reviews.length > 0 ? (
+                                                            <div className="flex items-center justify-end gap-1.5 text-zinc-500 opacity-50">
+                                                                <CheckCircle className="h-4 w-4" />
+                                                                <span className="text-[10px] font-black uppercase">Completado</span>
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => setReviewModal({
+                                                                    open: true,
+                                                                    driverId: item.driver_profile_id,
+                                                                    driverName: item.driver_profiles?.users?.full_name || 'Conductor'
+                                                                })}
+                                                                className="text-[10px] font-black bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest active:scale-95"
+                                                            >
+                                                                Calificar
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </>
+                                            )}
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={isDriver ? 3 : 6} className="px-6 py-12 text-center text-zinc-500 italic">
+                                            No se encontraron transacciones recientes.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
+            )}
             {reviewModal && (
                 <ReviewModal
                     isOpen={reviewModal.open}

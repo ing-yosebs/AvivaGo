@@ -20,6 +20,8 @@ export async function signUp(formData: FormData) {
     const password = formData.get('password') as string
     const role = formData.get('role') as 'client' | 'driver'
 
+    const referralCode = formData.get('referralCode') as string
+
     const validatedFields = signUpSchema.safeParse({
         fullName,
         email,
@@ -40,7 +42,8 @@ export async function signUp(formData: FormData) {
             emailRedirectTo: `${origin}/auth/callback`,
             data: {
                 full_name: fullName,
-                role: role, // Metadata used by triggers
+                role: role,
+                referral_code: referralCode // Metadata used by triggers
             },
         },
     })

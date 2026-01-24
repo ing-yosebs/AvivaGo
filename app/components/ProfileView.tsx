@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Header from './Header';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -23,7 +24,10 @@ import {
     Map,
     User,
     Heart,
-    Edit3
+    Edit3,
+    CreditCard,
+    Share2,
+    Check
 } from 'lucide-react';
 import ReviewModal from './ReviewModal';
 
@@ -55,6 +59,9 @@ interface ProfileViewProps {
         personal_bio?: string;
         transport_platforms?: string[];
         knows_sign_language?: boolean;
+        social_commitment?: boolean;
+        payment_methods?: string[];
+        payment_link?: string;
     }
 }
 
@@ -65,6 +72,7 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
     const [isFavorite, setIsFavorite] = useState(false);
     const [loadingFav, setLoadingFav] = useState(true);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
+    const [showShareFeedback, setShowShareFeedback] = useState(false);
 
     useEffect(() => {
         const checkFavorite = async () => {
@@ -87,7 +95,20 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
         checkFavorite();
     }, [driver.id, supabase]);
 
-    // Check if unlocked on mount
+    // Check for URL param ?unlocked=true (Stripe Return)
+    const searchParams = useSearchParams();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (searchParams.get('unlocked') === 'true') {
+            setIsUnlocked(true);
+            router.replace(window.location.pathname); // Clean URL
+            // Optionally, we could show a confetti or success toast here
+            alert('¡Contacto Desbloqueado Exitosamente!');
+        }
+    }, [searchParams]);
+
+    // Check if unlocked on mount (DB check)
     useEffect(() => {
         const checkUnlock = async () => {
             const { data: { user } } = await supabase.auth.getUser();
@@ -132,6 +153,31 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
         }
     };
 
+    const handleShare = async () => {
+        const shareData = {
+            title: `AvivaGo - Perfil de ${driver.name}`,
+            text: `Mira el perfil de ${driver.name} en AvivaGo. Un conductor certificado y seguro.`,
+            url: window.location.href,
+        };
+
+        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                console.error('Error sharing:', err);
+            }
+        } else {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                setShowShareFeedback(true);
+                setTimeout(() => setShowShareFeedback(false), 2000);
+            } catch (err) {
+                console.error('Error copying to clipboard:', err);
+                alert('No se pudo copiar el enlace al portapapeles');
+            }
+        }
+    };
+
     return (
         <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative overflow-hidden">
             {/* Background elements */}
@@ -169,10 +215,23 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                     <div className="absolute bottom-0 right-1/2 translate-x-12 translate-y-1 bg-green-500 p-1.5 rounded-full ring-4 ring-zinc-950">
                                         <ShieldCheck className="h-4 w-4 text-white" />
                                     </div>
+                                    {driver.social_commitment && (
+                                        <div className="absolute bottom-0 left-1/2 -translate-x-12 translate-y-1 bg-indigo-500 p-1.5 rounded-full ring-4 ring-zinc-950 shadow-[0_0_15px_rgba(99,102,241,0.5)] animate-pulse">
+                                            <Users className="h-4 w-4 text-white fill-current" />
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="text-center mb-8">
                                     <h1 className="text-3xl font-bold mb-2 tracking-tight">{driver.name}</h1>
+
+                                    {driver.social_commitment && (
+                                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-lg text-[10px] font-bold uppercase tracking-widest mb-4">
+                                            <Users className="h-3 w-3 fill-current" />
+                                            Conductor Comprometido
+                                        </div>
+                                    )}
+
                                     <div className="flex items-center justify-center gap-2 text-zinc-400">
                                         <MapPin className="h-4 w-4 text-blue-500" />
                                         <span className="text-sm font-medium">{driver.city}</span>
@@ -206,6 +265,11 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                                     Escribir al WhatsApp
                                                 </a>
                                             </div>
+
+
+
+
+
                                             <p className="text-[10px] text-center text-zinc-500 uppercase font-bold">Sin cargos adicionales por contacto directo</p>
 
                                             <button
@@ -220,7 +284,10 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                         <div className="space-y-4">
                                             <div className="p-6 bg-white border border-white/10 rounded-3xl text-center shadow-xl">
                                                 <p className="text-zinc-500 text-sm mb-2">Costo para contactar</p>
-                                                <h4 className="text-4xl font-bold text-black mb-6">${driver.price.toFixed(2)} <span className="text-sm font-medium text-zinc-400">USD</span></h4>
+                                                <h4 className="text-4xl font-bold text-black mb-6">$18.00 <span className="text-sm font-medium text-zinc-400">MXN</span></h4>
+
+
+
                                                 <button
                                                     onClick={async () => {
                                                         const { data: { user } } = await supabase.auth.getUser();
@@ -229,25 +296,30 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                                             return;
                                                         }
 
-                                                        // Mock payment / Create unlock
-                                                        const { error } = await supabase
-                                                            .from('unlocks')
-                                                            .insert({
-                                                                user_id: user.id,
-                                                                driver_profile_id: driver.id,
-                                                                amount_paid: driver.price || 10.00
+                                                        // REAL Payment Flow (Unlock)
+                                                        try {
+                                                            const response = await fetch('/api/checkout', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({
+                                                                    type: 'unlock',
+                                                                    driverId: driver.id,
+                                                                    amount: 18.00,
+                                                                    returnPath: window.location.pathname // Current driver profile path
+                                                                })
                                                             });
 
-                                                        if (!error) {
-                                                            setIsUnlocked(true);
-                                                        } else {
-                                                            console.error('Error unlocking:', error);
-                                                            // If error is duplicate key, just unlock
-                                                            if (error.code === '23505') {
-                                                                setIsUnlocked(true);
-                                                            } else {
-                                                                alert('Error al desbloquear contacto');
+                                                            if (!response.ok) {
+                                                                const text = await response.text();
+                                                                throw new Error(text);
                                                             }
+
+                                                            const { url } = await response.json();
+                                                            window.location.href = url;
+
+                                                        } catch (err: any) {
+                                                            console.error('Checkout error:', err);
+                                                            alert('Error iniciando pago: ' + err.message);
                                                         }
                                                     }}
                                                     className="w-full flex items-center justify-center gap-3 bg-zinc-950 text-white font-bold py-4 rounded-2xl hover:bg-blue-600 transition-all shadow-lg group active:scale-[0.98]"
@@ -273,6 +345,26 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                     >
                                         <Heart className={`h-5 w-5 ${isFavorite ? 'fill-current' : ''}`} />
                                         {isFavorite ? 'En mis Favoritos' : 'Agregar a Favoritos'}
+                                    </button>
+
+                                    <button
+                                        onClick={handleShare}
+                                        className={`w-full flex items-center justify-center gap-3 font-bold py-4 rounded-2xl transition-all active:scale-[0.98] border border-white/10 ${showShareFeedback
+                                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                            : 'bg-white/5 text-white hover:bg-white/10'
+                                            }`}
+                                    >
+                                        {showShareFeedback ? (
+                                            <>
+                                                <Check className="h-5 w-5" />
+                                                ¡Copiado!
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Share2 className="h-5 w-5" />
+                                                Compartir Perfil
+                                            </>
+                                        )}
                                     </button>
                                 </div>
                             </div>
@@ -319,6 +411,47 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                     <div className="p-6 bg-white/5 border border-white/10 rounded-3xl">
                                         <div className="text-xl font-bold text-white mb-1">{driver.vehicle}</div>
                                         <div className="text-sm text-zinc-500 font-medium">Modelo {driver.year} • Capacidad para 4 pasajeros</div>
+                                    </div>
+                                </section>
+
+                                {/* Payment Methods */}
+                                <section className="mb-10">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-emerald-600/10 p-2 rounded-xl">
+                                            <CreditCard className="h-5 w-5 text-emerald-500" />
+                                        </div>
+                                        <h3 className="text-xl font-bold tracking-tight">Formas de Pago Aceptadas</h3>
+                                    </div>
+                                    <div className="p-6 bg-white/5 border border-white/10 rounded-3xl">
+                                        {driver.payment_methods && driver.payment_methods.length > 0 ? (
+                                            <div className="space-y-6">
+                                                <div className="flex flex-wrap gap-3">
+                                                    {driver.payment_methods.map(method => (
+                                                        <span key={method} className="px-4 py-2 bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-sm font-bold flex items-center gap-2">
+                                                            {method === 'Efectivo' && '💵'}
+                                                            {method === 'Transferencia Bancaria' && '🏦'}
+                                                            {method === 'Tarjeta de Crédito/Débito' && '💳'}
+                                                            {method === 'Pago en Línea' && '🌐'}
+                                                            {method}
+                                                        </span>
+                                                    ))}
+                                                </div>
+
+                                                {isUnlocked && driver.payment_link && driver.payment_methods?.includes('Pago en Línea') && (
+                                                    <a
+                                                        href={driver.payment_link.startsWith('http') ? driver.payment_link : `https://${driver.payment_link}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98] group"
+                                                    >
+                                                        <Globe className="h-5 w-5 group-hover:rotate-12 transition-transform" />
+                                                        Pagar en Línea ahora
+                                                    </a>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <span className="text-zinc-500 italic">No especificado</span>
+                                        )}
                                     </div>
                                 </section>
 
@@ -485,6 +618,32 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                                     </p>
                                                 </div>
                                             )}
+                                        </div>
+                                    </section>
+                                )}
+
+                                {/* Social Commitment */}
+                                {driver.social_commitment && (
+                                    <section className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                        <div className="p-8 bg-indigo-500/10 border border-indigo-500/20 rounded-[2.5rem] relative overflow-hidden group">
+                                            {/* Decorative Background Icon */}
+                                            <Users className="absolute -right-4 -bottom-4 h-32 w-32 text-indigo-500/5 group-hover:scale-110 transition-transform duration-700" />
+
+                                            <div className="flex items-start gap-6 relative z-10">
+                                                <div className="bg-indigo-500/20 p-4 rounded-2xl">
+                                                    <Users className="h-8 w-8 text-indigo-400 fill-indigo-400/20" />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <h3 className="text-xl font-bold text-indigo-400">Compromiso de Trato Igualitario</h3>
+                                                    <p className="text-zinc-300 text-lg leading-relaxed font-medium italic">
+                                                        "Me comprometo a brindar un trato cordial, respetuoso y equitativo a hombres, mujeres y a la comunidad LGBTQ+, sin distinción por ideologías o creencias religiosas de mis pasajeros."
+                                                    </p>
+                                                    <div className="flex items-center gap-2 pt-2">
+                                                        <ShieldCheck className="h-4 w-4 text-indigo-500" />
+                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-500/70">Conductor Comprometido con la Inclusión</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </section>
                                 )}
