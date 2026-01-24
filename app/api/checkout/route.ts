@@ -22,6 +22,10 @@ export async function POST(req: Request) {
 
         const { type = 'membership', driverId, amount, returnPath } = body;
 
+        // Determine base URL dynamically if env var is missing
+        const origin = new URL(req.url).origin;
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || origin;
+
         // --- TYPE: MEMBERSHIP (Subscription) ---
         if (type === 'membership') {
             const { data: driverProfile } = await supabase
@@ -38,8 +42,8 @@ export async function POST(req: Request) {
             console.log("Creating Membership Session for", user.email);
 
             const session = await stripe.checkout.sessions.create({
-                success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/perfil?tab=payments&success=true`,
-                cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/perfil?tab=payments&canceled=true`,
+                success_url: `${baseUrl}/perfil?tab=payments&success=true`,
+                cancel_url: `${baseUrl}/perfil?tab=payments&canceled=true`,
                 payment_method_types: ['card'],
                 mode: 'subscription',
                 billing_address_collection: 'auto',
@@ -66,8 +70,8 @@ export async function POST(req: Request) {
             console.log(`Creating Unlock Session: User ${user.email} -> Driver ${driverId} ($${amount})`);
 
             const session = await stripe.checkout.sessions.create({
-                success_url: `${process.env.NEXT_PUBLIC_BASE_URL}${returnPath || '/'}?unlocked=true`,
-                cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}${returnPath || '/'}?canceled=true`,
+                success_url: `${baseUrl}${returnPath || '/'}?unlocked=true`,
+                cancel_url: `${baseUrl}${returnPath || '/'}?canceled=true`,
                 payment_method_types: ['card'],
                 mode: 'payment',
                 customer_email: user.email,

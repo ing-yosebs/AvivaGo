@@ -85,7 +85,7 @@ export default function DriverCard({ driver }: DriverCardProps) {
         >
             <div className="flex flex-col md:flex-row">
                 {/* Image Section */}
-                <div className="relative md:w-[35%] h-64 md:h-auto overflow-hidden">
+                <div className="relative md:w-[35%] h-56 sm:h-64 md:h-auto overflow-hidden">
                     <img
                         src={userObj?.avatar_url || driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop'}
                         alt={fullName}

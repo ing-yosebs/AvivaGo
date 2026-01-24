@@ -179,7 +179,7 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
     };
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative overflow-hidden">
+        <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative">
             {/* Background elements */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px]" />
@@ -200,9 +200,8 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                     </Link>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        {/* Sidebar: Profile Info and CTA */}
                         <div className="lg:col-span-4 space-y-6">
-                            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[40px] overflow-hidden p-8 sticky top-24">
+                            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[30px] sm:rounded-[40px] overflow-hidden p-6 sm:p-8 lg:sticky lg:top-24">
                                 <div className="relative mb-8 text-center">
                                     <div className="w-32 h-32 mx-auto rounded-full overflow-hidden ring-4 ring-blue-600/20 group relative">
                                         <img
@@ -371,9 +370,9 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                         </div>
 
                         {/* Main Content: Bio, Vehicle, Reviews */}
-                        <div className="lg:col-span-8 space-y-8">
+                        <div className="lg:col-span-8 space-y-6 sm:space-y-8">
                             {/* Bio Card */}
-                            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[40px] p-8 lg:p-12">
+                            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[30px] sm:rounded-[40px] p-6 sm:p-8 lg:p-12">
                                 <section className="mb-10">
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="bg-blue-600/10 p-2 rounded-xl">
@@ -743,7 +742,7 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                             </div>
 
                             {/* Verification Badge */}
-                            <div className="backdrop-blur-xl bg-blue-600/5 border border-blue-600/20 rounded-[40px] p-8 flex flex-col md:flex-row items-center gap-6">
+                            <div className="backdrop-blur-xl bg-blue-600/5 border border-blue-600/20 rounded-[30px] sm:rounded-[40px] p-6 sm:p-8 flex flex-col md:flex-row items-center gap-6">
                                 <div className="bg-blue-600 p-4 rounded-3xl shrink-0">
                                     <ShieldCheck className="h-8 w-8 text-white" />
                                 </div>

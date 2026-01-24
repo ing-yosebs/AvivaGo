@@ -100,25 +100,17 @@ export default function Header() {
 
             {/* Mobile Menu Drawer */}
             {isMenuOpen && (
-                <div className="md:hidden absolute top-16 left-0 w-full bg-zinc-950 border-b border-white/10 animate-in slide-in-from-top-2 duration-200 shadow-2xl overflow-hidden">
+                <div className="md:hidden absolute top-16 left-0 w-full bg-zinc-950 border-b border-white/10 animate-in slide-in-from-top-2 duration-200 shadow-2xl overflow-y-auto max-h-[calc(100vh-64px)]">
                     <div className="p-4 space-y-3 bg-zinc-900/50 backdrop-blur-xl">
                         {user ? (
                             <>
-                                <Link
-                                    href="/perfil"
-                                    onClick={() => setIsMenuOpen(false)}
-                                    className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 text-white font-bold"
-                                >
-                                    <User className="h-5 w-5 text-blue-400" />
-                                    <span>Mi Perfil</span>
-                                </Link>
                                 <Link
                                     href="/dashboard"
                                     onClick={() => setIsMenuOpen(false)}
                                     className="flex items-center gap-3 p-4 rounded-2xl bg-blue-600 text-white font-bold"
                                 >
-                                    <Rocket className="h-5 w-5" />
-                                    <span>Ir al Panel Principal</span>
+                                    <User className="h-5 w-5" />
+                                    <span>Mi Perfil</span>
                                 </Link>
                                 <button
                                     onClick={handleSignOut}

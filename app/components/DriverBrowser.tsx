@@ -136,7 +136,7 @@ export default function DriverBrowser() {
     }))).filter(Boolean).sort();
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative overflow-hidden">
+        <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative">
             {/* Background elements */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px]" />
