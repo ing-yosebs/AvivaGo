@@ -32,8 +32,25 @@ export default function RegisterPage() {
             setError(error.message)
             setLoading(false)
         } else {
-            // Assume auto-login or redirect
-            // For Supabase, sign up might require email verification, but we'll assume soft redirect
+            // Check if user became an admin via trigger
+            const { data: { user } } = await supabase.auth.getUser()
+
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('roles')
+                    .eq('id', user.id)
+                    .single()
+
+                const roles = profile?.roles || []
+                // If admin, redirect to dashboard. Else, onboarding.
+                if (Array.isArray(roles) && roles.includes('admin')) {
+                    router.refresh()
+                    router.push('/admin')
+                    return
+                }
+            }
+
             router.refresh()
             router.push('/driver/onboarding')
         }

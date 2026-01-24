@@ -45,13 +45,24 @@ export default function DriverBrowser() {
                         model,
                         year
                     ),
-                    driver_services (*)
+                    driver_services (*),
+                    driver_memberships!inner (
+                        status,
+                        expires_at
+                    )
                 `)
                 .eq('status', 'active')
-                .eq('is_visible', true);
+                .eq('is_visible', true)
+                .eq('driver_memberships.status', 'active')
+                .gt('driver_memberships.expires_at', new Date().toISOString());
 
             if (error) {
-                console.error('Error fetching drivers:', error);
+                console.error('Error fetching drivers details:', {
+                    message: error.message,
+                    details: error.details,
+                    hint: error.hint,
+                    code: error.code
+                });
             } else {
                 setDrivers(data || []);
             }

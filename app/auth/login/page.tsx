@@ -29,6 +29,23 @@ export default function LoginPage() {
             setError(error.message)
             setLoading(false)
         } else {
+            // Check for Admin Role
+            const { data: { user } } = await supabase.auth.getUser()
+
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('roles')
+                    .eq('id', user.id)
+                    .single()
+
+                const roles = profile?.roles || []
+                if (Array.isArray(roles) && roles.includes('admin')) {
+                    router.push('/admin')
+                    return
+                }
+            }
+            // Default User
             router.push('/dashboard')
         }
     }
