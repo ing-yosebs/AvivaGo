@@ -56,5 +56,9 @@ export async function signUp(formData: FormData) {
     // Send a separate welcome email (optional, but requested)
     await sendWelcomeEmail(email, fullName)
 
-    return { success: true, message: 'Revisa tu correo para continuar el proceso de inicio de sesión' }
+    return {
+        success: true,
+        message: '¡Excelente! Hemos enviado un código de 6 dígitos a tu correo.',
+        email: email
+    }
 }

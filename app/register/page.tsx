@@ -49,7 +49,8 @@ function RegisterForm() {
         if (res?.error) {
             setError(res.error)
         } else if (res?.success) {
-            window.location.href = '/register/success'
+            // Redirect to verify-otp page
+            window.location.href = `/auth/verify-otp?email=${encodeURIComponent(email)}`
             return
         }
         setPending(false)
