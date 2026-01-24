@@ -1,14 +1,13 @@
 
 import { createClient } from '@/lib/supabase/server'
-import { inviteAdmin, removeAdminRole } from '../actions' // Adjust import
-import { Shield, Plus, Trash2, UserPlus } from 'lucide-react'
+import { removeAdminRole } from '../actions'
+import { Shield, Trash2 } from 'lucide-react'
+import AdminInviteForm from '@/app/components/admin/AdminInviteForm'
 
 export default async function AdminsPage() {
     const supabase = await createClient()
 
     // Fetch all users who have 'admin' in their roles
-    // Note: Supabase Postgrest filter for array containment: roles.cs.{admin} (contains driver)
-    // .cs = contains
     const { data: admins } = await supabase
         .from('users')
         .select('*')
@@ -57,45 +56,8 @@ export default async function AdminsPage() {
                     </div>
                 </div>
 
-                {/* Invite Form */}
-                <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl h-fit">
-                    <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-                        <UserPlus className="h-5 w-5 text-blue-400" />
-                        Agregar Nuevo admin
-                    </h3>
-
-                    <form action={inviteAdmin} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-400 mb-1">Nombre</label>
-                            <input
-                                name="name"
-                                type="text"
-                                required
-                                placeholder="Ej. Juan Pérez"
-                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-400 mb-1">Correo Electrónico del Usuario</label>
-                            <input
-                                name="email"
-                                type="email"
-                                required
-                                placeholder="usuario@ejemplo.com"
-                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-blue-500"
-                            />
-                            <p className="text-xs text-zinc-500 mt-2">
-                                * El usuario debe estar registrado previamente en la plataforma como pasajero o conductor.
-                            </p>
-                        </div>
-                        <button
-                            type="submit"
-                            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 rounded-xl transition-colors shadow-lg shadow-blue-600/20"
-                        >
-                            Promover a Admin
-                        </button>
-                    </form>
-                </div>
+                {/* Invite Form Component */}
+                <AdminInviteForm />
             </div>
         </div>
     )
