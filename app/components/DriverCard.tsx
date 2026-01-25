@@ -81,9 +81,9 @@ export default function DriverCard({ driver }: DriverCardProps) {
     return (
         <Link
             href={`/driver/${driver.id}`}
-            className="group relative block backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl overflow-hidden hover:bg-white/10 transition-all duration-500 shadow-2xl hover:shadow-white/5"
+            className="group relative block bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-card-hover transition-all duration-300 shadow-card"
         >
-            <div className="flex flex-col md:flex-row">
+            <div className="flex flex-col md:flex-row h-full">
                 {/* Image Section */}
                 <div className="relative md:w-[35%] h-56 sm:h-64 md:h-auto overflow-hidden">
                     <img
@@ -92,106 +92,112 @@ export default function DriverCard({ driver }: DriverCardProps) {
                         onError={(e) => {
                             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop';
                         }}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     />
-                    {/* Overlay for Name and Rating */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent" />
+                    {/* Overlay gradient only at bottom for text readability if needed, but keeping it clean */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent md:hidden" />
 
-                    {/* Rating at Top Right */}
-                    <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
-                        <div className="flex items-center gap-1.5 bg-yellow-500 text-black px-2.5 py-1 rounded-full shadow-lg shadow-yellow-500/20">
-                            <Star className="h-3 w-3 fill-current" />
-                            <span className="text-[11px] font-black">{driver.average_rating || '5.0'}</span>
+                    {/* Rating Badge - Clean Glass or White */}
+                    <div className="absolute top-3 right-3 z-10">
+                        <div className="flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-gray-900 px-2.5 py-1 rounded-full shadow-sm border border-gray-100/50">
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            <span className="text-xs font-bold">{driver.average_rating || '5.0'}</span>
                         </div>
                     </div>
 
                     {/* Recognition Badges */}
-                    <div className="absolute bottom-12 left-0 right-0 px-4 z-10 flex items-center justify-center gap-2">
-                        <div className="bg-green-500 p-1 rounded-full ring-2 ring-zinc-950 shadow-lg">
-                            <ShieldCheck className="h-3 w-3 text-white" />
+                    <div className="absolute bottom-3 left-3 flex gap-1.5 z-10">
+                        <div className="bg-emerald-500 text-white p-1 rounded-full shadow-sm" title="Verificado">
+                            <ShieldCheck className="h-3 w-3" />
                         </div>
                         {hasSocialCommitment && (
-                            <div className="bg-indigo-500 p-1 rounded-full ring-2 ring-zinc-950 shadow-lg animate-pulse">
-                                <Users className="h-3 w-3 text-white fill-current" />
+                            <div className="bg-indigo-500 text-white p-1 rounded-full shadow-sm" title="Compromiso Social">
+                                <Users className="h-3 w-3 fill-current" />
                             </div>
                         )}
-                    </div>
-
-                    {/* Name at Bottom Centered */}
-                    <div className="absolute bottom-0 left-0 right-0 p-4 z-10 text-center">
-                        <h3 className="text-lg font-bold text-white leading-tight drop-shadow-md">
-                            {fullName}
-                        </h3>
                     </div>
                 </div>
 
                 {/* Content Section */}
-                <div className="flex-1 p-6 flex flex-col justify-between">
+                <div className="flex-1 p-5 lg:p-6 flex flex-col justify-between">
                     <div>
-                        <div className="space-y-4 mb-6">
-                            {/* 1. Professional Bio */}
-                            <p className="text-sm text-zinc-300 line-clamp-3 leading-relaxed italic">
-                                "{bio}"
-                            </p>
+                        <div className="flex justify-between items-start mb-2">
+                            <h3 className="text-lg font-bold text-aviva-navy leading-tight group-hover:text-aviva-primary transition-colors font-display">
+                                {fullName}
+                            </h3>
+                        </div>
 
-                            {/* 2. Main Vehicle */}
-                            <div className="flex items-center gap-3 text-zinc-400">
-                                <Car className="h-4 w-4 text-blue-500 opacity-70" />
+                        {/* Professional Bio */}
+                        <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed mb-4">
+                            {bio}
+                        </p>
+
+                        <div className="space-y-2 mb-4">
+                            {/* Main Vehicle */}
+                            <div className="flex items-center gap-2.5 text-gray-600">
+                                <div className="p-1.5 bg-blue-50 rounded-lg text-blue-600">
+                                    <Car className="h-3.5 w-3.5" />
+                                </div>
                                 <span className="text-sm font-medium truncate">{vehicle}</span>
                             </div>
 
-                            {/* 3. City of Origin */}
-                            <div className="flex items-center gap-3 text-zinc-400">
-                                <MapPin className="h-4 w-4 text-emerald-500 opacity-70" />
+                            {/* City of Origin */}
+                            <div className="flex items-center gap-2.5 text-gray-600">
+                                <div className="p-1.5 bg-emerald-50 rounded-lg text-emerald-600">
+                                    <MapPin className="h-3.5 w-3.5" />
+                                </div>
                                 <span className="text-sm font-medium">{userObj?.address_state || driver.city}</span>
                             </div>
+                        </div>
 
-                            {/* Personality Tags */}
-                            <div className="flex flex-wrap gap-2 pt-1">
-                                {questionnaire.social && (
-                                    <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[9px] font-bold uppercase tracking-wider border border-blue-500/20">
-                                        {personalityLabels.social[questionnaire.social]}
-                                    </span>
-                                )}
-                                {questionnaire.driving && (
-                                    <span className="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 text-[9px] font-bold uppercase tracking-wider border border-purple-500/20">
-                                        {personalityLabels.driving[questionnaire.driving]}
-                                    </span>
-                                )}
-                                {questionnaire.assistance && (
-                                    <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 text-[9px] font-bold uppercase tracking-wider border border-emerald-500/20">
-                                        {personalityLabels.assistance[questionnaire.assistance]}
-                                    </span>
-                                )}
-                            </div>
-
-                            {activeTags.length > 0 && (
-                                <div className="flex flex-wrap gap-2 pt-3">
-                                    {activeTags.map((t: any) => {
-                                        const Icon = t.icon;
-                                        const colors: any = {
-                                            blue: 'bg-blue-500/5 text-blue-400/80 border-blue-500/10',
-                                            red: 'bg-red-500/5 text-red-400/80 border-red-500/10',
-                                            emerald: 'bg-emerald-500/5 text-emerald-400/80 border-emerald-500/10',
-                                            amber: 'bg-amber-500/5 text-amber-400/80 border-amber-500/10'
-                                        };
-                                        return (
-                                            <div key={t.id} className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border ${colors[t.color]} transition-colors group-hover:border-white/20`}>
-                                                <Icon className="h-3 w-3" />
-                                                <span className="text-[10px] font-medium">{t.label}</span>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                        {/* Personality Tags */}
+                        <div className="flex flex-wrap gap-2 mb-3">
+                            {questionnaire.social && (
+                                <span className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-[10px] font-semibold uppercase tracking-wide">
+                                    {personalityLabels.social[questionnaire.social]}
+                                </span>
+                            )}
+                            {questionnaire.driving && (
+                                <span className="px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-[10px] font-semibold uppercase tracking-wide">
+                                    {personalityLabels.driving[questionnaire.driving]}
+                                </span>
                             )}
                         </div>
+
+                        {/* Feature Tags */}
+                        {activeTags.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                {activeTags.slice(0, 4).map((t: any) => {
+                                    const Icon = t.icon;
+                                    // Mapping legacy colors to new clean style
+                                    const colors: any = {
+                                        blue: 'bg-blue-50 text-blue-600',
+                                        red: 'bg-red-50 text-red-600',
+                                        emerald: 'bg-emerald-50 text-emerald-600',
+                                        amber: 'bg-amber-50 text-amber-600'
+                                    };
+                                    return (
+                                        <div key={t.id} className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full ${colors[t.color] || 'bg-gray-100 text-gray-600'}`}>
+                                            <Icon className="h-3 w-3" />
+                                            <span className="text-[10px] font-medium">{t.label}</span>
+                                        </div>
+                                    );
+                                })}
+                                {activeTags.length > 4 && (
+                                    <span className="text-[10px] text-gray-400 self-center">+{activeTags.length - 4}</span>
+                                )}
+                            </div>
+                        )}
                     </div>
 
-                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Disponible ahora</span>
-                        <div className="flex items-center gap-2 text-white font-semibold text-sm group/btn">
+                    <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between">
+                        <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Disponible hoy
+                        </span>
+                        <div className="flex items-center gap-1 text-aviva-primary text-sm font-semibold group-hover:gap-2 transition-all">
                             Ver Perfil
-                            <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+                            <ArrowRight className="h-4 w-4" />
                         </div>
                     </div>
                 </div>

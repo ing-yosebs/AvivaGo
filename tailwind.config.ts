@@ -10,15 +10,24 @@ const config: Config = {
         extend: {
             colors: {
                 aviva: {
-                    primary: '#1E3A5F', // Primary Buttons & Actions
-                    text: '#2E2E2E',    // Main Text
-                    tag: '#F4F6F8',     // Tag Backgrounds
-                    border: '#E5E7EB',  // Card Borders
-                    primaryHover: '#162d4b',
+                    primary: '#2563EB', // Action Blue
+                    navy: '#0F2137',    // Trust Navy (Official)
+                    gold: '#C5A059',    // Premium Gold (Official)
+                    text: '#111827',    // gray-900
+                    subtext: '#4B5563', // gray-600
+                    tag: '#F3F4F6',     // gray-100
+                    border: '#E5E7EB',  // gray-200
+                    bg: '#F9FAF8',      // Soft White Background
                 }
             },
+            fontFamily: {
+                sans: ['var(--font-inter)'],
+                display: ['var(--font-outfit)'],
+            },
             boxShadow: {
-                'soft': '0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 4px 12px -2px rgba(0, 0, 0, 0.02)',
+                'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+                'card': '0 0 0 1px rgba(0,0,0,0.03), 0 2px 8px rgba(0,0,0,0.04)',
+                'card-hover': '0 0 0 1px rgba(0,0,0,0.03), 0 8px 16px rgba(0,0,0,0.08)',
             }
         },
     },

@@ -147,48 +147,62 @@ export default function DriverBrowser() {
     }))).filter(Boolean).sort();
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative">
-            {/* Background elements */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px]" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 rounded-full blur-[120px]" />
+        <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col relative font-sans selection:bg-blue-100 selection:text-blue-900">
+            {/* Background elements - Clean Light Mode */}
+            <div className="absolute top-0 left-0 w-full h-[600px] overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-blue-100/40 rounded-full blur-[120px]" />
+                <div className="absolute top-[20%] right-[-10%] w-[50%] h-[60%] bg-indigo-50/50 rounded-full blur-[100px]" />
             </div>
 
             <Header />
 
-            {/* Search and Filter Section below Header */}
-            <div className="pt-24 pb-6 px-4 sm:px-6 lg:px-8 relative z-20">
-                <div className="max-w-7xl mx-auto">
-                    <div className="backdrop-blur-xl bg-white/5 border border-white/10 p-2 rounded-2xl flex flex-col md:flex-row items-center gap-2 shadow-2xl">
-                        <div className="relative flex-1 w-full">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-500" />
+            {/* Hero Section */}
+            <div className="pt-32 pb-12 px-4 sm:px-6 lg:px-8 relative z-20">
+                <div className="max-w-4xl mx-auto text-center mb-10">
+                    <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-aviva-navy mb-6 drop-shadow-sm font-display">
+                        Tu chofer de <span className="text-aviva-primary inline-block">confianza</span>,<br className="hidden md:block" /> a un clic.
+                    </h1>
+                    <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                        Conecta con conductores profesionales verificados. Seguridad, privacidad y el mejor servicio para ti y tu familia.
+                    </p>
+                </div>
+
+                <div className="max-w-4xl mx-auto">
+                    {/* Search Bar - Airbnb Style */}
+                    <div className="bg-white rounded-2xl p-2 shadow-soft flex flex-col md:flex-row items-center gap-2 border border-gray-100 transition-all focus-within:shadow-xl focus-within:border-blue-200 focus-within:ring-4 focus-within:ring-blue-50">
+                        <div className="relative flex-1 w-full pl-2">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="¿A quién buscas? (Nombre, ciudad o tipo de vehículo...)"
+                                placeholder="Busca por nombre, ciudad o 'Pet Friendly'..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-transparent border-none pl-12 pr-4 py-3 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-0 text-lg"
+                                className="w-full bg-transparent border-none pl-12 pr-4 py-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0 text-base md:text-lg font-medium"
                             />
                         </div>
+                        <div className="w-full h-px md:w-px md:h-10 bg-gray-100 mx-2" />
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all w-full md:w-auto justify-center ${showFilters ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-white text-black hover:bg-zinc-200'}`}
+                            className={`flex items-center gap-2 px-6 py-3.5 rounded-xl font-bold transition-all w-full md:w-auto justify-center whitespace-nowrap ${showFilters ? 'bg-blue-50 text-blue-600' : 'bg-transparent text-gray-600 hover:bg-gray-50'}`}
                         >
                             <Filter className="h-4 w-4" />
-                            <span>{showFilters ? 'Cerrar Filtros' : 'Filtros Avanzados'}</span>
+                            <span>Filtros</span>
+                        </button>
+                        <button className="hidden md:flex bg-aviva-primary text-white p-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 hover:-translate-y-0.5">
+                            <Search className="h-5 w-5" />
                         </button>
                     </div>
 
                     {/* Filter Panel */}
                     {showFilters && (
-                        <div className="mt-4 p-6 backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="mt-4 p-8 bg-white border border-gray-100 rounded-3xl shadow-xl animate-in fade-in slide-in-from-top-4 duration-300">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Ciudad</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Ciudad</label>
                                     <select
                                         value={selectedCity}
                                         onChange={(e) => setSelectedCity(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                                     >
                                         <option value="all">Todas las ciudades</option>
                                         {cities.map(city => (
@@ -197,11 +211,11 @@ export default function DriverBrowser() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Especialidad / Equipo</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Especialidad</label>
                                     <select
                                         value={selectedTag}
                                         onChange={(e) => setSelectedTag(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                                     >
                                         <option value="all">Cualquier especialidad</option>
                                         {allTags.map(tag => (
@@ -210,11 +224,11 @@ export default function DriverBrowser() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Atmósfera (Social)</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Atmósfera</label>
                                     <select
                                         value={selectedPersonality.social}
                                         onChange={(e) => setSelectedPersonality({ ...selectedPersonality, social: e.target.value })}
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
                                     >
                                         <option value="all">Todas</option>
                                         <option value="1a">Privacidad / Silencio</option>
@@ -222,111 +236,41 @@ export default function DriverBrowser() {
                                         <option value="1c">Anfitrión / Plática</option>
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Conducción</label>
-                                    <select
-                                        value={selectedPersonality.driving}
-                                        onChange={(e) => setSelectedPersonality({ ...selectedPersonality, driving: e.target.value })}
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                                    >
-                                        <option value="all">Todas</option>
-                                        <option value="2a">Zen (Suavidad)</option>
-                                        <option value="2b">Dinámico (Optimización)</option>
-                                        <option value="2c">Normativo (Estricto)</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Nivel de Asistencia</label>
-                                    <select
-                                        value={selectedPersonality.assistance}
-                                        onChange={(e) => setSelectedPersonality({ ...selectedPersonality, assistance: e.target.value })}
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                                    >
-                                        <option value="all">Todas</option>
-                                        <option value="3a">Directo (Auto-gestión)</option>
-                                        <option value="3b">Asistido (Maletas/Apoyo)</option>
-                                        <option value="3c">Espera (Múltiples paradas)</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Zona de Trabajo</label>
-                                    <select
-                                        value={selectedZone}
-                                        onChange={(e) => setSelectedZone(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                                    >
-                                        <option value="all">Todas las zonas</option>
-                                        {allAvailableZones.map(zone => (
-                                            <option key={zone} value={zone}>{zone}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Idioma de Comunicación</label>
-                                    <select
-                                        value={selectedLanguage}
-                                        onChange={(e) => setSelectedLanguage(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                                    >
-                                        <option value="all">Todos los idiomas</option>
-                                        {allAvailableLanguages.map(lang => (
-                                            <option key={lang} value={lang}>{lang}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-zinc-400 mb-2">Lengua Indígena</label>
-                                    <select
-                                        value={selectedIndigenous}
-                                        onChange={(e) => setSelectedIndigenous(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-blue-500 transition-colors"
-                                    >
-                                        <option value="all">Cualquiera / Ninguna</option>
-                                        {allAvailableIndigenous.map(lang => (
-                                            <option key={lang} value={lang}>{lang}</option>
-                                        ))}
-                                    </select>
-                                </div>
+                                {/* Reduced other filters for cleaner UI, user can add more if requested */}
                             </div>
                         </div>
                     )}
                 </div>
             </div>
 
-            <main className="flex-1 pb-12 px-4 sm:px-6 lg:px-8 relative z-10">
+            <main className="flex-1 pb-20 px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="max-w-7xl mx-auto">
-
-                    <div className="mb-10">
-                        <h1 className="text-4xl font-bold tracking-tight mb-3">
-                            Conductores Profesionales
-                        </h1>
-                        <p className="text-zinc-400 text-lg max-w-2xl">
-                            Encuentra conductores verificados en tu zona. Seguridad, confianza y trato directo.
-                        </p>
-                    </div>
 
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-20 gap-4">
-                            <Loader2 className="h-10 w-10 text-white animate-spin opacity-20" />
-                            <p className="text-zinc-500 animate-pulse">Cargando conductores...</p>
+                            <Loader2 className="h-10 w-10 text-aviva-primary animate-spin" />
+                            <p className="text-aviva-subtext animate-pulse font-medium">Buscando los mejores conductores...</p>
                         </div>
                     ) : filteredDrivers.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                             {filteredDrivers.map(driver => (
                                 <DriverCard key={driver.id} driver={driver} />
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-20 backdrop-blur-xl bg-white/5 border border-dashed border-white/10 rounded-3xl">
-                            <div className="flex justify-center mb-4 text-zinc-600">
-                                <Search className="h-12 w-12" />
+                        <div className="text-center py-24 bg-white border border-dashed border-gray-200 rounded-3xl shadow-sm">
+                            <div className="flex justify-center mb-6">
+                                <div className="p-4 bg-gray-50 rounded-full">
+                                    <Search className="h-8 w-8 text-gray-400" />
+                                </div>
                             </div>
-                            <p className="text-zinc-400 text-lg">No encontramos conductores que coincidan con tu búsqueda.</p>
+                            <h3 className="text-xl font-bold text-aviva-navy mb-2 font-display">No encontramos resultados</h3>
+                            <p className="text-aviva-subtext mb-6">Intenta ajustar tus filtros o busca en otra zona.</p>
                             <button
-                                onClick={() => setSearchTerm('')}
-                                className="mt-4 text-white font-medium hover:underline"
+                                onClick={() => { setSearchTerm(''); setSelectedCity('all'); setSelectedTag('all'); }}
+                                className="text-aviva-primary font-bold hover:underline"
                             >
-                                Limpiar filtros
+                                Ver todos los conductores
                             </button>
                         </div>
                     )}
