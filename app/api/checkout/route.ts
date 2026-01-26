@@ -42,8 +42,8 @@ export async function POST(req: Request) {
             console.log("Creating Membership Session for", user.email);
 
             const session = await stripe.checkout.sessions.create({
-                success_url: `${baseUrl}/perfil?tab=payments&success=true`,
-                cancel_url: `${baseUrl}/perfil?tab=payments&canceled=true`,
+                success_url: `${baseUrl}/checkout/callback?status=success&type=membership`,
+                cancel_url: `${baseUrl}/checkout/callback?status=canceled&type=membership`,
                 payment_method_types: ['card'],
                 mode: 'subscription',
                 billing_address_collection: 'auto',
@@ -62,6 +62,20 @@ export async function POST(req: Request) {
         if (type === 'unlock') {
             if (!driverId || !amount) return new NextResponse('Missing driverId or amount', { status: 400 });
 
+            // Enforce Profile Completion (Validation)
+            const { data: userProfile } = await supabase
+                .from('users')
+                .select('full_name, phone_number')
+                .eq('id', user.id)
+                .single();
+
+            if (!userProfile?.full_name || !userProfile?.phone_number) {
+                return NextResponse.json(
+                    { error: 'Debes completar tu perfil (nombre y teléfono) antes de contactar conductores.' },
+                    { status: 400 } // Or 403
+                );
+            }
+
             // Validate amount (Stripe expects integers in cents if using currency, OR price_data)
             // We'll use ad-hoc price_data construction
             // Amount comes from frontend as float (e.g. 15.00), Stripe needs cents (1500)
@@ -70,8 +84,8 @@ export async function POST(req: Request) {
             console.log(`Creating Unlock Session: User ${user.email} -> Driver ${driverId} ($${amount})`);
 
             const session = await stripe.checkout.sessions.create({
-                success_url: `${baseUrl}${returnPath || '/'}?unlocked=true`,
-                cancel_url: `${baseUrl}${returnPath || '/'}?canceled=true`,
+                success_url: `${baseUrl}/checkout/callback?status=success&type=unlock`,
+                cancel_url: `${baseUrl}/checkout/callback?status=canceled&type=unlock`,
                 payment_method_types: ['card'],
                 mode: 'payment',
                 customer_email: user.email,

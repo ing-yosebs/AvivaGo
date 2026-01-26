@@ -2,7 +2,8 @@
 
 import { useState, Suspense } from 'react'
 import { signUp } from '@/app/auth/actions'
-import { User, Mail, Lock, CheckCircle, Loader2, Eye, EyeOff, Rocket, X } from 'lucide-react'
+import { User, Mail, Lock, CheckCircle, Loader2, Eye, EyeOff, X } from 'lucide-react'
+import AvivaLogo from '@/app/components/AvivaLogo'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
@@ -68,10 +69,8 @@ function RegisterForm() {
                 </Link>
                 <div className="text-center mb-8">
                     {/* Logo */}
-                    <div className="flex justify-center mb-4">
-                        <div className="bg-white/10 p-3 rounded-2xl border border-white/10 backdrop-blur-md shadow-lg">
-                            <Rocket className="h-8 w-8 text-white transform -rotate-45" />
-                        </div>
+                    <div className="flex justify-center mb-1">
+                        <AvivaLogo className="h-16 w-auto" showText={false} />
                     </div>
                     <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent mb-2">
                         AvivaGo

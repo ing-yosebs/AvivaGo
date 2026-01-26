@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, CreditCard, Activity, Settings, LogOut, Rocket } from 'lucide-react'
+import { LayoutDashboard, Users, CreditCard, Activity, Settings, LogOut } from 'lucide-react'
+import AvivaLogo from '../AvivaLogo'
 
 const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -17,9 +18,9 @@ export default function AdminSidebar() {
     return (
         <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
             <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-black/40 backdrop-blur-xl border-r border-white/10 px-6 pb-4">
-                <div className="flex h-16 shrink-0 items-center gap-2 mt-4">
-                    <div className="bg-white/10 p-2 rounded-xl border border-white/10 shadow-lg">
-                        <Rocket className="h-6 w-6 text-white transform -rotate-45" />
+                <div className="flex h-16 shrink-0 items-center gap-2 mt-4 group">
+                    <div className="flex items-center justify-center group-hover:rotate-12 transition-transform">
+                        <AvivaLogo className="h-10 w-auto" showText={false} />
                     </div>
                     <span className="text-xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">
                         AvivaGo Admin

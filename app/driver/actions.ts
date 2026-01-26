@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
+import { logDriverAction } from '@/lib/logger'
 
 const onboardingSchema = z.object({
     fullName: z.string().min(2),
@@ -86,5 +87,71 @@ export async function submitOnboarding(formData: FormData) {
     } catch (err: any) {
         console.error('Onboarding error:', err)
         return { error: err.message || 'Error al guardar el perfil' }
+    }
+}
+
+export async function requestReview(driverProfileId: string, reason?: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: 'No authenticated user found' }
+    }
+
+    try {
+        // Double check requirements
+        // 1. Check Membership
+        const { data: membership } = await supabase
+            .from('driver_memberships')
+            .select('status, expires_at')
+            .eq('driver_profile_id', driverProfileId)
+            .eq('status', 'active')
+            .gt('expires_at', new Date().toISOString())
+            .single()
+
+        if (!membership) {
+            return { error: 'Debes tener una membresía activa para solicitar revisión.' }
+        }
+
+        // 1.5 Get Previous Status
+        const { data: currentProfile } = await supabase
+            .from('driver_profiles')
+            .select('status')
+            .eq('id', driverProfileId)
+            .single()
+
+        const previousStatus = currentProfile?.status || 'unknown'
+
+        // 2. Prepare Update Data
+        const updateData: any = { status: 'pending_approval' }
+        if (reason) {
+            updateData.request_reason = reason
+        }
+
+        // 3. Update Status to pending_approval (En Revisión)
+        const { error } = await supabase
+            .from('driver_profiles')
+            .update(updateData)
+            .eq('id', driverProfileId)
+            .eq('user_id', user.id) // Security check
+
+        if (error) throw error
+
+        // 4. Log Action (File logger)
+        await logDriverAction(
+            { id: user.id },
+            'driver_review_request',
+            {
+                driverId: driverProfileId,
+                previousStatus: previousStatus,
+                newStatus: 'pending_approval',
+                reason: reason
+            }
+        );
+
+        return { success: true }
+    } catch (err: any) {
+        console.error('Request review error:', err)
+        return { error: err.message || 'Error al solicitar revisión' }
     }
 }

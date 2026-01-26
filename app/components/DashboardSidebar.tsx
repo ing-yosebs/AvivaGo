@@ -21,6 +21,7 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import AvivaLogo from './AvivaLogo'
 
 export default function DashboardSidebar() {
     const pathname = usePathname()
@@ -83,8 +84,8 @@ export default function DashboardSidebar() {
             {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 w-full bg-zinc-950 border-b border-white/5 h-16 flex items-center justify-between px-6 z-[60]">
                 <Link href="/" className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                        <span className="text-white font-bold text-xl">A</span>
+                    <div className="w-8 h-8 flex items-center justify-center">
+                        <AvivaLogo className="w-full h-full" showText={false} />
                     </div>
                     <span className="text-xl font-bold text-white tracking-tight">AvivaGo</span>
                 </Link>
@@ -112,8 +113,8 @@ export default function DashboardSidebar() {
             `}>
                 <div className="p-6 hidden lg:block">
                     <Link href="/" className="flex items-center gap-2 group">
-                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center group-hover:rotate-12 transition-transform">
-                            <span className="text-white font-bold text-xl">A</span>
+                        <div className="w-8 h-8 flex items-center justify-center group-hover:rotate-12 transition-transform h-auto">
+                            <AvivaLogo className="w-full h-full" showText={false} />
                         </div>
                         <span className="text-xl font-bold text-white tracking-tight">AvivaGo</span>
                     </Link>
