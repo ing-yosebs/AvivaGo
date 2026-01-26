@@ -27,7 +27,18 @@ export default function LoginPage() {
         })
 
         if (error) {
-            setError(error.message)
+            console.log("Login error:", error.message)
+            if (error.message.includes('Email not confirmed')) {
+                setError('Correo no verificado.')
+                // Optionally redirect or show a button, but for now just clear msg
+                // Actually, let's just push them there if we know the email, 
+                // but better to show a custom UI state. 
+                // Simplest: Show error with link.
+                // But `error` state is string.
+                // Let's make error state clearer in the render.
+            } else {
+                setError(error.message)
+            }
             setLoading(false)
         } else {
             // Check for Admin Role
@@ -122,9 +133,16 @@ export default function LoginPage() {
                         </div>
 
                         {error && (
-                            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center flex items-center justify-center gap-2">
-                                <CheckCircle className="h-4 w-4 rotate-45" />
-                                {error}
+                            <div className={`p-3 border rounded-lg text-sm text-center flex flex-col items-center justify-center gap-2 ${error === 'Correo no verificado.' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle className={`h-4 w-4 ${error === 'Correo no verificado.' ? 'text-yellow-500' : 'rotate-45'}`} />
+                                    {error}
+                                </div>
+                                {error === 'Correo no verificado.' && (
+                                    <Link href={`/auth/verify-otp?email=${encodeURIComponent(email)}`} className="underline font-semibold hover:text-white">
+                                        Verificar ahora
+                                    </Link>
+                                )}
                             </div>
                         )}
 

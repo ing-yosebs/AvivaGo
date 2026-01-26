@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, Suspense } from 'react'
+import { useEffect, Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 
@@ -9,38 +9,114 @@ function CallbackContent() {
     const status = searchParams.get('status') // 'success' | 'canceled'
     const type = searchParams.get('type') // 'unlock' | 'membership'
 
+    const [verifying, setVerifying] = useState(status === 'success')
+    const [verified, setVerified] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+
     useEffect(() => {
-        // Notify parent window
-        if (window.opener) {
-            window.opener.postMessage({
-                source: 'avivago-payment',
-                status,
-                type,
-                sessionId: searchParams.get('session_id')
-            }, window.location.origin)
+        const confirmPayment = async () => {
+            if (status !== 'success') return;
+
+            const sessionId = searchParams.get('session_id');
+            if (!sessionId) {
+                setError('No se encontró ID de sesión');
+                setVerifying(false);
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/checkout/confirm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: sessionId })
+                });
+
+                if (!res.ok) {
+                    const msg = await res.text();
+                    throw new Error(msg || 'Error al confirmar el pago');
+                }
+
+                setVerified(true);
+                // Notify parent window ONLY after verification
+                if (window.opener) {
+                    window.opener.postMessage({
+                        source: 'avivago-payment',
+                        status: 'success',
+                        type,
+                        sessionId
+                    }, window.location.origin);
+                }
+            } catch (err: any) {
+                console.error(err);
+                setError(err.message || 'Hubo un problema registrando tu pago. Contacta a soporte.');
+            } finally {
+                setVerifying(false); // Stop loading spinner
+            }
+        };
+
+        if (status === 'success') {
+            confirmPayment();
+        } else {
+            // Cancel case - notify immediately
+            if (window.opener) {
+                window.opener.postMessage({
+                    source: 'avivago-payment',
+                    status: 'canceled',
+                    type
+                }, window.location.origin);
+            }
         }
 
-        // Auto-close after 3 seconds if it hasn't been closed by parent
-        const timer = setTimeout(() => {
-            window.close()
-        }, 3000)
+        // Auto-close logic should wait for verification if success
+        // We'll handle auto-close inside the render based on verified state or just user click for safety
+    }, [status, type, searchParams]);
 
-        return () => clearTimeout(timer)
-    }, [status, type])
+    // Auto close effect only when verified or canceled
+    useEffect(() => {
+        if (verified || status !== 'success') {
+            const timer = setTimeout(() => {
+                window.close()
+            }, 4000) // Give them time to read "Exito"
+            return () => clearTimeout(timer)
+        }
+    }, [verified, status])
 
     return (
         <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-center">
             <div className="max-w-sm w-full bg-white/5 border border-white/10 p-8 rounded-[2.5rem] space-y-6 animate-in zoom-in-95 duration-500">
+
                 {status === 'success' ? (
-                    <>
-                        <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto ring-8 ring-emerald-500/5">
-                            <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-                        </div>
-                        <div className="space-y-2">
-                            <h1 className="text-2xl font-bold text-white">¡Pago Exitoso!</h1>
-                            <p className="text-zinc-400 text-sm">Tu transacción se completó correctamente. Esta ventana se cerrará automáticamente.</p>
-                        </div>
-                    </>
+                    verifying ? (
+                        <>
+                            <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto ring-8 ring-blue-500/5 animate-pulse">
+                                <Loader2 className="h-10 w-10 text-blue-500 animate-spin" />
+                            </div>
+                            <div className="space-y-2">
+                                <h1 className="text-2xl font-bold text-white">Verificando Pago...</h1>
+                                <p className="text-zinc-400 text-sm">Estamos confirmando tu transacción con el banco. Por favor espera.</p>
+                            </div>
+                        </>
+                    ) : error ? (
+                        <>
+                            <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto ring-8 ring-yellow-500/5">
+                                <XCircle className="h-10 w-10 text-yellow-500" />
+                            </div>
+                            <div className="space-y-2">
+                                <h1 className="text-2xl font-bold text-white">Atención</h1>
+                                <p className="text-zinc-400 text-sm">{error}</p>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto ring-8 ring-emerald-500/5">
+                                <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+                            </div>
+                            <div className="space-y-2">
+                                <h1 className="text-2xl font-bold text-white">¡Pago Exitoso!</h1>
+                                <p className="text-zinc-400 text-sm">Tu membresía ha sido activada correctamente en nuestro sistema.</p>
+                            </div>
+                        </>
+                    )
                 ) : (
                     <>
                         <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto ring-8 ring-red-500/5">
@@ -67,6 +143,8 @@ function CallbackContent() {
             </div>
         </div>
     )
+
+
 }
 
 export default function CheckoutCallbackPage() {

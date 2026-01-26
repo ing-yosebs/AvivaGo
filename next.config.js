@@ -8,6 +8,14 @@ const nextConfig = {
                 port: '',
                 pathname: '/storage/v1/**',
             },
+            {
+                protocol: 'https',
+                hostname: 'placehold.co',
+            },
+            {
+                protocol: 'https',
+                hostname: 'via.placeholder.com',
+            },
         ],
     },
 };

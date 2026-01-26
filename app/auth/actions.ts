@@ -3,6 +3,7 @@
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendWelcomeEmail } from '@/lib/email'
 import { z } from 'zod'
 
@@ -33,6 +34,18 @@ export async function signUp(formData: FormData) {
         return { error: 'Invalid input fields' }
     }
 
+    // Check if user already exists
+    const supabaseAdmin = createAdminClient()
+    const { data: existingUser } = await supabaseAdmin
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .single()
+
+    if (existingUser) {
+        return { error: 'Ya existe una cuenta con este correo electrónico', code: 'USER_EXISTS' }
+    }
+
     const supabase = await createClient()
 
     const { error } = await supabase.auth.signUp({
@@ -61,4 +74,18 @@ export async function signUp(formData: FormData) {
         message: '¡Excelente! Hemos enviado un código de 6 dígitos a tu correo.',
         email: email
     }
+}
+
+export async function resendOtp(email: string) {
+    const supabase = await createClient()
+    const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+    })
+
+    if (error) {
+        return { error: error.message }
+    }
+
+    return { success: true, message: 'Código reenviado correctamente.' }
 }

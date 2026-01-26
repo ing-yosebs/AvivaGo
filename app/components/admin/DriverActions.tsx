@@ -89,7 +89,7 @@ export default function DriverActions({
         <>
             <div className="flex flex-col gap-4">
                 <div className="flex flex-wrap gap-3">
-                    {currentStatus !== 'active' && currentStatus !== 'rejected' && (
+                    {currentStatus === 'pending_approval' && (
                         <button
                             type="button"
                             onClick={() => handleStatusUpdate('active')}
@@ -97,11 +97,11 @@ export default function DriverActions({
                             className="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-4 py-3 rounded-xl transition-colors disabled:opacity-50 font-bold shadow-sm"
                         >
                             {loading ? '...' : <Check className="h-4 w-4" />}
-                            Aprobar / Activar
+                            Aprobar Solicitud
                         </button>
                     )}
 
-                    {currentStatus !== 'suspended' && currentStatus !== 'rejected' && (
+                    {(currentStatus === 'pending_approval' || currentStatus === 'active') && (
                         <button
                             type="button"
                             onClick={handleRejectClick}

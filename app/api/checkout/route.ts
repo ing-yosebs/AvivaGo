@@ -42,7 +42,7 @@ export async function POST(req: Request) {
             console.log("Creating Membership Session for", user.email);
 
             const session = await stripe.checkout.sessions.create({
-                success_url: `${baseUrl}/checkout/callback?status=success&type=membership`,
+                success_url: `${baseUrl}/checkout/callback?status=success&type=membership&session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${baseUrl}/checkout/callback?status=canceled&type=membership`,
                 payment_method_types: ['card'],
                 mode: 'subscription',

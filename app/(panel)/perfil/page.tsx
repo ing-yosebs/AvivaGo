@@ -158,6 +158,12 @@ function ProfileContent() {
     }, [supabase, urlTab])
 
     const handleSaveProfile = async (formData: any) => {
+        // Security Check: Ban Status
+        if (profile?.is_banned) {
+            setMessage({ type: 'error', text: 'Tu cuenta está suspendida. No puedes realizar cambios.' })
+            return
+        }
+
         setSaving(true)
         setMessage(null)
         try {
@@ -182,6 +188,12 @@ function ProfileContent() {
     }
 
     const handleSaveServices = async (formData: any) => {
+        // Security Check: Ban Status
+        if (profile?.is_banned) {
+            setMessage({ type: 'error', text: 'Tu cuenta está suspendida. No puedes realizar cambios.' })
+            return
+        }
+
         setSaving(true)
         setMessage(null)
         try {

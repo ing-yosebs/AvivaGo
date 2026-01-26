@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { uploadFile } from '@/lib/supabase/storage'
-import { ChevronRight, Loader2, Plus, Check, Camera, Info, Car, Trash2 } from 'lucide-react'
+
+import { ChevronRight, Loader2, Plus, Check, Camera, Info, Car, Trash2, FileText, CheckCircle2 } from 'lucide-react'
+import imageCompression from 'browser-image-compression'
 
 export default function VehiclesSection({ vehicles, onAdd }: any) {
     const supabase = createClient()
@@ -16,6 +18,8 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
     const invoiceRef = useRef<HTMLInputElement>(null)
     const verificationRef = useRef<HTMLInputElement>(null)
     const insuranceRef = useRef<HTMLInputElement>(null)
+    const platePhotoRef = useRef<HTMLInputElement>(null)
+    const circulationCardRef = useRef<HTMLInputElement>(null)
     const photoRefs = useRef<(HTMLInputElement | null)[]>([])
 
     const carBrands: Record<string, string[]> = {
@@ -48,18 +52,88 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
         invoice_url: '',
         verification_url: '',
         insurance_policy_url: '',
+        plate_photo_url: '',
+        circulation_card_url: '',
         photos: [] // Array of 6 photo URLs
     })
 
+    const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null)
+    const [signedUrls, setSignedUrls] = useState<Record<string, string | null>>({})
+
+    useEffect(() => {
+        const documentsToSign = [
+            'plate_photo_url', 'circulation_card_url', 'invoice_url',
+            'verification_url', 'insurance_policy_url', 'vin_photo_url'
+        ]
+
+        const signUrls = async () => {
+            const newSignedUrls: Record<string, string | null> = {}
+
+            await Promise.all(documentsToSign.map(async (key) => {
+                const url = form[key]
+                if (!url) {
+                    newSignedUrls[key] = null
+                    return
+                }
+
+                try {
+                    if (url.includes('/storage/v1/object/public/vehicles/')) {
+                        const path = url.split('/vehicles/')[1]
+                        if (path) {
+                            const { data } = await supabase.storage.from('vehicles').createSignedUrl(path, 3600)
+                            if (data?.signedUrl) {
+                                newSignedUrls[key] = data.signedUrl
+                                return
+                            }
+                        }
+                    }
+                    newSignedUrls[key] = url
+                } catch {
+                    newSignedUrls[key] = url
+                }
+            }))
+
+            setSignedUrls(prev => ({ ...prev, ...newSignedUrls }))
+        }
+
+        signUrls()
+    }, [form.plate_photo_url, form.circulation_card_url, form.invoice_url, form.verification_url, form.insurance_policy_url, form.vin_photo_url])
+
     const handleFile = async (e: React.ChangeEvent<HTMLInputElement>, field: string, isPhotoArray: boolean = false, index: number = 0) => {
-        const file = e.target.files?.[0]
-        if (!file) return
+        const originalFile = e.target.files?.[0]
+        if (!originalFile) return
+
+        // Validación de PDF (Max 5MB)
+        if (originalFile.type === 'application/pdf') {
+            if (originalFile.size > 5 * 1024 * 1024) {
+                alert('El documento PDF es demasiado grande. El tamaño máximo permitido es de 5MB.')
+                return
+            }
+        }
 
         setUploading(field === 'photos' ? `photos-${index}` : field)
+
+        let fileToUpload = originalFile
+
         try {
+            // Compresión de Imágenes
+            if (originalFile.type.startsWith('image/')) {
+                const options = {
+                    maxSizeMB: 1,
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true
+                }
+                try {
+                    const compressedFile = await imageCompression(originalFile, options)
+                    fileToUpload = compressedFile
+                } catch (error) {
+                    console.error('Error al comprimir imagen, se usará la original:', error)
+                }
+            }
+
             const { data: { user } } = await supabase.auth.getUser()
-            const path = `${user?.id}/vehicles/${Date.now()}_${file.name}`
-            const url = await uploadFile('vehicles', path, file)
+            const path = `${user?.id}/vehicles/${Date.now()}_${fileToUpload.name}`
+            const url = await uploadFile('vehicles', path, fileToUpload)
 
             if (isPhotoArray) {
                 const newPhotos = [...form.photos]
@@ -75,6 +149,43 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
         }
     }
 
+
+
+    const resetForm = () => {
+        setForm({
+            brand: '',
+            model: '',
+            color: '',
+            year: new Date().getFullYear(),
+            plate_number: '',
+            registration_state: '',
+            vin_number: '',
+            vin_photo_url: '',
+            invoice_url: '',
+            verification_url: '',
+            insurance_policy_url: '',
+            plate_photo_url: '',
+            circulation_card_url: '',
+            photos: []
+        })
+        setSelectedVehicleId(null)
+        setIsAdding(false)
+    }
+
+    const handleEdit = (vehicle: any) => {
+        // Determine if brand/model is custom
+        const isCustomBrand = !carBrands[vehicle.brand]
+        const isCustomModel = !isCustomBrand && !carBrands[vehicle.brand]?.includes(vehicle.model)
+
+        setForm({
+            ...vehicle,
+            isCustomBrand,
+            isCustomModel
+        })
+        setSelectedVehicleId(vehicle.id)
+        setIsAdding(true)
+    }
+
     const handleRegister = async () => {
         if (!form.brand || !form.model || !form.plate_number) {
             alert('Por favor completa los campos obligatorios.')
@@ -84,22 +195,35 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
         setSaving(true)
         try {
             const { data: { user } } = await supabase.auth.getUser()
-            const { data: drvProfile } = await supabase.from('driver_profiles').select('id').eq('user_id', user?.id).single()
 
             // Destructure to remove frontend-only flags
-            const { isCustomBrand, isCustomModel, ...vehicleData } = form
+            const { isCustomBrand, isCustomModel, created_at, id, ...vehicleData } = form
 
-            const { error } = await supabase.from('vehicles').insert({
-                driver_profile_id: drvProfile?.id,
-                ...vehicleData,
-                status: 'pending' // Vehicles start as pending verification
-            })
+            if (selectedVehicleId) {
+                // UPDATE existing vehicle
+                const { error } = await supabase
+                    .from('vehicles')
+                    .update(vehicleData)
+                    .eq('id', selectedVehicleId)
 
-            if (error) throw error
-            setIsAdding(false)
+                if (error) throw error
+            } else {
+                // CREATE new vehicle
+                const { data: drvProfile } = await supabase.from('driver_profiles').select('id').eq('user_id', user?.id).single()
+
+                const { error } = await supabase.from('vehicles').insert({
+                    driver_profile_id: drvProfile?.id,
+                    ...vehicleData,
+                    status: 'pending'
+                })
+
+                if (error) throw error
+            }
+
+            resetForm()
             onAdd() // Refresh list
         } catch (error: any) {
-            alert('Error al registrar: ' + error.message)
+            alert('Error al guardar: ' + error.message)
         } finally {
             setSaving(false)
         }
@@ -121,10 +245,10 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
         return (
             <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
                 <div className="flex items-center gap-4 mb-4">
-                    <button onClick={() => setIsAdding(false)} className="p-2 hover:bg-white/5 rounded-full text-zinc-400">
+                    <button onClick={resetForm} className="p-2 hover:bg-white/5 rounded-full text-zinc-400">
                         <ChevronRight className="h-6 w-6 rotate-180" />
                     </button>
-                    <h3 className="text-xl font-bold">Detalles del Vehículo</h3>
+                    <h3 className="text-xl font-bold">{selectedVehicleId ? 'Editar Vehículo' : 'Registrar Nuevo Vehículo'}</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -230,23 +354,62 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
 
                         <div className="space-y-4">
                             <h4 className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest">Documentación del Auto</h4>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {[
-                                    { id: 'vin_photo_url', label: 'Foto NIV', ref: vinPhotoRef },
+                                    { id: 'plate_photo_url', label: 'Foto Placa', ref: platePhotoRef },
+                                    { id: 'circulation_card_url', label: 'Tarjeta Circulación', ref: circulationCardRef },
                                     { id: 'invoice_url', label: 'Factura', ref: invoiceRef },
                                     { id: 'verification_url', label: 'Verificación', ref: verificationRef },
-                                    { id: 'insurance_policy_url', label: 'Póliza Seguro', ref: insuranceRef }
+                                    { id: 'insurance_policy_url', label: 'Póliza Seguro', ref: insuranceRef },
+                                    { id: 'vin_photo_url', label: 'Foto NIV', ref: vinPhotoRef }
                                 ].map(doc => (
-                                    <div key={doc.id}>
-                                        <input type="file" ref={doc.ref} className="hidden" onChange={(e) => handleFile(e, doc.id)} />
-                                        <button
+                                    <div key={doc.id} className="space-y-2">
+                                        <input
+                                            type="file"
+                                            ref={doc.ref}
+                                            className="hidden"
+                                            accept="image/*,application/pdf"
+                                            onChange={(e) => handleFile(e, doc.id)}
+                                        />
+                                        <div
                                             onClick={() => doc.ref.current?.click()}
-                                            className={`w-full aspect-square bg-white/5 border border-dashed rounded-2xl flex flex-col items-center justify-center text-[10px] gap-2 transition-all ${form[doc.id] ? 'border-emerald-500/50 text-emerald-500' : 'border-white/20 text-zinc-500 hover:border-blue-500/50'
-                                                }`}
+                                            className={`cursor-pointer group relative aspect-video w-full rounded-xl overflow-hidden border border-dashed transition-all bg-white/5 flex flex-col items-center justify-center ${form[doc.id] ? 'border-emerald-500/30' : 'border-white/20 hover:border-blue-500/50'}`}
                                         >
-                                            {uploading === doc.id ? <Loader2 className="h-4 w-4 animate-spin" /> : form[doc.id] ? <Check className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                                            <span>{doc.label}</span>
-                                        </button>
+                                            {uploading === doc.id ? (
+                                                <div className="flex flex-col items-center justify-center text-zinc-500">
+                                                    <Loader2 className="h-6 w-6 animate-spin mb-2 text-blue-500" />
+                                                    <span className="text-[10px]">Subiendo...</span>
+                                                </div>
+                                            ) : signedUrls[doc.id] ? (
+                                                <>
+                                                    {signedUrls[doc.id]?.toLowerCase().includes('.pdf') ? (
+                                                        <div className="flex flex-col items-center justify-center text-zinc-400 group-hover:text-blue-400 transition-colors">
+                                                            <FileText className="h-10 w-10 mb-2" />
+                                                            <span className="text-[10px] font-medium">Documento PDF</span>
+                                                        </div>
+                                                    ) : (
+                                                        <img src={signedUrls[doc.id] || ''} alt={doc.label} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" />
+                                                    )}
+
+                                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <span className="text-white text-xs font-bold flex items-center gap-2">
+                                                            <Camera className="h-4 w-4" /> Cambiar
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="absolute top-2 right-2 bg-emerald-500/90 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                                                        <CheckCircle2 className="h-3 w-3" /> Listo
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center text-zinc-500 group-hover:text-blue-400 transition-colors">
+                                                    <Plus className="h-6 w-6 mb-2" />
+                                                    <span className="text-[10px]">{doc.label}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {/* Label below the card for clarity */}
+                                        <p className="text-[10px] font-bold uppercase text-zinc-500 text-center">{doc.label}</p>
                                     </div>
                                 ))}
                             </div>
@@ -293,13 +456,13 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                 </div>
 
                 <div className="flex justify-end gap-4 border-t border-white/10 pt-8">
-                    <button onClick={() => setIsAdding(false)} className="px-6 py-2.5 rounded-xl font-bold text-zinc-400 hover:bg-white/5 transition-colors">Cancelar</button>
+                    <button onClick={resetForm} className="px-6 py-2.5 rounded-xl font-bold text-zinc-400 hover:bg-white/5 transition-colors">Cancelar</button>
                     <button
                         onClick={handleRegister}
                         disabled={saving}
                         className="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-shadow shadow-lg shadow-blue-600/20 disabled:opacity-50"
                     >
-                        {saving ? 'Registrando...' : 'Registrar Vehículo'}
+                        {saving ? 'Guardando...' : (selectedVehicleId ? 'Guardar Cambios' : 'Registrar Vehículo')}
                     </button>
                 </div>
             </div>
@@ -322,7 +485,11 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
             {vehicles?.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {vehicles?.map((v: any) => (
-                        <div key={v.id} className="bg-white/5 border border-white/10 rounded-3xl p-6 relative group hover:border-blue-500/30 transition-colors">
+                        <div
+                            key={v.id}
+                            onClick={() => handleEdit(v)}
+                            className="bg-white/5 border border-white/10 rounded-3xl p-6 relative group hover:border-blue-500/30 transition-colors cursor-pointer"
+                        >
                             <div className="flex items-center gap-4 mb-4">
                                 <div className="p-3 bg-blue-600/10 rounded-xl">
                                     <Car className="h-6 w-6 text-blue-500" />
@@ -343,7 +510,10 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                                 </div>
                             </div>
                             <button
-                                onClick={() => handleDelete(v.id)}
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Prevent card click
+                                    handleDelete(v.id);
+                                }}
                                 className="absolute top-6 right-6 p-2 text-zinc-500 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                             >
                                 <Trash2 className="h-4 w-4" />

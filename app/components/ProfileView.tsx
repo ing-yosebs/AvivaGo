@@ -342,6 +342,18 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                                                 return;
                                                             }
 
+                                                            // Check for Ban Status
+                                                            const { data: userProfile } = await supabase
+                                                                .from('users')
+                                                                .select('is_banned')
+                                                                .eq('id', user.id)
+                                                                .single();
+
+                                                            if (userProfile?.is_banned) {
+                                                                alert('Tu cuenta tiene una restricción temporal. Contacta soporte.');
+                                                                return;
+                                                            }
+
                                                             // REAL Payment Flow (Unlock)
                                                             const response = await fetch('/api/checkout', {
                                                                 method: 'POST',

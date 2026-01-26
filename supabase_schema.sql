@@ -211,14 +211,46 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public
 AS $$
+DECLARE
+  desired_role user_role_type;
 BEGIN
-  INSERT INTO public.users (id, email, full_name, avatar_url)
+  -- Determine role, default to client
+  BEGIN
+    desired_role := (NEW.raw_user_meta_data->>'role')::user_role_type;
+  EXCEPTION WHEN OTHERS THEN
+    desired_role := 'client';
+  END;
+
+  -- Insert User
+  INSERT INTO public.users (id, email, full_name, avatar_url, roles)
   VALUES (
     NEW.id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', 'Sem Nombre'),
-    NEW.raw_user_meta_data->>'avatar_url'
+    COALESCE(NEW.raw_user_meta_data->>'full_name', 'Sin Nombre'),
+    NEW.raw_user_meta_data->>'avatar_url',
+    ARRAY[desired_role]
   );
+  
+  -- If Driver, create profile stub if it doesn't exist
+  IF desired_role = 'driver' THEN
+    INSERT INTO public.driver_profiles (
+        user_id, 
+        profile_photo_url, 
+        city, 
+        whatsapp_number,
+        bio,
+        status
+    )
+    VALUES (
+        NEW.id, 
+        COALESCE(NEW.raw_user_meta_data->>'avatar_url', 'https://via.placeholder.com/150'),
+        'Por Definir', 
+        '0000000000',
+        'Conductor nuevo',
+        'draft'
+    ) ON CONFLICT (user_id) DO NOTHING;
+  END IF;
+
   RETURN NEW;
 END;
 $$;

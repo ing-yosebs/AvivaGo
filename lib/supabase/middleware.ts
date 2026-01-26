@@ -64,18 +64,43 @@ export async function updateSession(request: NextRequest) {
 
     const path = request.nextUrl.pathname
 
+    // 0. Fetch Profile Data (Roles & Ban Status)
+    let profile = null
+    if (user) {
+        const { data } = await supabase
+            .from('users')
+            .select('roles, is_banned')
+            .eq('id', user.id)
+            .single()
+        profile = data
+    }
+
+    // 0.5 Global Ban Check (Modified for Transactional Block)
+    if (user && profile?.is_banned) {
+        // Enforce redirect ONLY for critical/write paths
+        // This matches the client-side BanGuard logic to prevent bypass
+        const restrictedStrictPaths = ['/checkout', '/payment', '/driver/onboarding', '/profile/edit']
+
+        const isRestricted = restrictedStrictPaths.some(p => path.startsWith(p))
+
+        if (isRestricted) {
+            return NextResponse.redirect(new URL('/', request.url))
+        }
+
+        // If they are on /suspended, redirect them back to home/profile so they can see the banner
+        // (Optional, cleans up legacy state)
+        if (path === '/suspended') {
+            return NextResponse.redirect(new URL('/', request.url))
+        }
+    }
+    // Legacy redirect removed:
+    // if (!path.startsWith('/suspended') && !path.startsWith('/auth/')) { ... }
+
     // 1. Admin Protection
     if (path.startsWith('/admin')) {
         if (!user) {
             return NextResponse.redirect(new URL('/auth/login', request.url))
         }
-
-        // Strict Role Check
-        const { data: profile } = await supabase
-            .from('users')
-            .select('roles')
-            .eq('id', user.id)
-            .single()
 
         // Check if roles contains 'admin' in the text[] array or jsonb
         // Assuming Postgrest returns array for text[]
@@ -99,12 +124,7 @@ export async function updateSession(request: NextRequest) {
     // 3. Auth Redirection (Users already logged in should not see login/register)
     if (path.startsWith('/auth') && user) {
         // Check for Admin Role to redirect to Admin Panel
-        const { data: profile } = await supabase
-            .from('users')
-            .select('roles')
-            .eq('id', user.id)
-            .single()
-
+        // Profile already fetched above
         const roles = profile?.roles || []
         const isAdmin = Array.isArray(roles) ? roles.includes('admin') : roles === 'admin'
 

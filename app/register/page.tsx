@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from 'react'
 import { signUp } from '@/app/auth/actions'
-import { User, Mail, Lock, CheckCircle, Loader2, Eye, EyeOff, X } from 'lucide-react'
+import { User, Mail, Lock, CheckCircle, Loader2, Eye, EyeOff, X, AlertCircle } from 'lucide-react'
 import AvivaLogo from '@/app/components/AvivaLogo'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -13,6 +13,9 @@ function RegisterForm() {
     const [message, setMessage] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [showPassword, setShowPassword] = useState(false)
+
+    const [showExistsModal, setShowExistsModal] = useState(false)
+    const [existingEmail, setExistingEmail] = useState('')
 
     const searchParams = useSearchParams()
     const referralCode = searchParams.get('ref')
@@ -48,7 +51,12 @@ function RegisterForm() {
         const res = await signUp(formData)
 
         if (res?.error) {
-            setError(res.error)
+            if (res.code === 'USER_EXISTS') {
+                setExistingEmail(email)
+                setShowExistsModal(true)
+            } else {
+                setError(res.error)
+            }
         } else if (res?.success) {
             // Redirect to verify-otp page
             window.location.href = `/auth/verify-otp?email=${encodeURIComponent(email)}`
@@ -59,6 +67,50 @@ function RegisterForm() {
 
     return (
         <main className="w-full max-w-md p-6 relative z-10">
+            {/* User Exists Modal */}
+            {showExistsModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-[#18181b] border border-white/10 p-6 rounded-2xl shadow-2xl max-w-sm w-full relative animate-in zoom-in-95 duration-300">
+                        <button
+                            onClick={() => setShowExistsModal(false)}
+                            className="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mb-4 ring-1 ring-yellow-500/20">
+                                <AlertCircle className="h-8 w-8 text-yellow-500" />
+                            </div>
+
+                            <h3 className="text-xl font-bold text-white mb-2">Cuenta ya registrada</h3>
+
+                            <p className="text-zinc-400 text-sm mb-6">
+                                El correo <span className="text-white font-medium">{existingEmail}</span> ya tiene una cuenta asociada en AvivaGo.
+                            </p>
+
+                            <div className="flex flex-col gap-3 w-full">
+                                <Link
+                                    href="/auth/forgot-password"
+                                    className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-zinc-200 transition-colors text-center"
+                                >
+                                    Recuperar Contraseña
+                                </Link>
+                                <button
+                                    onClick={() => {
+                                        setShowExistsModal(false)
+                                        // Optional: Clear email input or focus it
+                                    }}
+                                    className="w-full bg-white/5 text-white font-medium py-3 rounded-xl hover:bg-white/10 transition-colors border border-white/10"
+                                >
+                                    Intentar con otro correo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl relative">
                 {/* Close Button */}
                 <Link
@@ -194,12 +246,7 @@ function RegisterForm() {
 
                     {error && (
                         <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center">
-                            {error.includes('already registered') || error.includes('already exists') ? (
-                                <>
-                                    Este correo ya está registrado. <br />
-                                    <Link href="/auth/forgot-password" className="text-white underline mt-1 inline-block">¿Olvidaste tu contraseña?</Link>
-                                </>
-                            ) : error}
+                            {error}
                         </div>
                     )}
 

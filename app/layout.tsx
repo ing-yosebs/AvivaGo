@@ -18,14 +18,34 @@ export const metadata: Metadata = {
     description: "Directorio de Conductores Privados",
 };
 
-export default function RootLayout({
+import { createClient } from '@/lib/supabase/server'
+import BanGuard from '@/app/components/BanGuard'
+
+export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    // 1. Check Global Ban Status Server-Side (Best effort)
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    let isBanned = false
+    if (user) {
+        const { data: profile } = await supabase
+            .from('users')
+            .select('is_banned')
+            .eq('id', user.id)
+            .single()
+        isBanned = !!profile?.is_banned
+    }
+
     return (
         <html lang="es" className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning>
-            <body className="font-sans antialiased" suppressHydrationWarning>{children}</body>
+            <body className="font-sans antialiased" suppressHydrationWarning>
+                <BanGuard isBanned={isBanned} />
+                {children}
+            </body>
         </html>
     );
 }

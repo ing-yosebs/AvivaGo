@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { ArrowLeft, User, Car, MapPin, Calendar, CheckCircle, Shield, FileText, Activity } from 'lucide-react'
 import StatusHistory from '@/app/components/admin/StatusHistory'
 import DriverActions from '@/app/components/admin/DriverActions'
+import PassengerActions from '@/app/components/admin/PassengerActions'
 
 async function getSignedUrl(supabase: any, publicUrl: string | null, bucket: string) {
     if (!publicUrl) return null;
@@ -429,6 +430,11 @@ export default async function UserDetailPage({
                                 </div>
                             </div>
                         </div>
+                    )}
+
+                    {/* Passenger Actions (Ban/Unban) */}
+                    {!isDriver && (
+                        <PassengerActions userId={user.id} isBanned={user.is_banned} />
                     )}
 
                     {/* Vehicle Details */}

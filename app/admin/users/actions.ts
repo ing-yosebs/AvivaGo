@@ -145,3 +145,71 @@ export async function toggleDriverVisibility(driverProfileId: string, isVisible:
     revalidatePath('/admin/users')
     return { success: true, message: `Perfil ahora ${isVisible ? 'visible' : 'oculto'}.` }
 }
+
+export async function toggleUserBan(userId: string, isBanned: boolean) {
+    console.log(`[toggleUserBan] Iniciando acción para userId=${userId}, isBanned=${isBanned}`);
+    const supabase = await createClient()
+
+    // 1. Verify Authentication
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        console.error('[toggleUserBan] No autenticado');
+        return { success: false, error: 'No autenticado' }
+    }
+
+    // 2. Verify Admin Role
+    const { data: adminUser } = await supabase
+        .from('users')
+        .select('roles')
+        .eq('id', user.id)
+        .single()
+
+    const isAdmin = Array.isArray(adminUser?.roles)
+        ? adminUser.roles.includes('admin')
+        : adminUser?.roles === 'admin'
+
+    if (!isAdmin) {
+        console.error('[toggleUserBan] Usuario no es admin:', user.id);
+        return { success: false, error: 'No tienes permisos de administrador.' }
+    }
+
+    // 3. Update User Ban Status
+    let updateError = null;
+
+    if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.log('[toggleUserBan] Usando Service Role Key para bypass de RLS');
+        const adminClient = createSupabaseClient(
+            process.env.SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY,
+            { auth: { autoRefreshToken: false, persistSession: false } }
+        )
+        const { error } = await adminClient
+            .from('users')
+            .update({ is_banned: isBanned })
+            .eq('id', userId)
+        updateError = error
+    } else {
+        console.log('[toggleUserBan] ADVERTENCIA: Usando cliente estándar (puede fallar por RLS)');
+        const { error } = await supabase
+            .from('users')
+            .update({ is_banned: isBanned })
+            .eq('id', userId)
+        updateError = error
+    }
+
+    if (updateError) {
+        console.error('[toggleUserBan] Error updating ban status:', updateError)
+        return { success: false, error: 'No se pudo actualizar el estado: ' + updateError.message }
+    }
+
+    console.log('[toggleUserBan] Actualización exitosa. Revalidando paths...');
+    revalidatePath('/admin/users')
+    try {
+        revalidatePath(`/admin/users/${userId}`)
+    } catch (e) { }
+
+    return {
+        success: true,
+        message: isBanned ? 'Usuario suspendido correctamente.' : 'Usuario reactivado correctamente.'
+    }
+}

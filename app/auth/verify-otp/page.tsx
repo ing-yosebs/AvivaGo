@@ -111,10 +111,19 @@ function VerifyOTPForm() {
                         <div className="text-center">
                             <button
                                 type="button"
-                                onClick={() => window.location.reload()}
-                                className="text-sm text-zinc-500 hover:text-white transition-colors"
+                                onClick={async () => {
+                                    if (!email) return
+                                    const { resendOtp } = await import('@/app/auth/actions')
+                                    const res = await resendOtp(email)
+                                    if (res.error) {
+                                        setError(res.error)
+                                    } else {
+                                        alert('Nuevo código enviado. Por favor revisa tu correo.')
+                                    }
+                                }}
+                                className="text-sm text-zinc-500 hover:text-white transition-colors underline"
                             >
-                                ¿No recibiste el código? Reenviar
+                                ¿No recibiste el código o expiró? Reenviar
                             </button>
                         </div>
                     </form>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BadgeCheck, Calendar, CreditCard, Loader2, CheckCircle, Shield, Info, Star, Clock, AlertTriangle } from 'lucide-react'
+import { BadgeCheck, Calendar, CreditCard, Loader2, CheckCircle, Shield, Info, Star, Clock, AlertTriangle, Car } from 'lucide-react'
 import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -118,7 +118,7 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
             if (event.data?.source === 'avivago-payment') {
                 if (event.data.status === 'success') {
                     onPurchaseSuccess();
-                    alert('¡Pago completado con éxito! Tu membresía ya está activa.');
+                    // Alert removed for cleaner UX
                 } else {
                     alert('El pago fue cancelado o no se pudo procesar.');
                 }
@@ -162,6 +162,7 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
         if (!profile) return ['No hay datos de perfil']
 
         const errors = []
+        // Personal Data
         if (!profile.full_name) errors.push('Nombre completo')
         if (!profile.phone_number) errors.push('Teléfono')
         if (!profile.nationality) errors.push('Nacionalidad')
@@ -174,6 +175,24 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
         if (!profile.address_country) errors.push('País')
         if (!profile.id_document_url) errors.push('Identificación oficial o pasaporte (foto)')
         if (!profile.address_proof_url) errors.push('Comprobante de domicilio (foto)')
+
+        // Vehicles Validation
+        if (!vehicles || vehicles.length === 0) {
+            errors.push('Registrar al menos un vehículo')
+        }
+
+        // Services Validation
+        if (!services) {
+            errors.push('Configuración de servicios')
+        } else {
+            if (!services.preferred_zones || services.preferred_zones.length === 0) {
+                errors.push('Seleccionar tus zonas de cobertura (Mis Servicios)')
+            }
+            // Optional: Check questionnaire completion if deemed critical
+            // if (!services.professional_questionnaire || Object.keys(services.professional_questionnaire).length === 0) {
+            //     errors.push('Completar el Cuestionario Profesional (Mis Servicios)')
+            // }
+        }
 
         return errors
     }
@@ -404,9 +423,61 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                         </div>
 
                         <h3 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">Activa tu Membresía Driver</h3>
-                        <p className="text-zinc-400 text-lg mb-10 leading-relaxed">
-                            Únete a la red de conductores profesionales de AvivaGo. Al activar tu membresía anual, tu perfil será visible para pasajeros en tu zona y podrás recibir solicitudes directas.
+                        <p className="text-zinc-400 text-lg mb-12 leading-relaxed max-w-2xl mx-auto">
+                            Únete a la red de conductores profesionales de AvivaGo. Sigue estos simples pasos para comenzar a recibir solicitudes directas de pasajeros.
                         </p>
+
+                        {/* Process Steps */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 text-left relative">
+
+                            {/* Step 1 */}
+                            <div className="bg-zinc-900/80 border border-indigo-500/50 p-6 rounded-3xl relative shadow-lg shadow-indigo-500/20 overflow-hidden group hover:bg-zinc-900 transition-colors">
+                                <div className="absolute top-0 left-0 bg-indigo-600 text-white px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 01</div>
+                                <div className="mt-6 flex flex-col items-center">
+                                    <div className="h-12 w-12 bg-indigo-500/20 rounded-2xl flex items-center justify-center mb-4 text-indigo-400 group-hover:scale-110 transition-transform">
+                                        <CreditCard className="h-6 w-6" />
+                                    </div>
+                                    <h4 className="font-bold text-white text-center mb-2">Activa Membresía</h4>
+                                    <p className="text-xs text-zinc-400 text-center leading-relaxed">Realiza tu pago anual seguro para desbloquear las funciones de tu perfil.</p>
+                                </div>
+                            </div>
+
+                            {/* Step 2 */}
+                            <div className="bg-zinc-900/40 border border-white/5 p-6 rounded-3xl relative overflow-hidden group hover:bg-white/5 transition-colors">
+                                <div className="absolute top-0 left-0 bg-white/10 text-zinc-400 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 02</div>
+                                <div className="mt-6 flex flex-col items-center">
+                                    <div className="h-12 w-12 bg-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-zinc-500 group-hover:text-zinc-300 transition-colors">
+                                        <Car className="h-6 w-6" />
+                                    </div>
+                                    <h4 className="font-bold text-zinc-300 text-center mb-2">Configura Datos</h4>
+                                    <p className="text-xs text-zinc-500 text-center leading-relaxed">Registra al menos un vehículo y tus zonas de cobertura.</p>
+                                </div>
+                            </div>
+
+                            {/* Step 3 */}
+                            <div className="bg-zinc-900/40 border border-white/5 p-6 rounded-3xl relative overflow-hidden group hover:bg-white/5 transition-colors">
+                                <div className="absolute top-0 left-0 bg-white/10 text-zinc-400 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 03</div>
+                                <div className="mt-6 flex flex-col items-center">
+                                    <div className="h-12 w-12 bg-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-zinc-500 group-hover:text-zinc-300 transition-colors">
+                                        <Shield className="h-6 w-6" />
+                                    </div>
+                                    <h4 className="font-bold text-zinc-300 text-center mb-2">Solicita Revisión</h4>
+                                    <p className="text-xs text-zinc-500 text-center leading-relaxed">Envía tu perfil a validación de identidad para mayor seguridad.</p>
+                                </div>
+                            </div>
+
+                            {/* Step 4 */}
+                            <div className="bg-zinc-900/40 border border-white/5 p-6 rounded-3xl relative overflow-hidden group hover:bg-white/5 transition-colors">
+                                <div className="absolute top-0 left-0 bg-green-500/10 text-green-500 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 04</div>
+                                <div className="mt-6 flex flex-col items-center">
+                                    <div className="h-12 w-12 bg-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-zinc-500 group-hover:text-green-400/50 transition-colors">
+                                        <CheckCircle className="h-6 w-6" />
+                                    </div>
+                                    <h4 className="font-bold text-zinc-300 text-center mb-2">¡Recibe Clientes!</h4>
+                                    <p className="text-xs text-zinc-500 text-center leading-relaxed">Tu perfil se vuelve público y aceptas solicitudes directas.</p>
+                                </div>
+                            </div>
+                        </div>
 
                         <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-3xl p-8 mb-10 inline-block px-12 transform hover:scale-[1.02] transition-transform shadow-inner">
                             <div className="text-[10px] text-indigo-400 uppercase tracking-[0.2em] font-black mb-2">Costo Anual de Activación</div>
@@ -427,7 +498,7 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                                 ) : (
                                     <>
                                         <CheckCircle className="h-6 w-6 group-hover:rotate-12 transition-transform" />
-                                        Pagar Ahora
+                                        Comenzar Activación Ahora
                                     </>
                                 )}
                             </button>
