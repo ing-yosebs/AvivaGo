@@ -61,7 +61,8 @@ export default function DashboardSidebar() {
                 href: '/perfil?tab=services',
                 subItems: [
                     { label: 'Mis Servicios', href: '/perfil?tab=services' },
-                    { label: 'Mis Vehículos', href: '/perfil?tab=vehicles' }
+                    { label: 'Mis Vehículos', href: '/perfil?tab=vehicles' },
+                    { label: 'Mis Pasajeros', href: '/perfil?tab=my_passengers' }
                 ]
             }
         ] : []),

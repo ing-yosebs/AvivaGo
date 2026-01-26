@@ -130,6 +130,8 @@ export async function replyToReview(reviewId: string, content: string, role: 'dr
     if (error) return { success: false, error: 'Error al guardar respuesta' }
 
     revalidatePath(`/driver/${review.driver_profile_id}`)
+    revalidatePath('/perfil')
+    revalidatePath('/comunidad')
     return { success: true }
 }
 
@@ -167,6 +169,8 @@ export async function ratePassenger(reviewId: string, rating: number, agreement:
     if (error) return { success: false, error: 'Error al calificar pasajero' }
 
     revalidatePath(`/driver/${review.driver_profile_id}`)
+    revalidatePath('/perfil')
+    revalidatePath('/comunidad')
     return { success: true }
 }
 

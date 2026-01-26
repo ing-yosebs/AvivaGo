@@ -74,6 +74,19 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [showShareFeedback, setShowShareFeedback] = useState(false);
     const [isUnlocking, setIsUnlocking] = useState(false);
+    const hasViewedRef = useState(false);
+
+    useEffect(() => {
+        const registerView = async () => {
+            // Basic strict mode check or session check to prevent double count in dev
+            if (hasViewedRef[0]) return;
+            hasViewedRef[1](true);
+
+            // Call RPC to increment view
+            await supabase.rpc('increment_profile_view', { profile_id: driver.id });
+        };
+        registerView();
+    }, [driver.id]);
 
     useEffect(() => {
         const checkFavorite = async () => {
@@ -148,9 +161,15 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ sessionId: event.data.sessionId })
-                        }).then(() => {
-                            setIsUnlocked(true);
-                            checkUnlock(); // Final sync
+                        }).then(async (res) => {
+                            if (res.ok) {
+                                setIsUnlocked(true);
+                                checkUnlock(); // Final sync
+                            } else {
+                                const err = await res.text();
+                                console.error('Verification failed:', err);
+                                alert('Error al verificar el pago: ' + err);
+                            }
                         });
                     } else {
                         setIsUnlocked(true);

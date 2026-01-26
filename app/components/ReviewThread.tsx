@@ -8,9 +8,18 @@ import { MessageSquare, Send, CheckCircle2, Star, ThumbsUp, ThumbsDown } from 'l
 interface ReviewThreadProps {
     review: any
     currentUserId?: string
+    readOnly?: boolean
+    driverName?: string
+    passengerName?: string
 }
 
-export default function ReviewThread({ review, currentUserId }: ReviewThreadProps) {
+export default function ReviewThread({
+    review,
+    currentUserId,
+    readOnly = false,
+    driverName = 'Conductor',
+    passengerName = 'Pasajero'
+}: ReviewThreadProps) {
     const [isReplying, setIsReplying] = useState(false)
     const [replyContent, setReplyContent] = useState('')
     const [loading, setLoading] = useState(false)
@@ -47,11 +56,12 @@ export default function ReviewThread({ review, currentUserId }: ReviewThreadProp
         }
     }
 
-    const handleReply = async () => {
-        if (!replyContent.trim() || !replyRole) return
+    const handleReply = async (isFinalizing = false) => {
+        const content = isFinalizing ? '--- Conversación finalizada por el usuario ---' : replyContent
+        if (!content.trim() || !replyRole) return
 
         setLoading(true)
-        const res = await replyToReview(review.id, replyContent, replyRole)
+        const res = await replyToReview(review.id, content, replyRole)
         setLoading(false)
 
         if (res.success) {
@@ -75,7 +85,7 @@ export default function ReviewThread({ review, currentUserId }: ReviewThreadProp
 
     return (
         <div className="space-y-4 w-full">
-            {isDriver && !review.passenger_rating && (
+            {!readOnly && isDriver && !review.passenger_rating && (
                 <div className="mb-4">
                     {!rateOpen ? (
                         <button
@@ -142,8 +152,8 @@ export default function ReviewThread({ review, currentUserId }: ReviewThreadProp
             {review.driver_reply && (
                 <div className="ml-4 pl-4 border-l-2 border-blue-500/30 space-y-2">
                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-blue-400">Conductor</span>
-                        <span className="text-[10px] text-zinc-500">{new Date(review.driver_reply_at).toLocaleDateString()}</span>
+                        <span className="text-xs font-bold text-blue-400">{driverName}</span>
+                        <span className="text-[10px] text-zinc-500">{new Date(review.driver_reply_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                     </div>
                     <p className="text-sm text-zinc-400">{review.driver_reply}</p>
                 </div>
@@ -153,8 +163,8 @@ export default function ReviewThread({ review, currentUserId }: ReviewThreadProp
             {review.passenger_followup && (
                 <div className="ml-8 pl-4 border-l-2 border-zinc-700/50 space-y-2">
                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-white">Pasajero</span>
-                        <span className="text-[10px] text-zinc-500">{new Date(review.passenger_followup_at).toLocaleDateString()}</span>
+                        <span className="text-xs font-bold text-white">{passengerName}</span>
+                        <span className="text-[10px] text-zinc-500">{new Date(review.passenger_followup_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                     </div>
                     <p className="text-sm text-zinc-400">{review.passenger_followup}</p>
                 </div>
@@ -164,7 +174,7 @@ export default function ReviewThread({ review, currentUserId }: ReviewThreadProp
             {review.driver_final_reply && (
                 <div className="ml-12 pl-4 border-l-2 border-green-500/30 space-y-2">
                     <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-green-400">Conclusión del Conductor</span>
+                        <span className="text-xs font-bold text-green-400">Conclusión de {driverName}</span>
                         <CheckCircle2 className="h-3 w-3 text-green-500" />
                     </div>
                     <p className="text-sm text-zinc-400">{review.driver_final_reply}</p>
@@ -172,33 +182,50 @@ export default function ReviewThread({ review, currentUserId }: ReviewThreadProp
             )}
 
             {/* Reply Input Area */}
-            {canReply && (
+            {!readOnly && canReply && (
                 <div className="pt-2">
                     {!isReplying ? (
-                        <button
-                            onClick={() => setIsReplying(true)}
-                            className="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition-colors"
-                        >
-                            <MessageSquare className="h-3.5 w-3.5" />
-                            Responder
-                        </button>
-                    ) : (
-                        <div className="flex gap-2 animate-in fade-in slide-in-from-top-2">
-                            <input
-                                type="text"
-                                value={replyContent}
-                                onChange={(e) => setReplyContent(e.target.value)}
-                                placeholder={placeholder}
-                                className="flex-1 bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 transition-all text-white"
-                                autoFocus
-                                onKeyDown={(e) => e.key === 'Enter' && handleReply()}
-                            />
+                        <div className="flex gap-4">
                             <button
-                                onClick={handleReply}
-                                disabled={loading || !replyContent.trim()}
-                                className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-xl transition-colors disabled:opacity-50"
+                                onClick={() => setIsReplying(true)}
+                                className="text-xs font-bold text-blue-400 hover:text-blue-300 flex items-center gap-1.5 transition-colors"
                             >
-                                <Send className="h-4 w-4" />
+                                <MessageSquare className="h-3.5 w-3.5" />
+                                {replyRole === 'driver' ? 'Contestar Reseña' : `Responder a ${driverName}`}
+                            </button>
+                            <button
+                                onClick={() => handleReply(true)}
+                                disabled={loading}
+                                className="text-[10px] font-bold text-zinc-500 hover:text-zinc-300 uppercase tracking-widest transition-colors border-l border-white/10 pl-4"
+                            >
+                                Finalizar Conversación
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={replyContent}
+                                    onChange={(e) => setReplyContent(e.target.value)}
+                                    placeholder={placeholder}
+                                    className="flex-1 bg-black/20 border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-blue-500/50 transition-all text-white"
+                                    autoFocus
+                                    onKeyDown={(e) => e.key === 'Enter' && handleReply(false)}
+                                />
+                                <button
+                                    onClick={() => handleReply(false)}
+                                    disabled={loading || !replyContent.trim()}
+                                    className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-xl transition-colors disabled:opacity-50"
+                                >
+                                    <Send className="h-4 w-4" />
+                                </button>
+                            </div>
+                            <button
+                                onClick={() => setIsReplying(false)}
+                                className="text-[10px] font-bold text-zinc-600 hover:text-zinc-400"
+                            >
+                                Cancelar
                             </button>
                         </div>
                     )}

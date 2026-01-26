@@ -9,7 +9,8 @@ import {
     CreditCard,
     Lock,
     Clock,
-    Shield
+    Shield,
+    Users
 } from 'lucide-react'
 
 // Sub-components
@@ -18,6 +19,7 @@ import VehiclesSection from './components/VehiclesSection'
 import ServicesSection from './components/ServicesSection'
 import PaymentsSection from './components/PaymentsSection'
 import TrustedDriversSection from './components/TrustedDriversSection'
+import MyPassengersSection from './components/MyPassengersSection'
 import SecuritySection from './components/SecuritySection'
 import MembershipRequiredView from './components/MembershipRequiredView'
 
@@ -211,7 +213,8 @@ function ProfileContent() {
         { id: 'personal', label: 'Datos Personales', icon: User },
         ...(isDriver ? [
             { id: 'services', label: 'Mis Servicios', icon: Clock },
-            { id: 'vehicles', label: 'Mis Vehículos', icon: Car }
+            { id: 'vehicles', label: 'Mis Vehículos', icon: Car },
+            { id: 'my_passengers', label: 'Mis Pasajeros', icon: Users }
         ] : [
             { id: 'trusted_drivers', label: 'Conductores de Confianza', icon: Shield }
         ]),
@@ -285,6 +288,10 @@ function ProfileContent() {
 
                     {!isDriver && activeTab === 'trusted_drivers' && (
                         <TrustedDriversSection />
+                    )}
+
+                    {isDriver && activeTab === 'my_passengers' && (
+                        <MyPassengersSection />
                     )}
 
                     {activeTab === 'payments' && (

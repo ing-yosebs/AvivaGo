@@ -29,6 +29,7 @@ export default function CommunityPage() {
     const router = useRouter()
 
     const [topDrivers, setTopDrivers] = useState<any[]>([])
+    const [trends, setTrends] = useState<any[]>([])
 
     useEffect(() => {
         const fetchData = async () => {
@@ -96,7 +97,7 @@ export default function CommunityPage() {
                     passenger_followup_at: r.passenger_followup_at,
                     driver_final_reply: r.driver_final_reply,
                     driver_final_reply_at: r.driver_final_reply_at,
-                    time: new Date(r.created_at).toLocaleDateString(),
+                    time: new Date(r.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }),
                     city: r.driver_profiles?.users?.address_state || 'AvivaGo',
                     likes: r.review_likes?.length || 0,
                     hasLiked: r.review_likes?.some((l: any) => l.user_id === user?.id),
@@ -111,23 +112,99 @@ export default function CommunityPage() {
                 setPosts([])
             }
 
-            // 2. Fetch top drivers of the week (simulated with top rated)
-            const { data: driversData } = await supabase
-                .from('driver_profiles')
+            // 2. Fetch top drivers and trends based on reviews (30 days window)
+            const thirtyDaysAgo = new Date()
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+            thirtyDaysAgo.setHours(0, 0, 0, 0)
+
+            const { data: recentReviews, error: recentError } = await supabase
+                .from('reviews')
                 .select(`
                     id,
-                    average_rating,
-                    users (
-                        full_name,
-                        avatar_url
+                    rating,
+                    created_at,
+                    driver_profiles (
+                        id,
+                        users (
+                            id,
+                            full_name,
+                            avatar_url,
+                            address_state
+                        )
                     )
                 `)
-                .eq('status', 'active')
-                .order('average_rating', { ascending: false })
-                .limit(3)
+                .gte('created_at', thirtyDaysAgo.toISOString())
+                .order('created_at', { ascending: false })
+                .limit(20)
 
-            if (driversData) {
-                setTopDrivers(driversData)
+            if (recentError) {
+                console.error('Error in community ranking query:', recentError.message)
+            }
+
+            if (recentReviews && recentReviews.length > 0) {
+                const driverStats: Record<string, { total: number, count: number, driver: any }> = {}
+                const cityStats: Record<string, number> = {}
+
+                recentReviews.forEach((rev: any) => {
+                    const dProfile = Array.isArray(rev.driver_profiles) ? rev.driver_profiles[0] : rev.driver_profiles
+                    const dId = dProfile?.id
+
+                    if (dId && dProfile) {
+                        if (!driverStats[dId]) {
+                            driverStats[dId] = { total: 0, count: 0, driver: dProfile }
+                        }
+                        driverStats[dId].total += rev.rating
+                        driverStats[dId].count += 1
+
+                        const city = dProfile.users?.address_state
+                        if (city) {
+                            cityStats[city] = (cityStats[city] || 0) + 1
+                        }
+                    }
+                });
+
+                const sortedDrivers = Object.values(driverStats)
+                    .map(stat => ({
+                        id: stat.driver.id,
+                        average_rating: stat.total / stat.count,
+                        users: Array.isArray(stat.driver.users) ? stat.driver.users[0] : stat.driver.users,
+                        count: stat.count
+                    }))
+                    .sort((a, b) => b.average_rating - a.average_rating || b.count - a.count)
+                    .slice(0, 3)
+
+                setTopDrivers(sortedDrivers)
+
+                const sortedCities = Object.entries(cityStats)
+                    .sort(([, a], [, b]) => b - a)
+                    .slice(0, 3)
+                    .map(([label, count]) => ({
+                        label: label,
+                        count: `${count} publicaciones`
+                    }))
+
+                setTrends([
+                    ...sortedCities,
+                    { label: '#AvivaGoComunidad', count: `${recentReviews.length} reseñas totales` }
+                ])
+            } else {
+                // Fallback to absolute top drivers if NO reviews exist in 30 days
+                const { data: fallbackDrivers } = await supabase
+                    .from('driver_profiles')
+                    .select('id, average_rating, review_count, users(full_name, avatar_url)')
+                    .eq('status', 'active')
+                    .order('average_rating', { ascending: false })
+                    .limit(3)
+
+                if (fallbackDrivers) {
+                    setTopDrivers(fallbackDrivers.map(d => ({
+                        id: d.id,
+                        average_rating: d.average_rating || 5.0,
+                        users: Array.isArray(d.users) ? d.users[0] : d.users,
+                        count: d.review_count || 0
+                    })))
+                }
+                setTrends([{ label: '#ConductoresVerificados', count: 'Únete hoy' }])
             }
 
             setLoading(false)
@@ -164,9 +241,26 @@ export default function CommunityPage() {
 
         const res = await toggleLike(postId)
         if (!res.success) {
-            // Revert on error
             alert(res.error)
-            // Ideally we should re-fetch or revert here
+        }
+    }
+
+    const handleShare = async (post: any) => {
+        const shareData = {
+            title: `Reseña de ${post.driver_name} en AvivaGo`,
+            text: `Mira lo que dicen sobre el conductor ${post.driver_name}: "${post.comment}"`,
+            url: window.location.origin + `/driver/${post.driver_id}`
+        }
+
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData)
+            } else {
+                await navigator.clipboard.writeText(shareData.url)
+                alert('¡Enlace del perfil copiado al portapapeles!')
+            }
+        } catch (err) {
+            console.error('Error sharing:', err)
         }
     }
 
@@ -296,6 +390,9 @@ export default function CommunityPage() {
                                     driver_profiles: post.raw.driver_profiles // Pass this for user_id check
                                 }}
                                 currentUserId={currentUserId}
+                                readOnly={true}
+                                driverName={post.driver_name}
+                                passengerName={post.reviewer_name}
                             />
 
                             <div className="flex items-center gap-6 pt-4 border-t border-white/5 mt-4">
@@ -306,7 +403,10 @@ export default function CommunityPage() {
                                     <ThumbsUp className={`h-4 w-4 transition-transform group-hover/like:scale-110 ${post.hasLiked ? 'fill-current' : ''}`} />
                                     <span>{post.likes}</span>
                                 </button>
-                                <button className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors ml-auto">
+                                <button
+                                    onClick={() => handleShare(post)}
+                                    className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors ml-auto"
+                                >
                                     <Share2 className="h-4 w-4" />
                                 </button>
                             </div>
@@ -331,6 +431,7 @@ export default function CommunityPage() {
                                     name={drv.users?.full_name}
                                     rating={drv.average_rating || '5.0'}
                                     photo={drv.users?.avatar_url}
+                                    count={drv.count}
                                 />
                             )) : (
                                 <>
@@ -348,10 +449,9 @@ export default function CommunityPage() {
                             <h3 className="font-bold">Tendencias</h3>
                         </div>
                         <ul className="space-y-4">
-                            <TrendingItem label="#ConductoresVerificados" count="128 posts" />
-                            <TrendingItem label="Santa Tecla" count="85 posts" />
-                            <TrendingItem label="Aeropuerto" count="42 posts" />
-                            <TrendingItem label="#ViajeSeguro" count="31 posts" />
+                            {trends.map((trend, i) => (
+                                <TrendingItem key={i} label={trend.label} count={trend.count} />
+                            ))}
                         </ul>
                     </div>
                 </div>
@@ -369,7 +469,7 @@ function TrendingItem({ label, count }: any) {
     )
 }
 
-function TopDriver({ id, name, rating, photo }: any) {
+function TopDriver({ id, name, rating, photo, count }: any) {
     return (
         <Link href={id ? `/driver/${id}` : '#'} className="flex items-center justify-between group cursor-pointer">
             <div className="flex items-center gap-3">
@@ -382,7 +482,9 @@ function TopDriver({ id, name, rating, photo }: any) {
                 </div>
                 <div className="flex flex-col">
                     <span className="text-sm font-bold text-zinc-300 group-hover:text-blue-400 transition-colors">{name}</span>
-                    <span className="text-[10px] text-zinc-600 font-medium">Ver perfil <ArrowRight className="inline-block h-2 w-2" /></span>
+                    <span className="text-[10px] text-zinc-600 font-medium">
+                        {count || 0} publicaciones • Ver perfil <ArrowRight className="inline-block h-2 w-2" />
+                    </span>
                 </div>
             </div>
             <div className="flex items-center gap-1 text-xs font-black text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded-lg border border-yellow-500/20">
