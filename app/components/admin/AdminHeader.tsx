@@ -4,7 +4,7 @@ import { Bell, User } from 'lucide-react'
 
 export default function AdminHeader() {
     return (
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center justify-between border-b border-white/10 bg-black/40 backdrop-blur-xl px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="hidden lg:flex sticky top-0 z-40 h-16 shrink-0 items-center justify-between border-b border-white/10 bg-black/40 backdrop-blur-xl px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
             <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
                 <form className="relative flex flex-1" action="#" method="GET">
                     <label htmlFor="search-field" className="sr-only">

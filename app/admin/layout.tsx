@@ -18,7 +18,7 @@ export default function AdminLayout({
 
             <div className="lg:pl-72 z-10 relative">
                 <AdminHeader />
-                <main className="py-10">
+                <main className="pt-16 lg:pt-0 py-10">
                     <div className="px-4 sm:px-6 lg:px-8">
                         {children}
                     </div>
