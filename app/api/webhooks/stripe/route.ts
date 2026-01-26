@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     try {
         switch (event.type) {
             case 'invoice.payment_succeeded': {
-                const invoice = event.data.object as Stripe.Invoice;
+                const invoice = event.data.object as any;
                 const subscriptionId = invoice.subscription as string;
 
                 // Verify if this is a subscription renewal
@@ -72,7 +72,7 @@ export async function POST(req: Request) {
             }
 
             case 'invoice.payment_failed': {
-                const invoice = event.data.object as Stripe.Invoice;
+                const invoice = event.data.object as any;
                 const subscriptionId = invoice.subscription as string;
 
                 if (subscriptionId) {
