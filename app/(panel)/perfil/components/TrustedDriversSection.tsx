@@ -87,14 +87,14 @@ export default function TrustedDriversSection() {
             })
 
             if (!result.success) {
-                if (result.error.includes('Ya has calificado')) {
+                if (result.error?.includes('Ya has calificado')) {
                     setRatingModal(null)
                     setComment('')
                     setRating(5)
                     await fetchTrusted()
                     return
                 }
-                throw new Error(result.error)
+                throw new Error(result.error || 'Failed to submit review')
             }
 
             // Optimistic update to hide button immediately
