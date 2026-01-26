@@ -15,7 +15,8 @@ function CallbackContent() {
             window.opener.postMessage({
                 source: 'avivago-payment',
                 status,
-                type
+                type,
+                sessionId: searchParams.get('session_id')
             }, window.location.origin)
         }
 

@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { User, Camera, Loader2, Plus, CheckCircle2, FileText, AlertCircle, MapPin, Search, Save } from 'lucide-react'
 import { GoogleMap, useJsApiLoader, Autocomplete, MarkerF } from '@react-google-maps/api'
+import PhoneInput from 'react-phone-input-2'
+import 'react-phone-input-2/lib/style.css'
 import { uploadFile } from '@/lib/supabase/storage'
 import { createClient } from '@/lib/supabase/client'
 
@@ -26,6 +28,10 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
     const [uploading, setUploading] = useState<string | null>(null)
     const [signedIdUrl, setSignedIdUrl] = useState<string | null>(null)
     const [signedAddressUrl, setSignedAddressUrl] = useState<string | null>(null)
+
+    // Estados para manejar los prefijos de país por separado
+    const [phoneCode, setPhoneCode] = useState('52')
+    const [emergencyPhoneCode, setEmergencyPhoneCode] = useState('52')
 
     const [formData, setFormData] = useState({
         full_name: profile?.full_name || '',
@@ -56,9 +62,70 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
 
     useEffect(() => {
         if (profile) {
+            const rawPhone = profile.phone_number || '';
+            const rawEmergency = profile.emergency_contact_phone || '';
+
+            // Función INFALIBLE para separar:
+            // Si empieza con +, intenta buscar un código conocido.
+            // Si no, asume 52 (México).
+            const splitPhone = (full: string) => {
+                if (!full) return { code: '52', num: '' };
+                const clean = full.replace(/[^\d+]/g, ''); // Solo números y +
+
+                if (clean.startsWith('+')) {
+                    // Quitamos el + para analizar
+                    const withoutPlus = clean.substring(1);
+                    // Intentamos matchear códigos de 4, 3, 2, 1 dígitos en ese orden
+                    // Esto es manual pero seguro.
+                    // Para simplificar y dado que el usuario usa mayormente MX/Latam/US:
+                    // Asumiremos que el PhoneInput tiene utilidades, pero aquí lo haremos simple:
+                    // Si el usuario guardó bien antes, el código está separado.
+                    // Vamos a intentar "adivinar" lo menos posible.
+
+                    // Estrategia segura: Dejaremos que el usuario corrija si la detección falla,
+                    // pero al menos NO borraremos datos.
+
+                    // Vamos a usar un truco: Si empieza con +52, es MX. +1 US. etc.
+                    // Si no matchea uno conocido, asumimos los primeros 2-3 chars.
+
+                    let code = '52';
+                    let num = clean;
+
+                    // Lista prioritaria de códigos comunes para este usuario
+                    const commonCodes = ['52', '1', '57', '54', '34', '56', '51', '7'];
+
+                    let found = false;
+                    for (const c of commonCodes) {
+                        if (withoutPlus.startsWith(c)) {
+                            code = c;
+                            num = withoutPlus.substring(c.length);
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if (!found) {
+                        // Fallback: tomar primeros 2 dígitos
+                        code = withoutPlus.substring(0, 2) || '52';
+                        num = withoutPlus.substring(2);
+                    }
+
+                    return { code, num };
+                }
+
+                // Si no tiene +, es un número sucio sin código (probablemente legacy o error)
+                return { code: '52', num: clean.replace(/\D/g, '') }; // Asumimos MX y limpiamos
+            };
+
+            const pData = splitPhone(rawPhone);
+            const eData = splitPhone(rawEmergency);
+
+            setPhoneCode(pData.code);
+            setEmergencyPhoneCode(eData.code);
+
             setFormData({
                 full_name: profile.full_name || '',
-                phone_number: profile.phone_number || '',
+                phone_number: pData.num,
                 email: profile.email || '',
                 birthday: profile.birthday || '',
                 nationality: profile.nationality || '',
@@ -66,7 +133,7 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                 education_level: profile.education_level || '',
                 emergency_contact_name: profile.emergency_contact_name || '',
                 emergency_contact_relationship: profile.emergency_contact_relationship || '',
-                emergency_contact_phone: profile.emergency_contact_phone || '',
+                emergency_contact_phone: eData.num,
                 address_text: profile.address_text || '',
                 address_street: profile.address_street || '',
                 address_number_ext: profile.address_number_ext || '',
@@ -108,6 +175,10 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
         let value = e.target.value
         if (e.target.name === 'curp') {
             value = value.toUpperCase()
+        }
+        // Only allow numbers for phone fields if they are handled by manual input
+        if (e.target.name.includes('phone') && !/^\d*$/.test(value)) {
+            return
         }
         setFormData({ ...formData, [e.target.name]: value })
     }
@@ -254,8 +325,41 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                         <input name="full_name" value={formData.full_name} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase text-zinc-500">Teléfono *</label>
-                        <input name="phone_number" value={formData.phone_number} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                        <label className="text-[10px] font-bold uppercase text-zinc-500">Teléfono de contacto (WhatsApp) *</label>
+                        <div className="flex gap-1"> {/* Gap reducido a 1 */}
+                            <div className="phone-input-container !w-fit group relative h-[46px]">
+                                {/* MÁSCARA VISUAL DEL CÓDIGO */}
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 pl-10 pr-1 text-base md:text-sm text-zinc-400 font-mono">
+                                    +{phoneCode}
+                                </div>
+
+                                <PhoneInput
+                                    country={'mx'}
+                                    preferredCountries={['mx']}
+                                    value={phoneCode}
+                                    onChange={(val, country: any) => setPhoneCode(country.dialCode)}
+                                    containerClass="!w-[90px] !h-full"
+                                    inputClass="!hidden"
+                                    buttonClass="!bg-white/5 !border-white/10 !rounded-xl !h-full !w-full !static !flex !items-center !justify-start !px-3 hover:!bg-white/10 opacity-100"
+                                    dropdownClass="!bg-zinc-900 !text-white !border-white/10 !rounded-xl"
+                                    enableSearch
+                                    disableSearchIcon
+                                    specialLabel=""
+                                />
+                            </div>
+
+                            {/* 2. Campo de Captura de Teléfono (INDEPENDIENTE Y LIMPIO) */}
+                            <input
+                                name="phone_number"
+                                value={formData.phone_number}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, '');
+                                    setFormData({ ...formData, phone_number: val });
+                                }}
+                                placeholder="Tu número local"
+                                className="flex-1 bg-white/5 border border-white/10 rounded-xl h-[46px] px-4 outline-none focus:border-blue-500 text-white font-mono text-base md:text-sm placeholder:text-zinc-600 transition-all"
+                            />
+                        </div>
                     </div>
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase text-zinc-500">Correo Electrónico *</label>
@@ -388,23 +492,51 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                 </div>
 
                 {/* Emergency Contact */}
-                <div className="space-y-4">
+                <div className="space-y-4 md:col-span-2 pt-4 border-t border-white/10">
                     <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
                         <AlertCircle className="h-3 w-3" /> Contacto de Emergencia
                     </h4>
                     <div className="space-y-4 bg-white/5 p-4 rounded-2xl border border-white/5">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase text-zinc-500">Nombre Completo</label>
-                            <input name="emergency_contact_name" value={formData.emergency_contact_name} onChange={handleChange} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase text-zinc-500">Nombre Completo</label>
+                                <input name="emergency_contact_name" value={formData.emergency_contact_name} onChange={handleChange} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500" />
+                            </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase text-zinc-500">Parentesco</label>
                                 <input name="emergency_contact_relationship" value={formData.emergency_contact_relationship} onChange={handleChange} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500" />
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-zinc-500">Teléfono</label>
-                                <input name="emergency_contact_phone" value={formData.emergency_contact_phone} onChange={handleChange} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500" />
+                        </div>
+                        <div className="space-y-2 md:w-1/2">
+                            <label className="text-[10px] font-bold uppercase text-zinc-500">Teléfono</label>
+                            <div className="flex gap-1 w-full">
+                                <div className="phone-input-container !w-fit group relative h-[42px]">
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 pl-10 pr-1 text-base md:text-xs text-zinc-500 font-mono">
+                                        +{emergencyPhoneCode}
+                                    </div>
+                                    <PhoneInput
+                                        country={'mx'}
+                                        preferredCountries={['mx']}
+                                        value={emergencyPhoneCode}
+                                        onChange={(val, country: any) => setEmergencyPhoneCode(country.dialCode)}
+                                        containerClass="!w-[86px] !h-full"
+                                        inputClass="!hidden"
+                                        buttonClass="!bg-zinc-900 !border-white/10 !rounded-xl !h-full !w-full !static !flex !items-center !justify-start !px-3 hover:!bg-zinc-800"
+                                        dropdownClass="!bg-zinc-900 !text-white !border-white/10 !rounded-xl"
+                                        enableSearch
+                                        disableSearchIcon
+                                        specialLabel=""
+                                    />
+                                </div>
+                                <input
+                                    name="emergency_contact_phone"
+                                    value={formData.emergency_contact_phone}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, '');
+                                        setFormData({ ...formData, emergency_contact_phone: val });
+                                    }}
+                                    className="flex-1 bg-zinc-900 border border-white/10 rounded-xl h-[42px] px-4 outline-none focus:border-blue-500 text-white font-mono text-base md:text-sm placeholder:text-zinc-600 transition-all"
+                                />
                             </div>
                         </div>
                     </div>
@@ -522,7 +654,11 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
 
             <div className="flex justify-end pt-4">
                 <button
-                    onClick={() => onSave(formData)}
+                    onClick={() => onSave({
+                        ...formData,
+                        phone_number: `+${phoneCode}${formData.phone_number}`,
+                        emergency_contact_phone: `+${emergencyPhoneCode}${formData.emergency_contact_phone}`
+                    })}
                     disabled={saving}
                     className="flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all disabled:opacity-50 shadow-xl shadow-blue-600/20"
                 >

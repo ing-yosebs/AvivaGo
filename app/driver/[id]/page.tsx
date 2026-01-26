@@ -15,7 +15,8 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
                 full_name,
                 email,
                 avatar_url,
-                address_state
+                address_state,
+                phone_number
             ),
             vehicles (*),
             driver_services (*)
@@ -140,7 +141,7 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         indigenous: finalIndigenous,
         schedule: scheduleObj, // Pass full object
         bio: questionnaire.bio || driver.bio || "Este conductor aún no ha redactado su reseña profesional.",
-        phone: driver.whatsapp_number,
+        phone: driver.users?.phone_number || driver.whatsapp_number,
         personality: {
             social: personalityOptions.social[questionnaire.social],
             driving: personalityOptions.driving[questionnaire.driving],

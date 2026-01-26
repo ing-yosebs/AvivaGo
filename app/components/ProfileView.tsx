@@ -142,8 +142,20 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
             if (event.origin !== window.location.origin) return;
             if (event.data?.source === 'avivago-payment') {
                 if (event.data.status === 'success') {
-                    setIsUnlocked(true);
-                    checkUnlock(); // Final sync
+                    // Start manual verification to ensure DB persistence
+                    if (event.data.sessionId) {
+                        fetch('/api/checkout/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ sessionId: event.data.sessionId })
+                        }).then(() => {
+                            setIsUnlocked(true);
+                            checkUnlock(); // Final sync
+                        });
+                    } else {
+                        setIsUnlocked(true);
+                        checkUnlock();
+                    }
                     alert('¡Pago completado con éxito!');
                 } else {
                     alert('El pago fue cancelado o no se pudo procesar.');
@@ -294,14 +306,6 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                             </div>
 
                                             <p className="text-[10px] text-center text-gray-400 uppercase font-bold">Sin cargos adicionales por contacto directo</p>
-
-                                            <button
-                                                onClick={() => setIsReviewOpen(true)}
-                                                className="w-full flex items-center justify-center gap-3 bg-gray-50 hover:bg-gray-100 text-gray-700 font-bold py-3 rounded-2xl transition-all border border-gray-100"
-                                            >
-                                                <Edit3 className="h-4 w-4 text-yellow-500" />
-                                                Calificar Servicio
-                                            </button>
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
@@ -357,7 +361,7 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                                     ) : (
                                                         <>
                                                             <Lock className="h-4 w-4 group-hover:rotate-12 transition-transform" />
-                                                            Desbloquear ahora
+                                                            Contactar ahora
                                                         </>
                                                     )}
                                                 </button>

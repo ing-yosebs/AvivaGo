@@ -84,7 +84,7 @@ export async function POST(req: Request) {
             console.log(`Creating Unlock Session: User ${user.email} -> Driver ${driverId} ($${amount})`);
 
             const session = await stripe.checkout.sessions.create({
-                success_url: `${baseUrl}/checkout/callback?status=success&type=unlock`,
+                success_url: `${baseUrl}/checkout/callback?status=success&type=unlock&session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${baseUrl}/checkout/callback?status=canceled&type=unlock`,
                 payment_method_types: ['card'],
                 mode: 'payment',

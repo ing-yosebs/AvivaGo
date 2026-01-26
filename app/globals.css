@@ -5,22 +5,156 @@
 @layer base {
   :root {
     /* Premium Trust Palette */
-    --background: 249 250 251; /* gray-50 */
-    --foreground: 17 24 39;    /* gray-900 */
-    --primary: 37 99 235;      /* blue-600 */
+    --background: 249 250 251;
+    /* gray-50 */
+    --foreground: 17 24 39;
+    /* gray-900 */
+    --primary: 37 99 235;
+    /* blue-600 */
     --primary-foreground: 255 255 255;
-    --muted: 243 244 246;      /* gray-100 */
-    --muted-foreground: 107 114 128; /* gray-500 */
+    --muted: 243 244 246;
+    /* gray-100 */
+    --muted-foreground: 107 114 128;
+    /* gray-500 */
     --card: 255 255 255;
     --card-foreground: 17 24 39;
-    --border: 229 231 235;     /* gray-200 */
+    --border: 229 231 235;
+    /* gray-200 */
   }
 
   body {
     @apply bg-gray-50 text-gray-900 antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply tracking-tight font-bold text-gray-900;
   }
+}
+
+/* Custom styles for react-phone-input-2 */
+.phone-input-container {
+  width: 100% !important;
+}
+
+.phone-input-container .form-control {
+  width: 100% !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0.75rem !important;
+  color: white !important;
+  font-family: inherit !important;
+  font-size: 0.875rem !important;
+  transition: all 0.2s !important;
+}
+
+.phone-input-container .form-control:focus {
+  border-color: #3b82f6 !important;
+  /* blue-500 */
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.phone-input-container .flag-dropdown {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0.75rem !important;
+  padding: 0 !important;
+  width: 100% !important;
+  /* Nuevo: Ocupa todo el contenedor */
+  height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+.phone-input-container .selected-flag {
+  background: transparent !important;
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0.75rem !important;
+  padding-left: 12px !important;
+  /* Ajuste para la bandera */
+}
+
+.phone-input-container .selected-flag:hover,
+.phone-input-container .selected-flag:focus,
+.phone-input-container .flag-dropdown.open .selected-flag {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 
+   FORZADO DE TEMA OSCURO PARA REACT-PHONE-INPUT-2 
+   Usamos las clases base de la librería para máxima compatibilidad
+*/
+.react-tel-input .country-list {
+  background-color: #18181b !important;
+  /* Zinc 900 - Solido */
+  color: #f4f4f5 !important;
+  /* Zinc 100 */
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.8) !important;
+  /* Responsive Dropdown Width */
+  width: max-content !important;
+  min-width: 250px !important;
+  max-width: 90vw !important;
+  /* Cap width on mobile */
+  max-height: 250px !important;
+  margin-top: 10px !important;
+  left: 0 !important;
+  z-index: 9999 !important;
+  overflow-x: hidden !important;
+}
+
+.react-tel-input .country-list .search {
+  background-color: #18181b !important;
+  padding: 8px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+}
+
+.react-tel-input .country-list .search-box {
+  background-color: #27272a !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  width: 100% !important;
+  /* Full width of container */
+  margin-left: 0 !important;
+  /* Reset margins */
+  padding: 8px 8px 8px 30px !important;
+  box-sizing: border-box !important;
+}
+
+.react-tel-input .country-list .country {
+  transition: background 0.1s;
+  padding: 8px 12px !important;
+}
+
+.react-tel-input .country-list .country:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.react-tel-input .country-list .country.highlight {
+  background-color: #3b82f6 !important;
+}
+
+.react-tel-input .country-list .country .dial-code {
+  color: #71717a !important;
+  /* Zinc 400 */
+}
+
+/* Flecha del selector */
+.react-tel-input .selected-flag .arrow {
+  border-top-color: #71717a !important;
+}
+
+.react-tel-input .selected-flag .arrow.up {
+  border-bottom-color: #71717a !important;
 }
