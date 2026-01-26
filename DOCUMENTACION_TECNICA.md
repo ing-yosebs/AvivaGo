@@ -41,4 +41,10 @@ El sistema se organiza en componentes de React altamente especializados:
 5.  **`ReviewThread`:** Sistema de reputación, valoraciones y respuestas entre usuarios.
 
 ---
-*Última actualización: 24 de enero, 2026*
+## 7. Dominio y Configuración
+*   **Dominio Principal:** `avivago.mx`
+*   **Subdominio App (Correos):** `app.avivago.mx`
+*   **Configuración:** El dominio se utiliza como base para la generación de metadatos (SEO), enlaces en correos electrónicos y redirecciones de Stripe. Las variables de entorno `NEXT_PUBLIC_BASE_URL` deben apuntar a este dominio en producción.
+
+---
+*Última actualización: 26 de enero, 2026*
