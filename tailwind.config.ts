@@ -10,7 +10,8 @@ const config: Config = {
         extend: {
             colors: {
                 aviva: {
-                    primary: '#2563EB', // Action Blue
+                    primary: '#0047AB', // Deep Corporate Blue
+                    secondary: '#FF8C00', // Energetic Human Orange
                     navy: '#0F2137',    // Trust Navy (Official)
                     gold: '#C5A059',    // Premium Gold (Official)
                     text: '#111827',    // gray-900
