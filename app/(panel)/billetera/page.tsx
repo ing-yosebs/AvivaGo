@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import { Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, Award, Copy, Check, Info, Users, Share2, DollarSign } from 'lucide-react'
+import DriverMarketingKit from '@/app/components/marketing/DriverMarketingKit'
 
 export default function WalletPage() {
     const [balance, setBalance] = useState({ available: 0, pending: 0 })
@@ -47,17 +48,21 @@ export default function WalletPage() {
             // 3. Get Driver Profile (for Level and Referral Code)
             const { data: userData } = await supabase
                 .from('users')
-                .select('referral_code, passenger_credits')
+                .select('full_name, avatar_url, referral_code, passenger_credits')
                 .eq('id', user.id)
                 .single()
 
             const { data: driverData } = await supabase
                 .from('driver_profiles')
-                .select('affiliate_level, referral_count, b2c_referral_count')
+                .select('id, affiliate_level, referral_count, b2c_referral_count, profile_photo_url')
                 .eq('user_id', user.id)
                 .single()
 
-            setProfile({ ...userData, ...driverData })
+            setProfile({
+                ...userData,
+                ...driverData,
+                display_avatar: driverData?.profile_photo_url || userData?.avatar_url
+            })
             setLoading(false)
         }
         fetchData()
@@ -342,6 +347,9 @@ export default function WalletPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Marketing Kit Section */}
+            {profile && <DriverMarketingKit profile={profile} referralLink={referralLink} />}
 
             {/* Transactions History */}
             <div className="bg-zinc-900/50 border border-white/10 rounded-[2.5rem] overflow-hidden">

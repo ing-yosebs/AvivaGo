@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, User, Car, MapPin, Calendar, CheckCircle, Shield, FileText, Activity } from 'lucide-react'
+import { ArrowLeft, User, Car, MapPin, Calendar, CheckCircle, Shield, FileText, Activity, Share2 } from 'lucide-react'
 import StatusHistory from '@/app/components/admin/StatusHistory'
 import DriverActions from '@/app/components/admin/DriverActions'
 import PassengerActions from '@/app/components/admin/PassengerActions'
@@ -105,6 +105,17 @@ export default async function UserDetailPage({
             .order('created_at', { ascending: false })
 
         logs = logsData || []
+    }
+
+    // Fetch Referrer details if available
+    let referrer = null
+    if (user.referred_by) {
+        const { data: referrerData } = await supabase
+            .from('users')
+            .select('full_name, referral_code')
+            .eq('id', user.referred_by)
+            .single()
+        referrer = referrerData
     }
 
 
@@ -374,6 +385,34 @@ export default async function UserDetailPage({
 
                 {/* Sidebar Info - Right Column */}
                 <div className="space-y-6">
+                    {/* Referral Info */}
+                    <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl">
+                        <h3 className="text-lg font-semibold mb-4 text-white flex items-center gap-2">
+                            <Share2 className="h-5 w-5 text-blue-400" />
+                            Programa de Referidos
+                        </h3>
+                        {referrer ? (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Invitado por</label>
+                                    <p className="text-white font-medium">{referrer.full_name}</p>
+                                </div>
+                                <div>
+                                    <label className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Código Usado</label>
+                                    <p className="text-white font-mono bg-blue-500/10 border border-blue-500/20 px-2 py-1 rounded inline-block text-blue-400">
+                                        {referrer.referral_code}
+                                    </p>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="py-2">
+                                <p className="text-zinc-500 italic text-sm">
+                                    Este usuario no fue invitado por nadie (llegó orgánicamente).
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Driver Actions */}
                     {isDriver && (
                         <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl">
