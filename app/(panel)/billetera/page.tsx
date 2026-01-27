@@ -65,7 +65,7 @@ export default function WalletPage() {
 
     useEffect(() => {
         if (typeof window !== 'undefined' && profile?.referral_code) {
-            setReferralLink(`${window.location.origin}/registro?ref=${profile.referral_code}`)
+            setReferralLink(`${window.location.origin}/register?ref=${profile.referral_code}`)
         }
     }, [profile])
 
