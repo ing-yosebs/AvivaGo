@@ -7,7 +7,7 @@ import AvivaLogo from '@/app/components/AvivaLogo';
 
 export default function TrustFooter() {
     return (
-        <footer className="bg-white border-t border-gray-200 pt-16 pb-8">
+        <footer className="bg-white border-t border-gray-200 pt-8 pb-4">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="grid md:grid-cols-4 gap-8 mb-12">
 

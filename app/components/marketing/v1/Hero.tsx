@@ -8,7 +8,7 @@ import AvivaLogo from '@/app/components/AvivaLogo';
 
 export default function Hero() {
     return (
-        <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden bg-gradient-to-br from-aviva-bg to-white text-aviva-text">
+        <section className="relative py-12 md:py-16 overflow-hidden bg-gradient-to-br from-aviva-bg to-white text-aviva-text">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
 
@@ -38,13 +38,16 @@ export default function Hero() {
                         </p>
 
                         <div className="flex flex-col gap-4 pt-4">
-                            <Link
-                                href="/register"
-                                className="inline-flex items-center justify-center gap-2 bg-aviva-secondary hover:bg-aviva-secondary/90 text-white text-lg font-bold px-10 py-4 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 w-full sm:w-max"
-                            >
-                                Regístrate Ya
-                                <ArrowRight size={20} />
-                            </Link>
+                            <div className="flex items-center gap-6">
+                                <Link
+                                    href="/register"
+                                    className="inline-flex items-center justify-center gap-2 bg-aviva-secondary hover:bg-aviva-secondary/90 text-white text-lg font-bold px-10 py-4 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 w-full sm:w-max"
+                                >
+                                    Regístrate Ya
+                                    <ArrowRight size={20} />
+                                </Link>
+                                <AvivaLogo className="h-14 w-auto hidden sm:block" />
+                            </div>
                             <p className="text-sm text-gray-500 font-medium">
                                 Proceso súper rápido: en <span className="text-aviva-primary font-bold">menos de 5 minutos</span> tendrás tu propia página funcionando y lista para recibir solicitudes.
                             </p>
@@ -56,13 +59,13 @@ export default function Hero() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
-                        className="w-full md:w-1/2 relative"
+                        className="w-full md:w-1/2 relative flex justify-center"
                     >
-                        <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-gray-50 aspect-[9/19.5] flex items-center justify-center">
+                        <div className="relative z-10 w-full max-w-[440px]">
                             <img
-                                src="/images/driver-mockup.jpg"
-                                alt="Perfil de Conductor Profesional"
-                                className="w-full h-full object-cover"
+                                src="/images/hero-driver-v3.png"
+                                alt="Perfil de Conductor Profesional AvivaGo"
+                                className="w-full h-auto rounded-[2.5rem] shadow-2xl transition-transform hover:scale-[1.02] duration-500"
                             />
                         </div>
 

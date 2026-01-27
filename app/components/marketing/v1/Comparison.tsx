@@ -5,7 +5,7 @@ import { Check, X } from 'lucide-react';
 
 export default function Comparison() {
     return (
-        <section className="py-20 bg-white">
+        <section className="py-12 bg-white">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-bold mb-4 font-display">

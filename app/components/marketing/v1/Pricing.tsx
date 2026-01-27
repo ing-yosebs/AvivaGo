@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { Check, CreditCard } from 'lucide-react';
+import AvivaLogo from '@/app/components/AvivaLogo';
 
 export default function Pricing() {
     return (
-        <section className="py-20 bg-gray-50" id="pricing">
+        <section className="py-12 bg-gray-50" id="pricing">
             <div className="container mx-auto px-4 md:px-6">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-bold font-display mb-4">
@@ -25,9 +26,14 @@ export default function Pricing() {
                         </div>
 
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
-                            <div>
-                                <h3 className="text-3xl font-bold text-white mb-2">Todo Incluido</h3>
-                                <p className="text-blue-200">Tu plataforma profesional lista en minutos.</p>
+                            <div className="flex items-center gap-4">
+                                <div className="p-2 bg-white/10 rounded-xl">
+                                    <AvivaLogo className="h-10 w-auto" />
+                                </div>
+                                <div>
+                                    <h3 className="text-3xl font-bold text-white mb-2">Todo Incluido</h3>
+                                    <p className="text-blue-200">Tu plataforma profesional lista en minutos.</p>
+                                </div>
                             </div>
                             <div className="text-left md:text-right">
                                 <div className="flex items-baseline md:justify-end gap-1">
