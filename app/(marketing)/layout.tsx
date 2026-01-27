@@ -1,4 +1,4 @@
-import LandingHeader from '@/app/components/landing/LandingHeader';
+import LandingHeader from '@/app/components/marketing/v1/Navbar';
 
 export default function MarketingLayout({
     children,
