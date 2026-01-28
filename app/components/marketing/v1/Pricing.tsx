@@ -27,8 +27,8 @@ export default function Pricing() {
 
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
                             <div className="flex items-center gap-4">
-                                <div className="p-2 bg-white/10 rounded-xl">
-                                    <AvivaLogo className="h-10 w-auto" />
+                                <div className="p-3 bg-white/10 rounded-2xl">
+                                    <AvivaLogo className="h-16 w-auto" />
                                 </div>
                                 <div>
                                     <h3 className="text-3xl font-bold text-white mb-2">Todo Incluido</h3>
@@ -37,7 +37,7 @@ export default function Pricing() {
                             </div>
                             <div className="text-left md:text-right">
                                 <div className="flex items-baseline md:justify-end gap-1">
-                                    <span className="text-6xl font-extrabold text-white">$524</span>
+                                    <span className="text-6xl font-extrabold text-white">$524<sup className="text-2xl font-normal text-blue-300 ml-1">*</sup></span>
                                     <span className="text-xl font-bold text-blue-300">MXN</span>
                                 </div>
                                 <p className="text-blue-200 text-sm mt-1">Pago único anual</p>
@@ -80,8 +80,11 @@ export default function Pricing() {
                                 href="/register"
                                 className="w-full bg-aviva-secondary hover:bg-aviva-secondary/90 text-white font-bold text-xl py-5 rounded-2xl transition-all shadow-lg hover:shadow-aviva-secondary/40 text-center"
                             >
-                                Regístrate y Activa tu Página Ya
+                                Regístrate Gratis
                             </Link>
+                            <p className="text-blue-200 text-sm font-medium">
+                                *Para hacer público tu perfil debes pagar la membresía
+                            </p>
 
                             <div className="flex flex-col items-center gap-3">
                                 <p className="text-blue-200 text-sm flex items-center gap-2">

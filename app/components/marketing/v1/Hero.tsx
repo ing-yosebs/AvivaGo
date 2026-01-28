@@ -43,14 +43,11 @@ export default function Hero() {
                                     href="/register"
                                     className="inline-flex items-center justify-center gap-2 bg-aviva-secondary hover:bg-aviva-secondary/90 text-white text-lg font-bold px-10 py-4 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 w-full sm:w-max"
                                 >
-                                    Regístrate Ya
+                                    Regístrate Gratis
                                     <ArrowRight size={20} />
                                 </Link>
                                 <AvivaLogo className="h-14 w-auto hidden sm:block" />
                             </div>
-                            <p className="text-sm text-gray-500 font-medium">
-                                Proceso súper rápido: en <span className="text-aviva-primary font-bold">menos de 5 minutos</span> tendrás tu propia página funcionando y lista para recibir solicitudes.
-                            </p>
                         </div>
                     </motion.div>
 
