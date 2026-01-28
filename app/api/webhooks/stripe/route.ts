@@ -94,6 +94,45 @@ export async function POST(req: Request) {
                     .eq('stripe_subscription_id', subscription.id);
                 break;
             }
+
+            case 'checkout.session.completed': {
+                const session = event.data.object as Stripe.Checkout.Session;
+                const { type, driver_profile_id, user_id } = session.metadata || {};
+
+                if (session.payment_status === 'paid') {
+                    console.log(`[WEBHOOK] Payment record for: ${type}`);
+
+                    if (type === 'membership') {
+                        const expiresAt = new Date();
+                        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+
+                        await supabase
+                            .from('driver_memberships')
+                            .upsert({
+                                driver_profile_id,
+                                origin: 'paid',
+                                status: 'active',
+                                stripe_subscription_id: session.subscription as string,
+                                expires_at: expiresAt.toISOString(),
+                                updated_at: new Date().toISOString()
+                            }, { onConflict: 'driver_profile_id' });
+                    }
+
+                    if (type === 'unlock') {
+                        await supabase
+                            .from('unlocks')
+                            .insert({
+                                user_id: user_id,
+                                driver_profile_id: driver_profile_id,
+                                amount_paid: session.amount_total ? session.amount_total / 100 : 0,
+                                currency: session.currency || 'mxn',
+                                payment_provider_id: session.id,
+                                status: 'completed'
+                            });
+                    }
+                }
+                break;
+            }
         }
     } catch (error: any) {
         console.error(`[WEBHOOK] Handler Error: ${error.message}`);

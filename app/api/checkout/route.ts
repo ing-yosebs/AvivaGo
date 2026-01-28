@@ -44,7 +44,15 @@ export async function POST(req: Request) {
             const session = await stripe.checkout.sessions.create({
                 success_url: `${baseUrl}/checkout/callback?status=success&type=membership&session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${baseUrl}/checkout/callback?status=canceled&type=membership`,
-                payment_method_types: ['card'],
+                payment_method_types: ['card', 'oxxo', 'customer_balance'],
+                payment_method_options: {
+                    customer_balance: {
+                        funding_type: 'bank_transfer',
+                        bank_transfer: {
+                            type: 'mx_bank_transfer',
+                        },
+                    },
+                },
                 mode: 'subscription',
                 billing_address_collection: 'auto',
                 customer_email: user.email,
@@ -87,7 +95,15 @@ export async function POST(req: Request) {
             const session = await stripe.checkout.sessions.create({
                 success_url: `${baseUrl}/checkout/callback?status=success&type=unlock&session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${baseUrl}/checkout/callback?status=canceled&type=unlock`,
-                payment_method_types: ['card'],
+                payment_method_types: ['card', 'oxxo', 'customer_balance'],
+                payment_method_options: {
+                    customer_balance: {
+                        funding_type: 'bank_transfer',
+                        bank_transfer: {
+                            type: 'mx_bank_transfer',
+                        },
+                    },
+                },
                 mode: 'payment',
                 customer_email: user.email,
                 line_items: [{
