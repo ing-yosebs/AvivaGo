@@ -1,17 +1,26 @@
 'use client'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 
-export default function RegisterPage() {
+function RegisterForm() {
     const [fullName, setFullName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [referralCode, setReferralCode] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
+    const searchParams = useSearchParams()
     const supabase = createClient()
+
+    useEffect(() => {
+        const ref = searchParams.get('ref')
+        if (ref) {
+            setReferralCode(ref)
+        }
+    }, [searchParams])
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -24,6 +33,7 @@ export default function RegisterPage() {
             options: {
                 data: {
                     full_name: fullName,
+                    referral_code: referralCode || undefined,
                 },
             },
         })
@@ -90,10 +100,22 @@ export default function RegisterPage() {
                             <input
                                 type="password"
                                 required
-                                className="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3"
+                                className="relative block w-full border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3"
                                 placeholder="Contraseña"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                            />
+                            <p className="text-[10px] text-gray-500 px-1 mt-1">
+                                Mínimo 6 caracteres.
+                            </p>
+                        </div>
+                        <div>
+                            <input
+                                type="text"
+                                className="relative block w-full rounded-b-md border-0 py-1.5 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3"
+                                placeholder="Código de Invitación (Opcional)"
+                                value={referralCode}
+                                onChange={(e) => setReferralCode(e.target.value)}
                             />
                         </div>
                     </div>
@@ -106,7 +128,7 @@ export default function RegisterPage() {
                             disabled={loading}
                             className="group relative flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50"
                         >
-                            {loading ? 'Cargando...' : 'Registrarse'}
+                            {loading ? 'Cargando...' : 'Registrarme como Pasajero'}
                         </button>
                     </div>
 
@@ -118,5 +140,13 @@ export default function RegisterPage() {
                 </form>
             </div>
         </div>
+    )
+}
+
+export default function RegisterPage() {
+    return (
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Cargando...</div>}>
+            <RegisterForm />
+        </Suspense>
     )
 }

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useEffect } from 'react'
 import { signUp } from '@/app/auth/actions'
-import { User, Mail, Lock, CheckCircle, Loader2, Eye, EyeOff, X, AlertCircle } from 'lucide-react'
+import { User, Mail, Lock, CheckCircle, Loader2, Eye, EyeOff, X, AlertCircle, Users, Car } from 'lucide-react'
 import AvivaLogo from '@/app/components/AvivaLogo'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -19,8 +19,16 @@ function RegisterForm() {
 
     const searchParams = useSearchParams()
     const forcedRole = searchParams.get('role') === 'driver'
-    const referralCode = searchParams.get('ref')
+    const [invitationCode, setInvitationCode] = useState('')
     const [referralName, setReferralName] = useState<string | null>(null)
+
+    // Pre-fill invitation code from URL
+    useEffect(() => {
+        const ref = searchParams.get('ref')
+        if (ref) {
+            setInvitationCode(ref)
+        }
+    }, [searchParams])
 
     // Force driver mode if specified in URL
     useState(() => {
@@ -50,8 +58,8 @@ function RegisterForm() {
 
         // Add role process
         formData.append('role', isDriver ? 'driver' : 'client')
-        if (referralCode) {
-            formData.append('referralCode', referralCode)
+        if (invitationCode) {
+            formData.append('referralCode', invitationCode)
         }
 
         const res = await signUp(formData)
@@ -137,11 +145,11 @@ function RegisterForm() {
                         Crear Cuenta
                     </h2>
 
-                    {referralCode && (
+                    {invitationCode && (
                         <div className="mt-3 bg-purple-500/20 border border-purple-500/30 rounded-lg px-3 py-2 inline-flex items-center gap-2">
                             <CheckCircle className="w-4 h-4 text-purple-400" />
                             <span className="text-sm text-purple-200">
-                                Invitado por: <span className="font-mono font-bold">{referralCode}</span>
+                                Invitado por: <span className="font-mono font-bold">{invitationCode}</span>
                             </span>
                         </div>
                     )}
@@ -152,22 +160,26 @@ function RegisterForm() {
                 </div>
 
                 {!forcedRole && (
-                    <div className="flex bg-white/5 p-1 rounded-xl mb-8 relative">
+                    <div className="flex bg-white/5 p-1 rounded-xl mb-8 relative border border-white/5">
                         <div
-                            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/10 rounded-lg transition-all duration-300 ease-spring ${isDriver ? 'translate-x-[100%] translate-x-1' : 'translate-x-0'}`}
+                            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg transition-all duration-300 ease-spring ${isDriver
+                                ? 'translate-x-[100%] bg-purple-500/20 border border-purple-500/30'
+                                : 'translate-x-0 bg-blue-500/20 border border-blue-500/30'}`}
                         />
                         <button
                             type="button"
                             onClick={() => setIsDriver(false)}
-                            className={`flex-1 py-2 text-sm font-medium z-10 transition-colors ${!isDriver ? 'text-white' : 'text-zinc-500'}`}
+                            className={`flex-1 py-3 text-sm font-medium z-10 transition-all flex items-center justify-center gap-2 ${!isDriver ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
                         >
+                            <User className={`h-4 w-4 ${!isDriver ? 'animate-pulse' : ''}`} />
                             Usuario
                         </button>
                         <button
                             type="button"
                             onClick={() => setIsDriver(true)}
-                            className={`flex-1 py-2 text-sm font-medium z-10 transition-colors ${isDriver ? 'text-white' : 'text-zinc-500'}`}
+                            className={`flex-1 py-3 text-sm font-medium z-10 transition-all flex items-center justify-center gap-2 ${isDriver ? 'text-purple-400' : 'text-zinc-500 hover:text-zinc-300'}`}
                         >
+                            <Car className={`h-4 w-4 ${isDriver ? 'animate-pulse' : ''}`} />
                             Conductor
                         </button>
                     </div>
@@ -236,6 +248,23 @@ function RegisterForm() {
                                 )}
                             </button>
                         </div>
+                        <p className="text-[10px] text-zinc-500 px-1 mt-1">
+                            La contraseña debe tener al menos 6 caracteres.
+                        </p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="relative">
+                            <Users className="absolute left-3 top-3 h-5 w-5 text-zinc-500" />
+                            <input
+                                name="invitationCode"
+                                type="text"
+                                placeholder="Código de Invitación (Opcional)"
+                                value={invitationCode}
+                                onChange={(e) => setInvitationCode(e.target.value)}
+                                className="w-full bg-black/20 border border-white/10 rounded-xl px-10 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
+                            />
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-2 px-1">
@@ -270,7 +299,7 @@ function RegisterForm() {
                         className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
                     >
                         {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-                        {isDriver ? 'Aplicar como Conductor' : 'Registrarse'}
+                        {isDriver ? 'Aplicar como Conductor' : 'Registrarme como Pasajero'}
                     </button>
                 </form>
 
