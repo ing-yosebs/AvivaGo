@@ -49,6 +49,7 @@ export async function POST(req: Request) {
                 billing_address_collection: 'auto',
                 customer_email: user.email,
                 line_items: [{ price: priceId, quantity: 1 }],
+                automatic_tax: { enabled: true },
                 metadata: {
                     type: 'membership',
                     user_id: user.id,
@@ -100,6 +101,7 @@ export async function POST(req: Request) {
                     },
                     quantity: 1,
                 }],
+                automatic_tax: { enabled: true },
                 metadata: {
                     type: 'unlock',
                     user_id: user.id,
