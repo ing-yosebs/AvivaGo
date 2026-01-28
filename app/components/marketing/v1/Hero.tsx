@@ -29,7 +29,7 @@ export default function Hero() {
                                 Seguridad, Confianza y <span className="text-aviva-primary">Certeza</span>
                             </h1>
                             <h2 className="text-2xl md:text-3xl font-display font-semibold text-gray-500">
-                                Tu negocio. Tu marca. Tu 100%.
+                                Tu negocio. Tu marca. Tu dinero.
                             </h2>
                         </div>
 
