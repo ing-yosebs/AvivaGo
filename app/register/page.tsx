@@ -18,8 +18,14 @@ function RegisterForm() {
     const [existingEmail, setExistingEmail] = useState('')
 
     const searchParams = useSearchParams()
+    const forcedRole = searchParams.get('role') === 'driver'
     const referralCode = searchParams.get('ref')
-    const [referralName, setReferralName] = useState<string | null>(null) // Could fetch this async if needed
+    const [referralName, setReferralName] = useState<string | null>(null)
+
+    // Force driver mode if specified in URL
+    useState(() => {
+        if (forcedRole) setIsDriver(true)
+    })
 
     async function handleSubmit(formData: FormData) {
         setPending(true)
@@ -145,26 +151,27 @@ function RegisterForm() {
                     </p>
                 </div>
 
-                {/* Role Toggle */}
-                <div className="flex bg-white/5 p-1 rounded-xl mb-8 relative">
-                    <div
-                        className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/10 rounded-lg transition-all duration-300 ease-spring ${isDriver ? 'translate-x-[100%] translate-x-1' : 'translate-x-0'}`}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setIsDriver(false)}
-                        className={`flex-1 py-2 text-sm font-medium z-10 transition-colors ${!isDriver ? 'text-white' : 'text-zinc-500'}`}
-                    >
-                        Usuario
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setIsDriver(true)}
-                        className={`flex-1 py-2 text-sm font-medium z-10 transition-colors ${isDriver ? 'text-white' : 'text-zinc-500'}`}
-                    >
-                        Conductor
-                    </button>
-                </div>
+                {!forcedRole && (
+                    <div className="flex bg-white/5 p-1 rounded-xl mb-8 relative">
+                        <div
+                            className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/10 rounded-lg transition-all duration-300 ease-spring ${isDriver ? 'translate-x-[100%] translate-x-1' : 'translate-x-0'}`}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setIsDriver(false)}
+                            className={`flex-1 py-2 text-sm font-medium z-10 transition-colors ${!isDriver ? 'text-white' : 'text-zinc-500'}`}
+                        >
+                            Usuario
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setIsDriver(true)}
+                            className={`flex-1 py-2 text-sm font-medium z-10 transition-colors ${isDriver ? 'text-white' : 'text-zinc-500'}`}
+                        >
+                            Conductor
+                        </button>
+                    </div>
+                )}
 
                 <form action={handleSubmit} className="space-y-4">
                     <div className="space-y-2">

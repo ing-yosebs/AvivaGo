@@ -77,7 +77,7 @@ export default function Pricing() {
 
                         <div className="flex flex-col items-center gap-6">
                             <Link
-                                href="/register"
+                                href="/register?role=driver"
                                 className="w-full bg-aviva-secondary hover:bg-aviva-secondary/90 text-white font-bold text-xl py-5 rounded-2xl transition-all shadow-lg hover:shadow-aviva-secondary/40 text-center"
                             >
                                 Regístrate Gratis

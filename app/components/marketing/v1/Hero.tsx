@@ -40,7 +40,7 @@ export default function Hero() {
                         <div className="flex flex-col gap-4 pt-4">
                             <div className="flex items-center gap-6">
                                 <Link
-                                    href="/register"
+                                    href="/register?role=driver"
                                     className="inline-flex items-center justify-center gap-2 bg-aviva-secondary hover:bg-aviva-secondary/90 text-white text-lg font-bold px-10 py-4 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 w-full sm:w-max"
                                 >
                                     Regístrate Gratis
