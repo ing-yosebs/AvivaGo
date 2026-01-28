@@ -26,6 +26,34 @@ export async function POST(req: Request) {
         const origin = new URL(req.url).origin;
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || origin;
 
+        // Retrieve extra user info (name) for Stripe Customer creation if needed
+        const { data: userProfile } = await supabase
+            .from('users')
+            .select('full_name, phone_number, stripe_customer_id')
+            .eq('id', user.id)
+            .single();
+
+        let stripeCustomerId = userProfile?.stripe_customer_id;
+
+        if (!stripeCustomerId) {
+            // Create a new Stripe Customer
+            const customer = await stripe.customers.create({
+                email: user.email,
+                name: userProfile?.full_name || user.email,
+                phone: userProfile?.phone_number || undefined,
+                metadata: {
+                    user_id: user.id,
+                }
+            });
+            stripeCustomerId = customer.id;
+
+            // Save it to the database so we don't create duplicates
+            await supabase
+                .from('users')
+                .update({ stripe_customer_id: stripeCustomerId })
+                .eq('id', user.id);
+        }
+
         // --- TYPE: MEMBERSHIP (Subscription) ---
         if (type === 'membership') {
             const { data: driverProfile } = await supabase
@@ -44,6 +72,7 @@ export async function POST(req: Request) {
             const session = await stripe.checkout.sessions.create({
                 success_url: `${baseUrl}/checkout/callback?status=success&type=membership&session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${baseUrl}/checkout/callback?status=canceled&type=membership`,
+                customer: stripeCustomerId,
                 payment_method_types: ['card', 'oxxo', 'customer_balance'],
                 payment_method_options: {
                     customer_balance: {
@@ -54,7 +83,7 @@ export async function POST(req: Request) {
                     },
                 },
                 mode: 'payment',
-                customer_email: user.email,
+                // customer_email: user.email, // Cannot specify both customer and customer_email
                 line_items: [{
                     price_data: {
                         currency: 'mxn',
@@ -92,12 +121,7 @@ export async function POST(req: Request) {
             if (!driverId || !amount) return new NextResponse('Missing driverId or amount', { status: 400 });
 
             // Enforce Profile Completion (Validation)
-            const { data: userProfile } = await supabase
-                .from('users')
-                .select('full_name, phone_number')
-                .eq('id', user.id)
-                .single();
-
+            // We already fetched userProfile above, so check it here
             if (!userProfile?.full_name || !userProfile?.phone_number) {
                 return NextResponse.json(
                     { error: 'Debes completar tu perfil (nombre y teléfono) antes de contactar conductores.' },
@@ -115,6 +139,7 @@ export async function POST(req: Request) {
             const session = await stripe.checkout.sessions.create({
                 success_url: `${baseUrl}/checkout/callback?status=success&type=unlock&session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${baseUrl}/checkout/callback?status=canceled&type=unlock`,
+                customer: stripeCustomerId,
                 payment_method_types: ['card', 'oxxo', 'customer_balance'],
                 payment_method_options: {
                     customer_balance: {
@@ -125,7 +150,7 @@ export async function POST(req: Request) {
                     },
                 },
                 mode: 'payment',
-                customer_email: user.email,
+                // customer_email: user.email, // Cannot specify both customer and customer_email
                 line_items: [{
                     price_data: {
                         currency: 'mxn',
