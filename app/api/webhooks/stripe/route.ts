@@ -1,11 +1,9 @@
 
 import { headers } from 'next/headers';
 import { stripe } from '@/lib/stripe';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-
-
 
 export async function POST(req: Request) {
     const body = await req.text();
@@ -27,7 +25,14 @@ export async function POST(req: Request) {
         return new NextResponse(`Webhook Error: ${error.message}`, { status: 400 });
     }
 
-    const supabase = await createClient();
+    // Initialize Supabase Admin Client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    if (!supabaseServiceKey) {
+        console.error('MISSING SUPABASE_SERVICE_ROLE_KEY');
+        return new NextResponse('Internal Config Error', { status: 500 });
+    }
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     try {
         switch (event.type) {
@@ -130,6 +135,12 @@ export async function POST(req: Request) {
                                 status: 'completed'
                             });
                     }
+
+                    // Mark pending payment as completed
+                    await supabase
+                        .from('pending_payments')
+                        .update({ status: 'completed', updated_at: new Date().toISOString() })
+                        .eq('stripe_session_id', session.id);
                 }
                 break;
             }

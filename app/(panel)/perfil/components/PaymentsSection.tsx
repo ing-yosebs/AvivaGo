@@ -17,9 +17,10 @@ interface PaymentsSectionProps {
     profile: any
     vehicles: any[]
     services: any
+    pendingPayment?: any
 }
 
-export default function PaymentsSection({ isDriver, hasMembership, driverStatus, driverProfileId, onPurchaseSuccess, profile, vehicles, services }: PaymentsSectionProps) {
+export default function PaymentsSection({ isDriver, hasMembership, driverStatus, driverProfileId, onPurchaseSuccess, profile, vehicles, services, pendingPayment }: PaymentsSectionProps) {
     const supabase = createClient()
     const [unlocks, setUnlocks] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -426,6 +427,26 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                         <p className="text-zinc-400 text-lg mb-12 leading-relaxed max-w-2xl mx-auto">
                             Únete a la red de conductores profesionales de AvivaGo. Sigue estos simples pasos para comenzar a recibir solicitudes directas de pasajeros.
                         </p>
+
+                        {pendingPayment && (
+                            <div className="mb-12 p-6 bg-amber-500/10 border border-amber-500/20 rounded-3xl text-left flex items-start gap-4 animate-in slide-in-from-top-4 duration-500">
+                                <div className="p-3 bg-amber-500/20 rounded-2xl text-amber-500 shrink-0">
+                                    <Clock className="h-6 w-6" />
+                                </div>
+                                <div className="space-y-3">
+                                    <div>
+                                        <h4 className="font-bold text-amber-200">Tienes un pago pendiente</h4>
+                                        <p className="text-sm text-amber-200/60">Detectamos un intento de pago por transferencia (SPEI) o efectivo que aún no se ha completado.</p>
+                                    </div>
+                                    <button
+                                        onClick={() => openStripeCheckout(pendingPayment.checkout_url)}
+                                        className="inline-flex items-center gap-2 bg-amber-500 text-black px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-amber-400 transition-colors"
+                                    >
+                                        Ver Instrucciones de Pago
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Process Steps */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 text-left relative">

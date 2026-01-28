@@ -44,7 +44,7 @@ export async function POST(req: Request) {
             const session = await stripe.checkout.sessions.create({
                 success_url: `${baseUrl}/checkout/callback?status=success&type=membership&session_id={CHECKOUT_SESSION_ID}`,
                 cancel_url: `${baseUrl}/checkout/callback?status=canceled&type=membership`,
-                payment_method_types: ['card', 'oxxo', 'customer_balance'],
+                payment_method_types: ['card', 'customer_balance'],
                 payment_method_options: {
                     customer_balance: {
                         funding_type: 'bank_transfer',
@@ -64,6 +64,17 @@ export async function POST(req: Request) {
                     driver_profile_id: driverProfile.id,
                 },
             });
+
+            // Store pending payment
+            await supabase.from('pending_payments').insert({
+                user_id: user.id,
+                driver_profile_id: driverProfile.id,
+                stripe_session_id: session.id,
+                checkout_url: session.url,
+                status: 'open',
+                metadata: { type: 'membership' }
+            });
+
             return NextResponse.json({ url: session.url });
         }
 

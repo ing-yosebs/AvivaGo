@@ -48,6 +48,7 @@ function ProfileContent() {
     const [driverServices, setDriverServices] = useState<any>(null)
     const [saving, setSaving] = useState(false)
     const [hasMembership, setHasMembership] = useState(false)
+    const [pendingPayment, setPendingPayment] = useState<any>(null)
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
     const supabase = createClient()
@@ -142,6 +143,20 @@ function ProfileContent() {
 
                 if (membershipData) {
                     setHasMembership(true)
+                } else {
+                    // Check for pending payments (SPEI/OXXO instructions)
+                    const { data: pending } = await supabase
+                        .from('pending_payments')
+                        .select('*')
+                        .eq('user_id', userData.id)
+                        .eq('status', 'open')
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .maybeSingle()
+
+                    if (pending) {
+                        setPendingPayment(pending)
+                    }
                 }
 
                 if (urlTab) setActiveTab(urlTab)
@@ -310,6 +325,7 @@ function ProfileContent() {
                         <PaymentsSection
                             isDriver={isDriver}
                             hasMembership={hasMembership}
+                            pendingPayment={pendingPayment}
                             driverStatus={profile?.driver_profile?.status}
                             driverProfileId={profile?.driver_profile?.id}
                             onPurchaseSuccess={() => setHasMembership(true)}
