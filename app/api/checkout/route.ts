@@ -96,6 +96,9 @@ export async function POST(req: Request) {
                     quantity: 1
                 }],
                 automatic_tax: { enabled: true },
+                customer_update: {
+                    address: 'auto',
+                },
                 metadata: {
                     type: 'membership',
                     user_id: user.id,
@@ -163,6 +166,9 @@ export async function POST(req: Request) {
                     quantity: 1,
                 }],
                 automatic_tax: { enabled: true },
+                customer_update: {
+                    address: 'auto',
+                },
                 metadata: {
                     type: 'unlock',
                     user_id: user.id,
