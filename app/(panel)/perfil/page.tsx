@@ -27,8 +27,8 @@ export default function ProfilePage() {
     return (
         <Suspense fallback={
             <div className="animate-pulse space-y-4">
-                <div className="h-12 bg-white/5 rounded-2xl w-1/4" />
-                <div className="h-[400px] bg-white/5 rounded-3xl" />
+                <div className="h-12 bg-gray-100 rounded-2xl w-1/4" />
+                <div className="h-[400px] bg-gray-100 rounded-3xl" />
             </div>
         }>
             <ProfileContent />
@@ -231,8 +231,8 @@ function ProfileContent() {
 
     if (loading) return (
         <div className="animate-pulse space-y-4">
-            <div className="h-12 bg-white/5 rounded-2xl w-1/4" />
-            <div className="h-[400px] bg-white/5 rounded-3xl" />
+            <div className="h-12 bg-gray-100 rounded-2xl w-1/4" />
+            <div className="h-[400px] bg-gray-100 rounded-3xl" />
         </div>
     )
 
@@ -252,10 +252,10 @@ function ProfileContent() {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight mb-2">
-                    {activeTab === 'payments' ? 'Membresía' : 'Configuración'}
+                <h1 className="text-3xl font-bold tracking-tight mb-2 text-[#0F2137]">
+                    {tabs.find(t => t.id === activeTab)?.label || 'Configuración'}
                 </h1>
-                <p className="text-zinc-400">
+                <p className="text-gray-500">
                     {activeTab === 'payments'
                         ? 'Gestiona tu suscripción y consulta tu historial de pagos.'
                         : 'Gestiona tu información personal y preferencias de la cuenta.'}
@@ -266,10 +266,10 @@ function ProfileContent() {
             {/* Error/Success Messages */}
             {message && (
                 <div className={`p-4 rounded-2xl border flex items-center gap-3 animate-in slide-in-from-top-4 duration-300 ${message.type === 'success'
-                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                    : 'bg-red-500/10 border-red-500/20 text-red-400'
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+                    : 'bg-red-50 border-red-200 text-red-700'
                     }`}>
-                    <div className={`p-1 rounded-full ${message.type === 'success' ? 'bg-emerald-500/20' : 'bg-red-500/20'}`}>
+                    <div className={`p-1 rounded-full ${message.type === 'success' ? 'bg-emerald-100' : 'bg-red-100'}`}>
                         {message.type === 'success' ? <Check className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
                     </div>
                     <p className="font-medium text-sm">{message.text}</p>
@@ -277,9 +277,11 @@ function ProfileContent() {
                 </div>
             )}
 
+
+
             {/* Tab Panels */}
-            <div className="bg-zinc-900/50 border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/5 rounded-full blur-[100px] pointer-events-none" />
+            <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 md:p-12 shadow-soft relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100/50 rounded-full blur-[100px] pointer-events-none" />
 
                 <div className="relative z-10 transition-all duration-300">
                     {activeTab === 'personal' && (

@@ -63,18 +63,18 @@ export default function DriverMarketingKit({ profile, referralLink }: DriverMark
     const profileQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(profileLink)}`
 
     return (
-        <div className="bg-zinc-900/50 border border-white/10 rounded-[2.5rem] overflow-hidden">
-            <div className="p-8 border-b border-white/10">
+        <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-soft">
+            <div className="p-8 border-b border-gray-100">
                 <div className="flex flex-col gap-8">
                     <div>
-                        <h3 className="text-3xl font-black text-white flex items-center gap-4">
+                        <h3 className="text-3xl font-black text-[#0F2137] flex items-center gap-4">
                             <Tag className="h-8 w-8 text-emerald-500" />
                             Kit de Marketing Personalizado
                         </h3>
-                        <p className="text-zinc-400 mt-2 text-lg">Genera herramientas impresas para promover tu red y perfil.</p>
+                        <p className="text-gray-500 mt-2 text-lg">Genera herramientas impresas para promover tu red y perfil.</p>
                     </div>
 
-                    <div className="flex flex-wrap bg-black/40 p-1.5 rounded-[1.5rem] border border-white/10 gap-1.5 w-fit">
+                    <div className="flex flex-wrap bg-gray-50 p-1.5 rounded-[1.5rem] border border-gray-100 gap-1.5 w-fit">
                         {[
                             { id: 'flyer', label: 'Flyer B2C' },
                             { id: 'sticker', label: 'Sticker Registro' },
@@ -84,7 +84,7 @@ export default function DriverMarketingKit({ profile, referralLink }: DriverMark
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id as any)}
-                                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${activeTab === tab.id ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-900/40' : 'text-zinc-500 hover:text-white hover:bg-white/5'}`}
+                                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${activeTab === tab.id ? 'bg-[#0F2137] text-white shadow-lg shadow-[#0F2137]/20' : 'text-gray-500 hover:text-[#0F2137] hover:bg-white'}`}
                             >
                                 {tab.label}
                             </button>
@@ -95,9 +95,9 @@ export default function DriverMarketingKit({ profile, referralLink }: DriverMark
 
             <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 {/* Preview Area */}
-                <div className="flex justify-center items-center bg-black/40 rounded-[2rem] p-8 border border-white/5 min-h-[550px] relative">
+                <div className="flex justify-center items-center bg-gray-50 rounded-[2rem] p-8 border border-gray-100 min-h-[550px] relative">
                     <div className="absolute top-4 left-4">
-                        <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-black uppercase tracking-widest rounded-full">Vista Previa</span>
+                        <span className="px-3 py-1 bg-white text-emerald-600 border border-emerald-100 text-[10px] font-black uppercase tracking-widest rounded-full shadow-sm">Vista Previa</span>
                     </div>
 
                     {/* Flyer Template */}
@@ -280,35 +280,35 @@ export default function DriverMarketingKit({ profile, referralLink }: DriverMark
                 {/* Instructions Area */}
                 <div className="space-y-8">
                     <div className="space-y-6">
-                        <h4 className="text-xl font-bold text-white flex items-center gap-2">
-                            <CreditCard className="h-5 w-5 text-zinc-400" />
+                        <h4 className="text-xl font-bold text-[#0F2137] flex items-center gap-2">
+                            <CreditCard className="h-5 w-5 text-gray-400" />
                             Finalización del Diseño
                         </h4>
 
                         <div className="space-y-4">
                             <div className="flex gap-4 items-start">
-                                <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20 text-xs font-black">!</div>
+                                <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 text-xs font-black">!</div>
                                 <div>
-                                    <p className="text-white font-bold text-sm">Identidad Reforzada</p>
-                                    <p className="text-zinc-400 text-xs mt-1">Cambiamos el subtítulo a "Conductor AvivaGo" para darte más autoridad y relación directa con la marca.</p>
+                                    <p className="text-[#0F2137] font-bold text-sm">Identidad Reforzada</p>
+                                    <p className="text-gray-500 text-xs mt-1">Cambiamos el subtítulo a "Conductor AvivaGo" para darte más autoridad y relación directa con la marca.</p>
                                 </div>
                             </div>
                             <div className="flex gap-4 items-start">
-                                <div className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0 border border-emerald-500/20 text-xs font-black">!</div>
+                                <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 text-xs font-black">!</div>
                                 <div>
-                                    <p className="text-white font-bold text-sm">Enfoque en Servicios</p>
-                                    <p className="text-zinc-400 text-xs mt-1">El nuevo texto invita a los clientes a conocer tu valor diferencial, no solo a ahorrar, generando conexiones de mayor calidad.</p>
+                                    <p className="text-[#0F2137] font-bold text-sm">Enfoque en Servicios</p>
+                                    <p className="text-gray-500 text-xs mt-1">El nuevo texto invita a los clientes a conocer tu valor diferencial, no solo a ahorrar, generando conexiones de mayor calidad.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-6 bg-emerald-500/5 rounded-3xl border border-emerald-500/20">
+                    <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100">
                         <div className="flex items-center gap-3 mb-3">
-                            <Shield className="h-5 w-5 text-emerald-500" />
-                            <p className="text-sm font-black text-white">Soporte de Marketing</p>
+                            <Shield className="h-5 w-5 text-emerald-600" />
+                            <p className="text-sm font-black text-[#0F2137]">Soporte de Marketing</p>
                         </div>
-                        <p className="text-xs text-zinc-400 leading-relaxed font-medium italic">
+                        <p className="text-xs text-emerald-800/70 leading-relaxed font-medium italic">
                             Este diseño está listo para ser entregado a cualquier imprenta profesional para su producción en serie.
                         </p>
                     </div>
@@ -316,7 +316,7 @@ export default function DriverMarketingKit({ profile, referralLink }: DriverMark
                     <button
                         onClick={handleDownload}
                         disabled={downloading}
-                        className="w-full py-5 rounded-[2rem] bg-emerald-600 hover:bg-emerald-500 text-white font-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-900/40 active:scale-[0.98] disabled:opacity-50 disabled:cursor-wait"
+                        className="w-full py-5 rounded-[2rem] bg-[#0F2137] hover:bg-[#0F2137]/90 text-white font-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-[#0F2137]/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-wait"
                     >
                         {downloading ? (
                             <>
@@ -330,7 +330,7 @@ export default function DriverMarketingKit({ profile, referralLink }: DriverMark
                             </>
                         )}
                     </button>
-                    <p className="text-center text-[10px] text-zinc-500 font-black uppercase tracking-widest">V 2.1 &bull; SECCIÓN DE SERVICIOS</p>
+                    <p className="text-center text-[10px] text-gray-400 font-black uppercase tracking-widest">V 2.1 &bull; SECCIÓN DE SERVICIOS</p>
                 </div>
             </div>
         </div>

@@ -273,11 +273,11 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
         <div className="space-y-8 max-w-4xl">
             <div className="flex items-center gap-6">
                 <div className="relative group">
-                    <div className="w-24 h-24 rounded-2xl bg-zinc-800 border-2 border-white/10 overflow-hidden">
+                    <div className="w-24 h-24 rounded-2xl bg-gray-100 border-2 border-gray-200 overflow-hidden">
                         {formData.avatar_url ? (
                             <img src={formData.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center text-zinc-500">
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
                                 <User className="h-10 w-10" />
                             </div>
                         )}
@@ -302,8 +302,8 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                     </button>
                 </div>
                 <div>
-                    <h3 className="font-bold text-lg">{formData.full_name || 'Nuevo Usuario'}</h3>
-                    <p className="text-zinc-400 text-sm">{profile?.email}</p>
+                    <h3 className="font-bold text-lg text-[#0F2137]">{formData.full_name || 'Nuevo Usuario'}</h3>
+                    <p className="text-gray-500 text-sm">{profile?.email}</p>
                     <div className="flex gap-2 mt-2">
                         {profile?.roles?.map((role: string) => (
                             <span key={role} className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-wider border border-blue-500/20">
@@ -317,19 +317,19 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Basic Info */}
                 <div className="space-y-4">
-                    <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
                         <User className="h-3 w-3" /> Información Básica
                     </h4>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase text-zinc-500">Nombre Completo *</label>
-                        <input name="full_name" value={formData.full_name} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                        <label className="text-[10px] font-bold uppercase text-gray-500">Nombre Completo *</label>
+                        <input name="full_name" value={formData.full_name} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase text-zinc-500">Teléfono de contacto (WhatsApp) *</label>
+                        <label className="text-[10px] font-bold uppercase text-gray-500">Teléfono de contacto (WhatsApp) *</label>
                         <div className="flex gap-1"> {/* Gap reducido a 1 */}
                             <div className="phone-input-container !w-fit group relative h-[46px]">
                                 {/* MÁSCARA VISUAL DEL CÓDIGO */}
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 pl-10 pr-1 text-base md:text-sm text-zinc-400 font-mono">
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 pl-10 pr-1 text-base md:text-sm text-gray-500 font-mono">
                                     +{phoneCode}
                                 </div>
 
@@ -340,8 +340,8 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                                     onChange={(val, country: any) => setPhoneCode(country.dialCode)}
                                     containerClass="!w-[90px] !h-full"
                                     inputClass="!hidden"
-                                    buttonClass="!bg-white/5 !border-white/10 !rounded-xl !h-full !w-full !static !flex !items-center !justify-start !px-3 hover:!bg-white/10 opacity-100"
-                                    dropdownClass="!bg-zinc-900 !text-white !border-white/10 !rounded-xl"
+                                    buttonClass="!bg-white !border-gray-200 !rounded-xl !h-full !w-full !static !flex !items-center !justify-start !px-3 hover:!bg-gray-50 opacity-100"
+                                    dropdownClass="!bg-white !text-[#0F2137] !border-gray-200 !rounded-xl"
                                     enableSearch
                                     disableSearchIcon
                                     specialLabel=""
@@ -357,46 +357,46 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                                     setFormData({ ...formData, phone_number: val });
                                 }}
                                 placeholder="Tu número local"
-                                className="flex-1 bg-white/5 border border-white/10 rounded-xl h-[46px] px-4 outline-none focus:border-blue-500 text-white font-mono text-base md:text-sm placeholder:text-zinc-600 transition-all"
+                                className="flex-1 bg-white border border-gray-200 rounded-xl h-[46px] px-4 outline-none focus:border-blue-500 text-[#0F2137] font-mono text-base md:text-sm placeholder:text-gray-400 transition-all"
                             />
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase text-zinc-500">Correo Electrónico *</label>
-                        <input name="email" value={formData.email} disabled className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 opacity-50 cursor-not-allowed" />
+                        <label className="text-[10px] font-bold uppercase text-gray-500">Correo Electrónico *</label>
+                        <input name="email" value={formData.email} disabled className="w-full bg-gray-50 border border-gray-200 text-gray-500 rounded-xl px-4 py-2.5 opacity-70 cursor-not-allowed" />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase text-zinc-500">Fecha de Nacimiento</label>
-                            <input name="birthday" type="date" value={formData.birthday} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                            <label className="text-[10px] font-bold uppercase text-gray-500">Fecha de Nacimiento</label>
+                            <input name="birthday" type="date" value={formData.birthday} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase text-zinc-500">Nacionalidad *</label>
-                            <input name="nationality" value={formData.nationality} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                            <label className="text-[10px] font-bold uppercase text-gray-500">Nacionalidad *</label>
+                            <input name="nationality" value={formData.nationality} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
                         </div>
                     </div>
                 </div>
 
                 {/* Legal & Docs */}
                 <div className="space-y-4">
-                    <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
                         <FileText className="h-3 w-3" /> Documentación
                     </h4>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase text-zinc-500">CURP *</label>
-                        <input name="curp" value={formData.curp} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                        <label className="text-[10px] font-bold uppercase text-gray-500">CURP *</label>
+                        <input name="curp" value={formData.curp} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase text-zinc-500">Último Grado de Estudios</label>
-                        <select name="education_level" value={formData.education_level} onChange={handleChange} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 appearance-none">
+                        <label className="text-[10px] font-bold uppercase text-gray-500">Último Grado de Estudios</label>
+                        <select name="education_level" value={formData.education_level} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 appearance-none">
                             <option value="">Seleccionar...</option>
                             {educationLevels.map(lvl => <option key={lvl.value} value={lvl.value}>{lvl.label}</option>)}
                         </select>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase text-zinc-500">Identificación Oficial *</label>
+                            <label className="text-[10px] font-bold uppercase text-gray-500">Identificación Oficial *</label>
                             <input
                                 type="file"
                                 ref={idInputRef}
@@ -406,7 +406,7 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                             />
                             <div
                                 onClick={() => idInputRef.current?.click()}
-                                className={`cursor-pointer group relative aspect-video w-full rounded-xl overflow-hidden border border-dashed transition-all bg-white/5 flex flex-col items-center justify-center ${formData.id_document_url ? 'border-emerald-500/30' : 'border-white/20 hover:border-blue-500/50'}`}
+                                className={`cursor-pointer group relative aspect-video w-full rounded-xl overflow-hidden border border-dashed transition-all bg-gray-50 flex flex-col items-center justify-center ${formData.id_document_url ? 'border-emerald-500/30' : 'border-gray-200 hover:border-blue-500'}`}
                             >
                                 {uploading === 'id_document_url' ? (
                                     <div className="flex flex-col items-center justify-center text-zinc-500">
@@ -433,7 +433,7 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="flex flex-col items-center justify-center text-zinc-500 group-hover:text-blue-400 transition-colors">
+                                    <div className="flex flex-col items-center justify-center text-gray-500 group-hover:text-blue-600 transition-colors">
                                         <Plus className="h-6 w-6 mb-2" />
                                         <span className="text-[10px]">Subir Imagen o PDF</span>
                                     </div>
@@ -441,7 +441,7 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase text-zinc-500">Comprobante Domicilio *</label>
+                            <label className="text-[10px] font-bold uppercase text-gray-500">Comprobante Domicilio *</label>
                             <input
                                 type="file"
                                 ref={addressInputRef}
@@ -451,7 +451,7 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                             />
                             <div
                                 onClick={() => addressInputRef.current?.click()}
-                                className={`cursor-pointer group relative aspect-video w-full rounded-xl overflow-hidden border border-dashed transition-all bg-white/5 flex flex-col items-center justify-center ${formData.address_proof_url ? 'border-emerald-500/30' : 'border-white/20 hover:border-blue-500/50'}`}
+                                className={`cursor-pointer group relative aspect-video w-full rounded-xl overflow-hidden border border-dashed transition-all bg-gray-50 flex flex-col items-center justify-center ${formData.address_proof_url ? 'border-emerald-500/30' : 'border-gray-200 hover:border-blue-500'}`}
                             >
                                 {uploading === 'address_proof_url' ? (
                                     <div className="flex flex-col items-center justify-center text-zinc-500">
@@ -478,7 +478,7 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="flex flex-col items-center justify-center text-zinc-500 group-hover:text-blue-400 transition-colors">
+                                    <div className="flex flex-col items-center justify-center text-gray-500 group-hover:text-blue-600 transition-colors">
                                         <Plus className="h-6 w-6 mb-2" />
                                         <span className="text-[10px]">Subir Imagen o PDF</span>
                                     </div>
@@ -492,19 +492,19 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                 </div>
 
                 {/* Emergency Contact */}
-                <div className="space-y-4 md:col-span-2 pt-4 border-t border-white/10">
-                    <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <div className="space-y-4 md:col-span-2 pt-4 border-t border-gray-100">
+                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
                         <AlertCircle className="h-3 w-3" /> Contacto de Emergencia
                     </h4>
-                    <div className="space-y-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+                    <div className="space-y-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-zinc-500">Nombre Completo</label>
-                                <input name="emergency_contact_name" value={formData.emergency_contact_name} onChange={handleChange} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500" />
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Nombre Completo</label>
+                                <input name="emergency_contact_name" value={formData.emergency_contact_name} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-zinc-500">Parentesco</label>
-                                <input name="emergency_contact_relationship" value={formData.emergency_contact_relationship} onChange={handleChange} className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500" />
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Parentesco</label>
+                                <input name="emergency_contact_relationship" value={formData.emergency_contact_relationship} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2 focus:outline-none focus:border-blue-500" />
                             </div>
                         </div>
                         <div className="space-y-2 md:w-1/2">
@@ -521,8 +521,8 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                                         onChange={(val, country: any) => setEmergencyPhoneCode(country.dialCode)}
                                         containerClass="!w-[86px] !h-full"
                                         inputClass="!hidden"
-                                        buttonClass="!bg-zinc-900 !border-white/10 !rounded-xl !h-full !w-full !static !flex !items-center !justify-start !px-3 hover:!bg-zinc-800"
-                                        dropdownClass="!bg-zinc-900 !text-white !border-white/10 !rounded-xl"
+                                        buttonClass="!bg-white !border-gray-200 !rounded-xl !h-full !w-full !static !flex !items-center !justify-start !px-3 hover:!bg-gray-50"
+                                        dropdownClass="!bg-white !text-[#0F2137] !border-gray-200 !rounded-xl"
                                         enableSearch
                                         disableSearchIcon
                                         specialLabel=""
@@ -535,7 +535,7 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                                         const val = e.target.value.replace(/\D/g, '');
                                         setFormData({ ...formData, emergency_contact_phone: val });
                                     }}
-                                    className="flex-1 bg-zinc-900 border border-white/10 rounded-xl h-[42px] px-4 outline-none focus:border-blue-500 text-white font-mono text-base md:text-sm placeholder:text-zinc-600 transition-all"
+                                    className="flex-1 bg-white border border-gray-200 text-[#0F2137] rounded-xl h-[42px] px-4 outline-none focus:border-blue-500 font-mono text-base md:text-sm placeholder:text-gray-400 transition-all"
                                 />
                             </div>
                         </div>
@@ -543,8 +543,8 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                 </div>
 
                 {/* Address Section */}
-                <div className="md:col-span-2 space-y-6 pt-4 border-t border-white/10">
-                    <h4 className="text-sm font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-2">
+                <div className="md:col-span-2 space-y-6 pt-4 border-t border-gray-100">
+                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
                         <MapPin className="h-3 w-3" /> Dirección de Residencia Actual
                     </h4>
 
@@ -561,7 +561,7 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                                             <input
                                                 type="text"
                                                 placeholder="Empieza a escribir tu dirección..."
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pl-10 focus:outline-none focus:border-blue-500"
+                                                className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-3 pl-10 focus:outline-none focus:border-blue-500"
                                             />
                                             <Search className="absolute left-3 top-3.5 h-4 w-4 text-zinc-500" />
                                         </div>
@@ -570,55 +570,51 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2 col-span-2">
-                                        <label className="text-[10px] font-bold uppercase text-zinc-500">Calle *</label>
-                                        <input name="address_street" value={formData.address_street} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                        <label className="text-[10px] font-bold uppercase text-gray-500">Calle *</label>
+                                        <input name="address_street" value={formData.address_street} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-zinc-500">No. Exterior *</label>
-                                        <input name="address_number_ext" value={formData.address_number_ext} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                        <label className="text-[10px] font-bold uppercase text-gray-500">No. Exterior *</label>
+                                        <input name="address_number_ext" value={formData.address_number_ext} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-zinc-500">No. Interior</label>
-                                        <input name="address_number_int" value={formData.address_number_int} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                        <label className="text-[10px] font-bold uppercase text-gray-500">No. Interior</label>
+                                        <input name="address_number_int" value={formData.address_number_int} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-zinc-500">Alcaldía / Municipio *</label>
-                                        <input name="address_suburb" value={formData.address_suburb} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                        <label className="text-[10px] font-bold uppercase text-gray-500">Alcaldía / Municipio *</label>
+                                        <input name="address_suburb" value={formData.address_suburb} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-zinc-500">Código Postal *</label>
-                                        <input name="address_postal_code" value={formData.address_postal_code} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                        <label className="text-[10px] font-bold uppercase text-gray-500">Código Postal *</label>
+                                        <input name="address_postal_code" value={formData.address_postal_code} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-zinc-500">Estado *</label>
-                                        <input name="address_state" value={formData.address_state} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                        <label className="text-[10px] font-bold uppercase text-gray-500">Estado *</label>
+                                        <input name="address_state" value={formData.address_state} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-zinc-500">País *</label>
-                                        <input name="address_country" value={formData.address_country} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                        <label className="text-[10px] font-bold uppercase text-gray-500">País *</label>
+                                        <input name="address_country" value={formData.address_country} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase text-zinc-500">Referencias</label>
-                                    <textarea name="address_references" value={formData.address_references} onChange={handleChange} placeholder="Ej. Casa portón negro, frente a parque..." className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 min-h-[80px]" />
+                                    <label className="text-[10px] font-bold uppercase text-gray-500">Referencias</label>
+                                    <textarea name="address_references" value={formData.address_references} onChange={handleChange} placeholder="Ej. Casa portón negro, frente a parque..." className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 min-h-[80px]" />
                                 </div>
                             </div>
 
                             <div className="space-y-4">
-                                <div className="h-[400px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+                                <div className="h-[400px] rounded-3xl overflow-hidden border border-gray-200 shadow-soft">
                                     <GoogleMap
                                         mapContainerStyle={{ width: '100%', height: '100%' }}
                                         center={{ lat: Number(formData.address_map_lat), lng: Number(formData.address_map_lng) }}
                                         zoom={15}
                                         onLoad={map => { mapRef.current = map }}
                                         options={{
-                                            styles: [
-                                                { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-                                                { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-                                                { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-                                            ],
                                             disableDefaultUI: true,
                                             zoomControl: true,
+                                            // Remove dark mode styles or use standard ones
                                         }}
                                     >
                                         <MarkerF
@@ -633,20 +629,20 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                                     </GoogleMap>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                                        <p className="text-[8px] font-bold text-zinc-500 uppercase mb-1">Latitud</p>
-                                        <p className="text-xs font-mono text-blue-400">{formData.address_map_lat}</p>
+                                    <div className="p-3 bg-white border border-gray-100 rounded-xl">
+                                        <p className="text-[8px] font-bold text-gray-400 uppercase mb-1">Latitud</p>
+                                        <p className="text-xs font-mono text-blue-600">{formData.address_map_lat}</p>
                                     </div>
-                                    <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                                        <p className="text-[8px] font-bold text-zinc-500 uppercase mb-1">Longitud</p>
-                                        <p className="text-xs font-mono text-blue-400">{formData.address_map_lng}</p>
+                                    <div className="p-3 bg-white border border-gray-100 rounded-xl">
+                                        <p className="text-[8px] font-bold text-gray-400 uppercase mb-1">Longitud</p>
+                                        <p className="text-xs font-mono text-blue-600">{formData.address_map_lng}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     ) : (
-                        <div className="h-[400px] bg-white/5 rounded-3xl flex items-center justify-center border border-dashed border-white/20">
-                            <Loader2 className="h-8 w-8 animate-spin text-zinc-700" />
+                        <div className="h-[400px] bg-gray-50 rounded-3xl flex items-center justify-center border border-dashed border-gray-200">
+                            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                         </div>
                     )}
                 </div>

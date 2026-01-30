@@ -20,6 +20,12 @@
     --card-foreground: 17 24 39;
     --border: 229 231 235;
     /* gray-200 */
+
+    /* AvivaGo Official Colors */
+    --trust-navy: #0F2137;
+    --premium-gold: #C5A059;
+    --action-blue: #2563EB;
+    --soft-bg: #F9FAF8;
   }
 
   body {

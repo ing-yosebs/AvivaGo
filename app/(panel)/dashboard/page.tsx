@@ -311,7 +311,7 @@ export default function Dashboard() {
                 <h1 className="text-4xl font-bold tracking-tight mb-2">
                     {isDriver ? 'Panel de Control' : 'Mi Actividad'}
                 </h1>
-                <p className="text-zinc-400">
+                <p className="text-gray-500">
                     Hola {user?.user_metadata?.full_name || (isDriver ? 'Conductor' : 'Pasajero')}, aquí está el resumen de tu actividad.
                 </p>
             </div>
@@ -338,7 +338,7 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Content Area */}
                 <div className="lg:col-span-3 space-y-8">
-                    <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8">
+                    <div className="bg-white shadow-soft rounded-3xl p-8 border border-gray-100">
                         <h3 className="text-xl font-bold mb-6">Actividad Reciente</h3>
                         <div className="space-y-6">
                             {activities.length > 0 ? (
@@ -351,7 +351,7 @@ export default function Dashboard() {
                                     />
                                 ))
                             ) : (
-                                <p className="text-zinc-500">No hay actividad reciente.</p>
+                                <p className="text-gray-400">No hay actividad reciente.</p>
                             )}
                         </div>
                     </div>
@@ -363,20 +363,20 @@ export default function Dashboard() {
 
 function StatCard({ icon, label, value, change }: any) {
     return (
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors cursor-default">
+        <div className="bg-white shadow-sm border border-gray-100 rounded-2xl p-6 hover:shadow-md hover:border-blue-100 transition-all cursor-default">
             <div className="flex items-start justify-between mb-4">
-                <div className="bg-white/10 p-2 rounded-lg border border-white/5">
+                <div className="bg-gray-50 p-2 rounded-lg border border-gray-100">
                     {icon}
                 </div>
                 {change && (
-                    <span className="text-xs text-green-400 font-medium bg-green-400/10 px-2 py-1 rounded-full">
+                    <span className="text-xs text-green-600 font-medium bg-green-100 px-2 py-1 rounded-full">
                         {change}
                     </span>
                 )}
             </div>
             <div>
-                <p className="text-zinc-500 text-sm mb-1">{label}</p>
-                <h4 className="text-2xl font-bold">{value}</h4>
+                <p className="text-gray-500 text-sm mb-1">{label}</p>
+                <h4 className="text-2xl font-bold text-[#0F2137]">{value}</h4>
             </div>
         </div>
     )
@@ -385,12 +385,12 @@ function StatCard({ icon, label, value, change }: any) {
 function ActivityItem({ icon, text, time }: any) {
     return (
         <div className="flex items-center gap-4">
-            <div className="bg-white/5 p-2 rounded-lg border border-white/5 text-zinc-400">
+            <div className="bg-blue-50 p-2 rounded-lg border border-blue-100 text-blue-600">
                 {icon}
             </div>
             <div className="flex-1">
-                <p className="text-sm text-zinc-200">{text}</p>
-                <p className="text-xs text-zinc-600">{time}</p>
+                <p className="text-sm text-gray-700 font-medium">{text}</p>
+                <p className="text-xs text-gray-400">{time}</p>
             </div>
         </div>
     )
@@ -398,12 +398,12 @@ function ActivityItem({ icon, text, time }: any) {
 
 function QuickLink({ icon, text, href }: any) {
     return (
-        <Link href={href || "#"} className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white/5 transition-colors text-zinc-400 hover:text-white group">
+        <Link href={href || "#"} className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors text-gray-500 hover:text-[#0F2137] group">
             <div className="flex items-center gap-3">
                 {icon}
                 <span className="text-sm">{text}</span>
             </div>
-            <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+            <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity text-blue-500" />
         </Link>
     )
 }

@@ -9,8 +9,8 @@ export default function MembershipRequiredView({ onTabChange }: { onTabChange: (
                 <CreditCard className="h-10 w-10 text-indigo-500" />
             </div>
             <div className="space-y-4">
-                <h3 className="text-3xl font-black text-white">Membresía Requerida</h3>
-                <p className="text-zinc-400 text-lg leading-relaxed">
+                <h3 className="text-3xl font-black text-[#0F2137]">Membresía Requerida</h3>
+                <p className="text-gray-500 text-lg leading-relaxed">
                     Para configurar tus servicios y ser visible en la plataforma, necesitas activar tu Membresía Driver Premium.
                 </p>
             </div>

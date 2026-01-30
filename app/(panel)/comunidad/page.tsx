@@ -268,17 +268,17 @@ export default function CommunityPage() {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight mb-2">Comunidad</h1>
-                    <p className="text-zinc-400">Descubre qué dicen otros usuarios sobre nuestros conductores.</p>
+                    <h1 className="text-3xl font-bold tracking-tight mb-2 text-[#0F2137]">Comunidad</h1>
+                    <p className="text-gray-500">Descubre qué dicen otros usuarios sobre nuestros conductores.</p>
                 </div>
                 <div className="relative max-w-xl">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Buscar por nombre, ciudad o mensaje..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-colors w-full"
+                        className="bg-white border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20 transition-all w-full text-[#0F2137] placeholder-gray-400 shadow-sm"
                     />
                 </div>
             </div>
@@ -292,14 +292,14 @@ export default function CommunityPage() {
                         post.comment?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         post.city?.toLowerCase().includes(searchQuery.toLowerCase())
                     ).map((post) => (
-                        <div key={post.id} className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/[0.07] transition-all group">
+                        <div key={post.id} className="bg-white border border-gray-100 rounded-3xl p-6 hover:shadow-soft transition-all duration-300 group">
                             <div className="flex flex-col gap-4 mb-6">
                                 {/* Top Header: Side-by-Side Horizontal Participants */}
                                 <div className="flex items-center justify-between gap-2 overflow-hidden">
                                     <div className="flex items-center gap-2 sm:gap-4 flex-1">
                                         {/* Passenger Side */}
                                         <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-zinc-800 border-2 border-white/10 overflow-hidden shadow-lg flex-shrink-0">
+                                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-100 border-2 border-white overflow-hidden shadow-sm flex-shrink-0">
                                                 {post.reviewer_avatar ? (
                                                     <img src={post.reviewer_avatar} alt={post.reviewer_name} className="w-full h-full object-cover" />
                                                 ) : (
@@ -308,28 +308,28 @@ export default function CommunityPage() {
                                                     </div>
                                                 )}
                                             </div>
-                                            <span className="text-[11px] sm:text-xs font-black text-white truncate max-w-[80px] sm:max-w-[120px]">
+                                            <span className="text-[11px] sm:text-xs font-black text-[#0F2137] truncate max-w-[80px] sm:max-w-[120px]">
                                                 {post.reviewer_name}
                                             </span>
                                         </div>
 
                                         {/* Connection Arrow */}
                                         <div className="flex-shrink-0 px-1">
-                                            <ArrowRight className="h-4 w-4 text-blue-500/50" />
+                                            <ArrowRight className="h-4 w-4 text-gray-300" />
                                         </div>
 
                                         {/* Driver Side */}
                                         <Link href={`/driver/${post.driver_id}`} className="flex items-center gap-2 sm:gap-3 group/driver min-w-0">
-                                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-600/10 border-2 border-blue-500/20 overflow-hidden shadow-lg flex-shrink-0 group-hover/driver:border-blue-500/50 transition-all">
+                                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-50 border-2 border-blue-100 overflow-hidden shadow-sm flex-shrink-0 group-hover/driver:border-blue-500/50 transition-all">
                                                 {post.driver_avatar ? (
                                                     <img src={post.driver_avatar} alt={post.driver_name} className="w-full h-full object-cover" />
                                                 ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-blue-400 font-bold bg-blue-900/30 text-xs sm:text-sm">
+                                                    <div className="w-full h-full flex items-center justify-center text-blue-600 font-bold bg-blue-100 text-xs sm:text-sm">
                                                         {post.driver_name[0]}
                                                     </div>
                                                 )}
                                             </div>
-                                            <span className="text-[11px] sm:text-xs font-black text-blue-400 group-hover/driver:text-blue-300 transition-colors truncate max-w-[80px] sm:max-w-[120px]">
+                                            <span className="text-[11px] sm:text-xs font-black text-blue-600 group-hover/driver:text-blue-700 transition-colors truncate max-w-[80px] sm:max-w-[120px]">
                                                 {post.driver_name}
                                             </span>
                                         </Link>
@@ -338,39 +338,39 @@ export default function CommunityPage() {
 
                                 {/* Meta Info (Now between photos and ratings) */}
                                 <div className="flex items-center gap-4 px-2">
-                                    <div className="flex items-center gap-1.5 text-zinc-500">
+                                    <div className="flex items-center gap-1.5 text-gray-400">
                                         <Calendar className="h-3 w-3" />
                                         <span className="text-[10px] font-black uppercase tracking-wider">{post.time}</span>
                                     </div>
-                                    <div className="flex items-center gap-1.5 text-blue-500/60">
+                                    <div className="flex items-center gap-1.5 text-blue-600/70">
                                         <MapPin className="h-3 w-3" />
                                         <span className="text-[10px] font-black uppercase tracking-widest">{post.city}</span>
                                     </div>
                                 </div>
 
                                 {/* Consolidated Ratings Bar */}
-                                <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-white/[0.03] rounded-2xl border border-white/5">
+                                <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-gray-50 rounded-2xl border border-gray-100">
                                     {/* 1. Passenger Reputation (What driver said) */}
-                                    <div className={`flex items-center gap-2 px-2.5 py-1 rounded-xl border transition-all ${post.reviewer_avg_rating > 0 ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20 shadow-lg shadow-yellow-500/5' : 'bg-zinc-800/50 text-zinc-500 border-white/5'}`}>
+                                    <div className={`flex items-center gap-2 px-2.5 py-1 rounded-xl border transition-all ${post.reviewer_avg_rating > 0 ? 'bg-yellow-50 text-yellow-600 border-yellow-200' : 'bg-gray-100 text-gray-400 border-gray-200'}`}>
                                         <Star className={`h-3 w-3 ${post.reviewer_avg_rating > 0 ? 'fill-current' : ''}`} />
                                         <span className="text-[10px] sm:text-xs font-black">
                                             {post.reviewer_avg_rating > 0 ? post.reviewer_avg_rating.toFixed(1) : 'S/C'}
                                         </span>
-                                        <span className="text-[8px] opacity-50 font-black tracking-tighter uppercase">Pasajero</span>
+                                        <span className="text-[8px] opacity-70 font-black tracking-tighter uppercase">Pasajero</span>
                                     </div>
 
                                     {/* 2. Driver Reputation (Historical) */}
-                                    <div className="flex items-center gap-2 bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-xl border border-blue-500/20 shadow-lg shadow-blue-500/5">
+                                    <div className="flex items-center gap-2 bg-blue-50 text-blue-600 px-2.5 py-1 rounded-xl border border-blue-100">
                                         <Star className="h-3 w-3 fill-current" />
                                         <span className="text-[10px] sm:text-xs font-black">{Number(post.driver_avg_rating || 5).toFixed(1)}</span>
-                                        <span className="text-[8px] opacity-50 font-black tracking-tighter uppercase">Conductor</span>
+                                        <span className="text-[8px] opacity-70 font-black tracking-tighter uppercase">Conductor</span>
                                     </div>
 
                                     {/* 3. Main Service Rating */}
-                                    <div className="flex items-center gap-2 bg-yellow-500/10 text-yellow-500 px-2.5 py-1 rounded-xl border border-yellow-500/20 shadow-lg shadow-yellow-500/5">
+                                    <div className="flex items-center gap-2 bg-yellow-50 text-yellow-600 px-2.5 py-1 rounded-xl border border-yellow-100">
                                         <Star className="h-3 w-3 fill-current" />
                                         <span className="text-[10px] sm:text-xs font-black">{post.rating}.0</span>
-                                        <span className="text-[8px] opacity-50 font-black tracking-tighter uppercase">Servicio</span>
+                                        <span className="text-[8px] opacity-70 font-black tracking-tighter uppercase">Servicio</span>
                                     </div>
                                 </div>
                             </div>
@@ -395,17 +395,17 @@ export default function CommunityPage() {
                                 passengerName={post.reviewer_name}
                             />
 
-                            <div className="flex items-center gap-6 pt-4 border-t border-white/5 mt-4">
+                            <div className="flex items-center gap-6 pt-4 border-t border-gray-100 mt-4">
                                 <button
                                     onClick={() => handleLike(post.id)}
-                                    className={`flex items-center gap-2 text-sm transition-colors group/like ${post.hasLiked ? 'text-blue-400' : 'text-zinc-500 hover:text-blue-400'}`}
+                                    className={`flex items-center gap-2 text-sm transition-colors group/like ${post.hasLiked ? 'text-blue-600' : 'text-gray-400 hover:text-blue-600'}`}
                                 >
                                     <ThumbsUp className={`h-4 w-4 transition-transform group-hover/like:scale-110 ${post.hasLiked ? 'fill-current' : ''}`} />
                                     <span>{post.likes}</span>
                                 </button>
                                 <button
                                     onClick={() => handleShare(post)}
-                                    className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-300 transition-colors ml-auto"
+                                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-gray-600 transition-colors ml-auto"
                                 >
                                     <Share2 className="h-4 w-4" />
                                 </button>
@@ -416,11 +416,11 @@ export default function CommunityPage() {
 
                 {/* Sidebar Info */}
                 <div className="space-y-6">
-                    <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-6">
+                    <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-soft">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-bold text-zinc-200">Favoritos de la Semana</h3>
-                            <div className="p-1.5 bg-yellow-500/10 rounded-lg">
-                                <Calendar className="h-4 w-4 text-yellow-500" />
+                            <h3 className="font-bold text-[#0F2137]">Favoritos de la Semana</h3>
+                            <div className="p-1.5 bg-yellow-50 rounded-lg">
+                                <Calendar className="h-4 w-4 text-yellow-600" />
                             </div>
                         </div>
                         <div className="space-y-4">
@@ -443,10 +443,10 @@ export default function CommunityPage() {
                         </div>
                     </div>
 
-                    <div className="backdrop-blur-xl bg-gradient-to-br from-blue-600/10 to-transparent border border-white/10 rounded-3xl p-6">
+                    <div className="bg-gradient-to-br from-blue-50 to-white border border-gray-100 rounded-3xl p-6 shadow-sm">
                         <div className="flex items-center gap-3 mb-4">
-                            <TrendingUp className="h-5 w-5 text-blue-500" />
-                            <h3 className="font-bold">Tendencias</h3>
+                            <TrendingUp className="h-5 w-5 text-blue-600" />
+                            <h3 className="font-bold text-[#0F2137]">Tendencias</h3>
                         </div>
                         <ul className="space-y-4">
                             {trends.map((trend, i) => (
@@ -463,8 +463,8 @@ export default function CommunityPage() {
 function TrendingItem({ label, count }: any) {
     return (
         <li className="flex flex-col">
-            <span className="text-sm font-bold text-zinc-200 hover:text-blue-400 cursor-pointer transition-colors">{label}</span>
-            <span className="text-xs text-zinc-500">{count}</span>
+            <span className="text-sm font-bold text-[#0F2137] hover:text-blue-600 cursor-pointer transition-colors">{label}</span>
+            <span className="text-xs text-gray-500">{count}</span>
         </li>
     )
 }
@@ -473,7 +473,7 @@ function TopDriver({ id, name, rating, photo, count }: any) {
     return (
         <Link href={id ? `/driver/${id}` : '#'} className="flex items-center justify-between group cursor-pointer">
             <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center text-xs font-bold border border-white/5 overflow-hidden ring-2 ring-transparent group-hover:ring-blue-500/50 transition-all">
+                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xs font-bold border border-gray-200 overflow-hidden ring-2 ring-transparent group-hover:ring-blue-500/50 transition-all text-gray-500">
                     {photo ? (
                         <img src={photo} alt={name} className="w-full h-full object-cover" />
                     ) : (
@@ -481,13 +481,13 @@ function TopDriver({ id, name, rating, photo, count }: any) {
                     )}
                 </div>
                 <div className="flex flex-col">
-                    <span className="text-sm font-bold text-zinc-300 group-hover:text-blue-400 transition-colors">{name}</span>
-                    <span className="text-[10px] text-zinc-600 font-medium">
+                    <span className="text-sm font-bold text-[#0F2137] group-hover:text-blue-600 transition-colors">{name}</span>
+                    <span className="text-[10px] text-gray-500 font-medium">
                         {count || 0} publicaciones • Ver perfil <ArrowRight className="inline-block h-2 w-2" />
                     </span>
                 </div>
             </div>
-            <div className="flex items-center gap-1 text-xs font-black text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded-lg border border-yellow-500/20">
+            <div className="flex items-center gap-1 text-xs font-black text-yellow-600 bg-yellow-50 px-2 py-1 rounded-lg border border-yellow-200">
                 <Star className="h-3 w-3 fill-current" />
                 {Number(rating).toFixed(1)}
             </div>

@@ -230,7 +230,7 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
         }
     }
 
-    if (loading) return <div className="animate-pulse h-40 bg-white/5 rounded-3xl" />
+    if (loading) return <div className="animate-pulse h-40 bg-gray-50 rounded-3xl border border-gray-100" />
 
     return (
         <div className="space-y-8">
@@ -238,12 +238,12 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
 
             {/* Appeal Modal */}
             {appealModalOpen && mounted && createPortal(
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-zinc-900 border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-xl font-bold text-white mb-2">
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white border border-gray-100 rounded-2xl w-full max-w-md p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
+                        <h3 className="text-xl font-bold text-[#0F2137] mb-2">
                             Solicitar Nueva Revisión
                         </h3>
-                        <p className="text-zinc-400 text-sm mb-4">
+                        <p className="text-gray-500 text-sm mb-4">
                             Por favor explica brevemente tus correcciones o apelación para ayudar a nuestro staff a revisar tu perfil más rápido.
                         </p>
 
@@ -251,20 +251,20 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                             value={appealReason}
                             onChange={(e) => setAppealReason(e.target.value)}
                             placeholder="Ej: He actualizado mi comprobante de domicilio y corregido mi nombre..."
-                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white placeholder-zinc-500 min-h-[120px] focus:outline-none focus:border-white/20 transition-colors mb-6 resize-none"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-[#0F2137] placeholder-gray-400 min-h-[120px] focus:outline-none focus:border-blue-500 transition-colors mb-6 resize-none"
                             autoFocus
                         />
 
                         <div className="flex gap-3 justify-end">
                             <button
                                 onClick={() => setAppealModalOpen(false)}
-                                className="px-4 py-2 rounded-xl text-zinc-400 hover:text-white hover:bg-white/5 transition-colors font-medium text-sm"
+                                className="px-4 py-2 rounded-xl text-gray-500 hover:text-[#0F2137] hover:bg-gray-50 transition-colors font-medium text-sm"
                             >
                                 Cancelar
                             </button>
                             <button
                                 onClick={confirmRequestReview}
-                                className="px-4 py-2 rounded-xl bg-white text-black hover:bg-zinc-200 transition-colors font-bold text-sm shadow-lg"
+                                className="px-4 py-2 rounded-xl bg-[#0F2137] text-white hover:bg-[#0F2137]/90 transition-colors font-bold text-sm shadow-lg shadow-[#0F2137]/20"
                             >
                                 Enviar Solicitud
                             </button>
@@ -279,67 +279,67 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                 // ...
 
                 hasMembership ? (
-                    <div className="backdrop-blur-xl bg-gradient-to-br from-indigo-600/20 to-purple-600/20 border border-white/10 rounded-3xl p-8 relative overflow-hidden animate-in fade-in zoom-in duration-500">
-                        <div className="absolute top-0 right-0 p-8 opacity-10">
-                            <BadgeCheck className="h-32 w-32" />
+                    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-3xl p-8 relative overflow-hidden animate-in fade-in zoom-in duration-500 shadow-soft">
+                        <div className="absolute top-0 right-0 p-8 opacity-5">
+                            <BadgeCheck className="h-32 w-32 text-indigo-900" />
                         </div>
                         <div className="relative z-10">
                             <div className="flex items-center gap-2 mb-4">
                                 <span className="px-3 py-1 bg-indigo-600 text-[10px] font-bold uppercase tracking-wider rounded-lg text-white">Membresía Activa</span>
                             </div>
-                            <h3 className="text-2xl font-bold mb-2">Plan Driver Premium</h3>
-                            <p className="text-zinc-400 text-sm mb-6 max-w-md">Tu suscripción anual te permite aparecer en los resultados de búsqueda y recibir contactos directos de pasajeros.</p>
+                            <h3 className="text-2xl font-bold mb-2 text-[#0F2137]">Plan Driver Premium</h3>
+                            <p className="text-gray-500 text-sm mb-6 max-w-md">Tu suscripción anual te permite aparecer en los resultados de búsqueda y recibir contactos directos de pasajeros.</p>
 
                             <div className="flex items-center gap-4 text-sm font-medium">
-                                <div className="flex items-center gap-2 text-zinc-300">
-                                    <Calendar className="h-4 w-4 text-indigo-400" />
+                                <div className="flex items-center gap-2 text-gray-600">
+                                    <Calendar className="h-4 w-4 text-indigo-600" />
                                     <span>Próximo cobro: {new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
                                 </div>
                             </div>
 
                             {/* Status / Review Section */}
-                            <div className="mt-8 pt-8 border-t border-white/10">
-                                <h4 className="font-bold text-white mb-4 flex items-center gap-2">
-                                    <Shield className="h-5 w-5 text-indigo-400" />
+                            <div className="mt-8 pt-8 border-t border-indigo-100">
+                                <h4 className="font-bold text-[#0F2137] mb-4 flex items-center gap-2">
+                                    <Shield className="h-5 w-5 text-indigo-600" />
                                     Estado de Verificación
                                 </h4>
 
                                 {driverStatus === 'active' ? (
-                                    <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center gap-3">
-                                        <div className="h-10 w-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-400">
+                                    <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-3">
+                                        <div className="h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
                                             <CheckCircle className="h-6 w-6" />
                                         </div>
                                         <div>
-                                            <p className="font-bold text-emerald-400">Cuenta Validada</p>
-                                            <p className="text-xs text-emerald-400/70">Ya puedes recibir solicitudes de pasajeros.</p>
+                                            <p className="font-bold text-emerald-700">Cuenta Validada</p>
+                                            <p className="text-xs text-emerald-600/80">Ya puedes recibir solicitudes de pasajeros.</p>
                                         </div>
                                     </div>
                                 ) : driverStatus === 'pending_approval' ? (
-                                    <div className="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4 flex items-center gap-3">
-                                        <div className="h-10 w-10 bg-orange-500/20 rounded-full flex items-center justify-center text-orange-400">
+                                    <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 flex items-center gap-3">
+                                        <div className="h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600">
                                             <Clock className="h-6 w-6" />
                                         </div>
                                         <div>
-                                            <p className="font-bold text-orange-400">En Revisión</p>
-                                            <p className="text-xs text-orange-400/70">Estamos validando tu información. Te notificaremos pronto.</p>
+                                            <p className="font-bold text-orange-700">En Revisión</p>
+                                            <p className="text-xs text-orange-600/80">Estamos validando tu información. Te notificaremos pronto.</p>
                                         </div>
                                     </div>
                                 ) : driverStatus === 'rejected' ? (
-                                    <div className="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4 space-y-4">
+                                    <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 space-y-4">
                                         <div className="flex items-start gap-3">
-                                            <div className="h-10 w-10 bg-orange-500/20 rounded-full flex items-center justify-center text-orange-500 shrink-0">
+                                            <div className="h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shrink-0">
                                                 <Info className="h-6 w-6" />
                                             </div>
                                             <div>
-                                                <p className="font-bold text-orange-500">Solicitud Rechazada</p>
-                                                <p className="text-xs text-orange-400/80 mt-1 mb-3">
+                                                <p className="font-bold text-orange-700">Solicitud Rechazada</p>
+                                                <p className="text-xs text-orange-600/80 mt-1 mb-3">
                                                     Tu perfil no cumple con algunos requisitos. Por favor revisa la razón a continuación y corrige tu información.
                                                 </p>
 
                                                 {profile?.driver_profile?.rejection_reason && (
-                                                    <div className="bg-black/30 p-3 rounded-lg border border-orange-500/20 mb-2">
-                                                        <p className="text-[10px] font-bold text-orange-500 uppercase mb-1 tracking-wider">Motivo del staff:</p>
-                                                        <p className="text-sm text-white italic">"{profile.driver_profile.rejection_reason}"</p>
+                                                    <div className="bg-white p-3 rounded-lg border border-orange-200 mb-2">
+                                                        <p className="text-[10px] font-bold text-orange-600 uppercase mb-1 tracking-wider">Motivo del staff:</p>
+                                                        <p className="text-sm text-gray-700 italic">"{profile.driver_profile.rejection_reason}"</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -348,7 +348,7 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                                         <button
                                             onClick={handleRequestReview}
                                             disabled={purchasing}
-                                            className="w-full bg-white text-black font-bold py-3 px-6 rounded-xl hover:bg-zinc-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                            className="w-full bg-[#0F2137] text-white font-bold py-3 px-6 rounded-xl hover:bg-[#0F2137]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-[#0F2137]/20"
                                         >
                                             {purchasing ? (
                                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -359,21 +359,21 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                                         </button>
                                     </div>
                                 ) : driverStatus === 'suspended' ? (
-                                    <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 space-y-4">
+                                    <div className="bg-red-50 border border-red-100 rounded-2xl p-4 space-y-4">
                                         <div className="flex items-start gap-3">
-                                            <div className="h-10 w-10 bg-red-500/20 rounded-full flex items-center justify-center text-red-500 shrink-0">
+                                            <div className="h-10 w-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 shrink-0">
                                                 <AlertTriangle className="h-6 w-6" />
                                             </div>
                                             <div>
-                                                <p className="font-bold text-red-500">Cuenta Suspendida</p>
-                                                <p className="text-xs text-red-400/80 mt-1 mb-3">
+                                                <p className="font-bold text-red-700">Cuenta Suspendida</p>
+                                                <p className="text-xs text-red-600/80 mt-1 mb-3">
                                                     Tu cuenta ha sido suspendida. Por favor revisa el motivo a continuación y contacta a soporte o solicita una revisión.
                                                 </p>
 
                                                 {profile?.driver_profile?.rejection_reason && (
-                                                    <div className="bg-black/30 p-3 rounded-lg border border-red-500/20 mb-2">
-                                                        <p className="text-[10px] font-bold text-red-500 uppercase mb-1 tracking-wider">Motivo de suspensión:</p>
-                                                        <p className="text-sm text-white italic">"{profile.driver_profile.rejection_reason}"</p>
+                                                    <div className="bg-white p-3 rounded-lg border border-red-200 mb-2">
+                                                        <p className="text-[10px] font-bold text-red-600 uppercase mb-1 tracking-wider">Motivo de suspensión:</p>
+                                                        <p className="text-sm text-gray-700 italic">"{profile.driver_profile.rejection_reason}"</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -382,7 +382,7 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                                         <button
                                             onClick={handleRequestReview}
                                             disabled={purchasing}
-                                            className="w-full bg-white text-black font-bold py-3 px-6 rounded-xl hover:bg-zinc-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                            className="w-full bg-[#0F2137] text-white font-bold py-3 px-6 rounded-xl hover:bg-[#0F2137]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-[#0F2137]/20"
                                         >
                                             {purchasing ? (
                                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -393,14 +393,14 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
-                                        <p className="text-zinc-400 text-sm mb-4">
+                                    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                                        <p className="text-gray-500 text-sm mb-4">
                                             Para comenzar a operar, debes solicitar una revisión de tu perfil. Asegúrate de haber completado todos tus datos.
                                         </p>
                                         <button
                                             onClick={handleRequestReview}
                                             disabled={purchasing}
-                                            className="w-full bg-white text-black font-bold py-3 px-6 rounded-xl hover:bg-zinc-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                            className="w-full bg-[#0F2137] text-white font-bold py-3 px-6 rounded-xl hover:bg-[#0F2137]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-[#0F2137]/20"
                                         >
                                             {purchasing ? (
                                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -415,32 +415,32 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                         </div>
                     </div>
                 ) : (
-                    <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-[3rem] p-8 md:p-12 text-center max-w-3xl mx-auto shadow-2xl relative overflow-hidden">
+                    <div className="backdrop-blur-xl bg-white border border-gray-100 rounded-[3rem] p-8 md:p-12 text-center max-w-3xl mx-auto shadow-2xl relative overflow-hidden">
                         {/* Decorative Background */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
 
-                        <div className="w-20 h-20 bg-indigo-600/20 rounded-full flex items-center justify-center mx-auto mb-8 ring-8 ring-indigo-600/5 transition-transform hover:scale-110 duration-500">
-                            <CreditCard className="h-10 w-10 text-indigo-500" />
+                        <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-8 ring-8 ring-indigo-50 transition-transform hover:scale-110 duration-500">
+                            <CreditCard className="h-10 w-10 text-indigo-600" />
                         </div>
 
-                        <h3 className="text-3xl md:text-4xl font-black mb-4 tracking-tight">Activa tu Membresía Driver</h3>
-                        <p className="text-zinc-400 text-lg mb-12 leading-relaxed max-w-2xl mx-auto">
+                        <h3 className="text-3xl md:text-4xl font-black mb-4 tracking-tight text-[#0F2137]">Activa tu Membresía Driver</h3>
+                        <p className="text-gray-500 text-lg mb-12 leading-relaxed max-w-2xl mx-auto">
                             Únete a la red de conductores profesionales de AvivaGo. Sigue estos simples pasos para comenzar a recibir solicitudes directas de pasajeros.
                         </p>
 
                         {pendingPayment && (
-                            <div className="mb-12 p-6 bg-amber-500/10 border border-amber-500/20 rounded-3xl text-left flex items-start gap-4 animate-in slide-in-from-top-4 duration-500">
-                                <div className="p-3 bg-amber-500/20 rounded-2xl text-amber-500 shrink-0">
+                            <div className="mb-12 p-6 bg-amber-50 border border-amber-200 rounded-3xl text-left flex items-start gap-4 animate-in slide-in-from-top-4 duration-500">
+                                <div className="p-3 bg-amber-100 rounded-2xl text-amber-600 shrink-0">
                                     <Clock className="h-6 w-6" />
                                 </div>
                                 <div className="space-y-3">
                                     <div>
-                                        <h4 className="font-bold text-amber-200">Tienes un pago pendiente</h4>
-                                        <p className="text-sm text-amber-200/60">Detectamos un intento de pago por transferencia (SPEI) o efectivo que aún no se ha completado.</p>
+                                        <h4 className="font-bold text-amber-700">Tienes un pago pendiente</h4>
+                                        <p className="text-sm text-amber-700/60">Detectamos un intento de pago por transferencia (SPEI) o efectivo que aún no se ha completado.</p>
                                     </div>
                                     <button
                                         onClick={() => openStripeCheckout(pendingPayment.checkout_url)}
-                                        className="inline-flex items-center gap-2 bg-amber-500 text-black px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-amber-400 transition-colors"
+                                        className="inline-flex items-center gap-2 bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/20"
                                     >
                                         Ver Instrucciones de Pago
                                     </button>
@@ -452,57 +452,57 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 text-left relative">
 
                             {/* Step 1 */}
-                            <div className="bg-zinc-900/80 border border-indigo-500/50 p-6 rounded-3xl relative shadow-lg shadow-indigo-500/20 overflow-hidden group hover:bg-zinc-900 transition-colors">
+                            <div className="bg-white border border-indigo-100 p-6 rounded-3xl relative shadow-lg shadow-indigo-500/10 overflow-hidden group hover:bg-gray-50 transition-colors">
                                 <div className="absolute top-0 left-0 bg-indigo-600 text-white px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 01</div>
                                 <div className="mt-6 flex flex-col items-center">
-                                    <div className="h-12 w-12 bg-indigo-500/20 rounded-2xl flex items-center justify-center mb-4 text-indigo-400 group-hover:scale-110 transition-transform">
+                                    <div className="h-12 w-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4 text-indigo-600 group-hover:scale-110 transition-transform">
                                         <CreditCard className="h-6 w-6" />
                                     </div>
-                                    <h4 className="font-bold text-white text-center mb-2">Activa Membresía</h4>
-                                    <p className="text-xs text-zinc-400 text-center leading-relaxed">Realiza tu pago anual seguro para desbloquear las funciones de tu perfil.</p>
+                                    <h4 className="font-bold text-[#0F2137] text-center mb-2">Activa Membresía</h4>
+                                    <p className="text-xs text-gray-500 text-center leading-relaxed">Realiza tu pago anual seguro para desbloquear las funciones de tu perfil.</p>
                                 </div>
                             </div>
 
                             {/* Step 2 */}
-                            <div className="bg-zinc-900/40 border border-white/5 p-6 rounded-3xl relative overflow-hidden group hover:bg-white/5 transition-colors">
-                                <div className="absolute top-0 left-0 bg-white/10 text-zinc-400 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 02</div>
+                            <div className="bg-gray-50 border border-gray-100 p-6 rounded-3xl relative overflow-hidden group hover:bg-white transition-colors">
+                                <div className="absolute top-0 left-0 bg-gray-200 text-gray-600 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 02</div>
                                 <div className="mt-6 flex flex-col items-center">
-                                    <div className="h-12 w-12 bg-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-zinc-500 group-hover:text-zinc-300 transition-colors">
+                                    <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center mb-4 text-gray-400 group-hover:text-gray-600 transition-colors shadow-sm">
                                         <Car className="h-6 w-6" />
                                     </div>
-                                    <h4 className="font-bold text-zinc-300 text-center mb-2">Configura Datos</h4>
-                                    <p className="text-xs text-zinc-500 text-center leading-relaxed">Registra al menos un vehículo y tus zonas de cobertura.</p>
+                                    <h4 className="font-bold text-gray-600 text-center mb-2">Configura Datos</h4>
+                                    <p className="text-xs text-gray-400 text-center leading-relaxed">Registra al menos un vehículo y tus zonas de cobertura.</p>
                                 </div>
                             </div>
 
                             {/* Step 3 */}
-                            <div className="bg-zinc-900/40 border border-white/5 p-6 rounded-3xl relative overflow-hidden group hover:bg-white/5 transition-colors">
-                                <div className="absolute top-0 left-0 bg-white/10 text-zinc-400 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 03</div>
+                            <div className="bg-gray-50 border border-gray-100 p-6 rounded-3xl relative overflow-hidden group hover:bg-white transition-colors">
+                                <div className="absolute top-0 left-0 bg-gray-200 text-gray-600 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 03</div>
                                 <div className="mt-6 flex flex-col items-center">
-                                    <div className="h-12 w-12 bg-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-zinc-500 group-hover:text-zinc-300 transition-colors">
+                                    <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center mb-4 text-gray-400 group-hover:text-gray-600 transition-colors shadow-sm">
                                         <Shield className="h-6 w-6" />
                                     </div>
-                                    <h4 className="font-bold text-zinc-300 text-center mb-2">Solicita Revisión</h4>
-                                    <p className="text-xs text-zinc-500 text-center leading-relaxed">Envía tu perfil a validación de identidad para mayor seguridad.</p>
+                                    <h4 className="font-bold text-gray-600 text-center mb-2">Solicita Revisión</h4>
+                                    <p className="text-xs text-gray-400 text-center leading-relaxed">Envía tu perfil a validación de identidad para mayor seguridad.</p>
                                 </div>
                             </div>
 
                             {/* Step 4 */}
-                            <div className="bg-zinc-900/40 border border-white/5 p-6 rounded-3xl relative overflow-hidden group hover:bg-white/5 transition-colors">
-                                <div className="absolute top-0 left-0 bg-green-500/10 text-green-500 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 04</div>
+                            <div className="bg-gray-50 border border-gray-100 p-6 rounded-3xl relative overflow-hidden group hover:bg-white transition-colors">
+                                <div className="absolute top-0 left-0 bg-green-100/50 text-green-600 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 04</div>
                                 <div className="mt-6 flex flex-col items-center">
-                                    <div className="h-12 w-12 bg-zinc-800 rounded-2xl flex items-center justify-center mb-4 text-zinc-500 group-hover:text-green-400/50 transition-colors">
+                                    <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center mb-4 text-gray-400 group-hover:text-green-500 transition-colors shadow-sm">
                                         <CheckCircle className="h-6 w-6" />
                                     </div>
-                                    <h4 className="font-bold text-zinc-300 text-center mb-2">¡Recibe Clientes!</h4>
-                                    <p className="text-xs text-zinc-500 text-center leading-relaxed">Tu perfil se vuelve público y aceptas solicitudes directas.</p>
+                                    <h4 className="font-bold text-gray-600 text-center mb-2">¡Recibe Clientes!</h4>
+                                    <p className="text-xs text-gray-400 text-center leading-relaxed">Tu perfil se vuelve público y aceptas solicitudes directas.</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-3xl p-8 mb-10 inline-block px-12 transform hover:scale-[1.02] transition-transform shadow-inner">
-                            <div className="text-[10px] text-indigo-400 uppercase tracking-[0.2em] font-black mb-2">Costo Anual de Activación</div>
-                            <div className="text-5xl font-black text-white">$524 <span className="text-sm font-medium text-zinc-500 tracking-normal">MXN</span></div>
+                        <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-8 mb-10 inline-block px-12 transform hover:scale-[1.02] transition-transform shadow-inner">
+                            <div className="text-[10px] text-indigo-500 uppercase tracking-[0.2em] font-black mb-2">Costo Anual de Activación</div>
+                            <div className="text-5xl font-black text-[#0F2137]">$524 <span className="text-sm font-medium text-gray-500 tracking-normal">MXN</span></div>
                         </div>
 
                         <div className="space-y-6">
@@ -531,23 +531,23 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                     </div>
                 )
             ) : (
-                <div className="bg-blue-500/10 border border-blue-500/20 rounded-3xl p-6 flex items-start gap-4">
-                    <div className="p-3 bg-blue-500/20 rounded-2xl text-blue-400">
+                <div className="bg-blue-50 border border-blue-100 rounded-3xl p-6 flex items-start gap-4 shadow-soft">
+                    <div className="p-3 bg-blue-100 rounded-2xl text-blue-600">
                         <Info className="h-6 w-6" />
                     </div>
                     <div>
-                        <h4 className="font-bold text-blue-100">Transparencia en tus pagos</h4>
-                        <p className="text-sm text-blue-200/60 mt-1">Aquí puedes ver el historial de conductores que has desbloqueado. Cada pago te garantiza acceso ilimitado a su contacto por tiempo indefinido.</p>
+                        <h4 className="font-bold text-blue-900">Transparencia en tus pagos</h4>
+                        <p className="text-sm text-blue-900/60 mt-1">Aquí puedes ver el historial de conductores que has desbloqueado. Cada pago te garantiza acceso ilimitado a su contacto por tiempo indefinido.</p>
                     </div>
                 </div>
             )}
 
             {(!isDriver || hasMembership) && (
                 <div className="space-y-4 animate-in fade-in duration-700">
-                    <h3 className="font-bold text-lg">{isDriver ? 'Historial de Membresía' : 'Historial de Desbloqueos'}</h3>
-                    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                    <h3 className="font-bold text-lg text-[#0F2137]">{isDriver ? 'Historial de Membresía' : 'Historial de Desbloqueos'}</h3>
+                    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-soft">
                         <table className="w-full text-left text-sm">
-                            <thead className="bg-white/5 text-zinc-500 uppercase text-[10px] font-bold tracking-wider">
+                            <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold tracking-wider">
                                 <tr>
                                     <th className="px-6 py-4">{isDriver ? 'Concepto' : 'Conductor'}</th>
                                     <th className="px-6 py-4">Fecha de Pago</th>
@@ -562,7 +562,7 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                                     )}
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-white/5">
+                            <tbody className="divide-y divide-gray-100">
                                 {unlocks.length > 0 ? (
                                     unlocks.map((item) => (
                                         <tr key={item.id} className="hover:bg-white/5 transition-colors">

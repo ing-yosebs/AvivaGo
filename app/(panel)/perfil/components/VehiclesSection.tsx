@@ -245,17 +245,17 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
         return (
             <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
                 <div className="flex items-center gap-4 mb-4">
-                    <button onClick={resetForm} className="p-2 hover:bg-white/5 rounded-full text-zinc-400">
+                    <button onClick={resetForm} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 transition-colors">
                         <ChevronRight className="h-6 w-6 rotate-180" />
                     </button>
-                    <h3 className="text-xl font-bold">{selectedVehicleId ? 'Editar Vehículo' : 'Registrar Nuevo Vehículo'}</h3>
+                    <h3 className="text-xl font-bold text-[#0F2137]">{selectedVehicleId ? 'Editar Vehículo' : 'Registrar Nuevo Vehículo'}</h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div className="md:col-span-2 space-y-6">
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-zinc-500">Marca *</label>
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Marca *</label>
                                 <select
                                     value={form.brand === 'Otra' ? 'Otra' : (carBrands[form.brand] ? form.brand : (form.brand ? 'Otra' : ''))}
                                     onChange={e => {
@@ -266,7 +266,7 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                                             setForm({ ...form, brand: val, model: '', isCustomBrand: false });
                                         }
                                     }}
-                                    className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-white appearance-none cursor-pointer"
+                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137] appearance-none cursor-pointer"
                                 >
                                     <option value="" disabled>Selecciona una marca</option>
                                     {Object.keys(carBrands).sort().map(brand => (
@@ -279,12 +279,12 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                                         value={form.brand}
                                         onChange={e => setForm({ ...form, brand: e.target.value })}
                                         placeholder="Especifica la marca"
-                                        className="w-full mt-2 bg-white/5 border border-blue-500/30 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 animate-in slide-in-from-top-2 duration-300"
+                                        className="w-full mt-2 bg-white border border-blue-500/30 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 animate-in slide-in-from-top-2 duration-300 text-[#0F2137]"
                                     />
                                 )}
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-zinc-500">Modelo *</label>
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Modelo *</label>
                                 {!form.isCustomBrand && carBrands[form.brand] ? (
                                     <>
                                         <select
@@ -297,7 +297,7 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                                                     setForm({ ...form, model: val, isCustomModel: false });
                                                 }
                                             }}
-                                            className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-white appearance-none cursor-pointer"
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137] appearance-none cursor-pointer"
                                         >
                                             <option value="" disabled>Selecciona un modelo</option>
                                             {carBrands[form.brand]?.sort().map(model => (
@@ -310,7 +310,7 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                                                 value={form.model}
                                                 onChange={e => setForm({ ...form, model: e.target.value })}
                                                 placeholder="Especifica el modelo"
-                                                className="w-full mt-2 bg-white/5 border border-blue-500/30 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 animate-in slide-in-from-top-2 duration-300"
+                                                className="w-full mt-2 bg-white border border-blue-500/30 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 animate-in slide-in-from-top-2 duration-300 text-[#0F2137]"
                                             />
                                         )}
                                     </>
@@ -320,7 +320,7 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                                         onChange={e => setForm({ ...form, model: e.target.value })}
                                         placeholder={form.isCustomBrand ? "Escribe el modelo" : "Selecciona una marca primero"}
                                         disabled={!form.brand && !form.isCustomBrand}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 disabled:opacity-50 text-[#0F2137]"
                                     />
                                 )}
                             </div>
@@ -328,32 +328,32 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
 
                         <div className="grid grid-cols-3 gap-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-zinc-500">Color *</label>
-                                <input value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Color *</label>
+                                <input value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-zinc-500">Año *</label>
-                                <input type="number" value={form.year} onChange={e => setForm({ ...form, year: parseInt(e.target.value) })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Año *</label>
+                                <input type="number" value={form.year} onChange={e => setForm({ ...form, year: parseInt(e.target.value) })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-zinc-500">Placas *</label>
-                                <input value={form.plate_number} onChange={e => setForm({ ...form, plate_number: e.target.value })} placeholder="ABC-1234" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 font-mono" />
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Placas *</label>
+                                <input value={form.plate_number} onChange={e => setForm({ ...form, plate_number: e.target.value })} placeholder="ABC-1234" className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 font-mono text-[#0F2137]" />
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-zinc-500">Entidad de Registro</label>
-                                <input value={form.registration_state} onChange={e => setForm({ ...form, registration_state: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Entidad de Registro</label>
+                                <input value={form.registration_state} onChange={e => setForm({ ...form, registration_state: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-zinc-500">Número NIV (VIN) *</label>
-                                <input value={form.vin_number} onChange={e => setForm({ ...form, vin_number: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 font-mono" />
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Número NIV (VIN) *</label>
+                                <input value={form.vin_number} onChange={e => setForm({ ...form, vin_number: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 font-mono text-[#0F2137]" />
                             </div>
                         </div>
 
                         <div className="space-y-4">
-                            <h4 className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest">Documentación del Auto</h4>
+                            <h4 className="text-[10px] font-bold uppercase text-gray-500 tracking-widest">Documentación del Auto</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {[
                                     { id: 'plate_photo_url', label: 'Foto Placa', ref: platePhotoRef },
@@ -373,7 +373,7 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                                         />
                                         <div
                                             onClick={() => doc.ref.current?.click()}
-                                            className={`cursor-pointer group relative aspect-video w-full rounded-xl overflow-hidden border border-dashed transition-all bg-white/5 flex flex-col items-center justify-center ${form[doc.id] ? 'border-emerald-500/30' : 'border-white/20 hover:border-blue-500/50'}`}
+                                            className={`cursor-pointer group relative aspect-video w-full rounded-xl overflow-hidden border border-dashed transition-all bg-gray-50 flex flex-col items-center justify-center ${form[doc.id] ? 'border-emerald-500/30' : 'border-gray-200 hover:border-blue-500'}`}
                                         >
                                             {uploading === doc.id ? (
                                                 <div className="flex flex-col items-center justify-center text-zinc-500">
@@ -402,14 +402,14 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                                                     </div>
                                                 </>
                                             ) : (
-                                                <div className="flex flex-col items-center justify-center text-zinc-500 group-hover:text-blue-400 transition-colors">
+                                                <div className="flex flex-col items-center justify-center text-gray-500 group-hover:text-blue-600 transition-colors">
                                                     <Plus className="h-6 w-6 mb-2" />
                                                     <span className="text-[10px]">{doc.label}</span>
                                                 </div>
                                             )}
                                         </div>
                                         {/* Label below the card for clarity */}
-                                        <p className="text-[10px] font-bold uppercase text-zinc-500 text-center">{doc.label}</p>
+                                        <p className="text-[10px] font-bold uppercase text-gray-500 text-center">{doc.label}</p>
                                     </div>
                                 ))}
                             </div>
@@ -417,7 +417,7 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                     </div>
 
                     <div className="space-y-6">
-                        <h4 className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest">Fotos del Vehículo (6)</h4>
+                        <h4 className="text-[10px] font-bold uppercase text-gray-500 tracking-widest">Fotos del Vehículo (6)</h4>
                         <div className="grid grid-cols-2 gap-4">
                             {['Frente', 'Trasera', 'Lateral', 'Interior 1', 'Interior 2', 'Interior 3'].map((label, idx) => (
                                 <div key={label}>
@@ -429,7 +429,7 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                                     />
                                     <button
                                         onClick={() => photoRefs.current[idx]?.click()}
-                                        className="relative w-full aspect-video bg-zinc-900 border border-white/10 rounded-xl overflow-hidden group cursor-pointer hover:border-blue-500/50"
+                                        className="relative w-full aspect-video bg-gray-50 border border-gray-200 rounded-xl overflow-hidden group cursor-pointer hover:border-blue-500"
                                     >
                                         {form.photos[idx] ? (
                                             <img src={form.photos[idx]} className="w-full h-full object-cover" />
@@ -443,20 +443,20 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                                 </div>
                             ))}
                         </div>
-                        <div className="p-4 bg-blue-600/5 border border-blue-500/20 rounded-2xl">
-                            <div className="flex gap-2 text-blue-400 mb-1">
+                        <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+                            <div className="flex gap-2 text-blue-600 mb-1">
                                 <Info className="h-4 w-4 shrink-0" />
                                 <span className="text-[10px] font-bold uppercase">Recomendación</span>
                             </div>
-                            <p className="text-[10px] text-zinc-400 leading-relaxed">
+                            <p className="text-[10px] text-gray-600 leading-relaxed">
                                 Sube fotos claras con buena iluminación. Un vehículo bien presentado atrae 3x más clientes.
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex justify-end gap-4 border-t border-white/10 pt-8">
-                    <button onClick={resetForm} className="px-6 py-2.5 rounded-xl font-bold text-zinc-400 hover:bg-white/5 transition-colors">Cancelar</button>
+                <div className="flex justify-end gap-4 border-t border-gray-100 pt-8">
+                    <button onClick={resetForm} className="px-6 py-2.5 rounded-xl font-bold text-gray-400 hover:bg-gray-50 transition-colors">Cancelar</button>
                     <button
                         onClick={handleRegister}
                         disabled={saving}
@@ -472,7 +472,7 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
     return (
         <div className="space-y-8">
             <div className="flex justify-between items-center">
-                <h3 className="font-bold text-xl">Mis Vehículos registrados</h3>
+                <h3 className="font-bold text-xl text-[#0F2137]">Mis Vehículos registrados</h3>
                 <button
                     onClick={() => setIsAdding(true)}
                     className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/10"
@@ -488,19 +488,19 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                         <div
                             key={v.id}
                             onClick={() => handleEdit(v)}
-                            className="bg-white/5 border border-white/10 rounded-3xl p-6 relative group hover:border-blue-500/30 transition-colors cursor-pointer"
+                            className="bg-white border border-gray-100 rounded-3xl p-6 relative group hover:border-blue-300 hover:shadow-soft transition-all cursor-pointer"
                         >
                             <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-blue-600/10 rounded-xl">
-                                    <Car className="h-6 w-6 text-blue-500" />
+                                <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
+                                    <Car className="h-6 w-6" />
                                 </div>
                                 <div className="overflow-hidden">
-                                    <h4 className="font-bold truncate">{v.brand} {v.model}</h4>
-                                    <p className="text-zinc-500 text-sm">{v.year} • {v.color}</p>
+                                    <h4 className="font-bold truncate text-[#0F2137]">{v.brand} {v.model}</h4>
+                                    <p className="text-gray-500 text-sm">{v.year} • {v.color}</p>
                                 </div>
                             </div>
                             <div className="flex items-center justify-between">
-                                <span className="px-3 py-1 bg-zinc-800 rounded-lg text-xs font-mono text-zinc-400">
+                                <span className="px-3 py-1 bg-gray-100 rounded-lg text-xs font-mono text-gray-500 font-bold border border-gray-200">
                                     {v.plate_number}
                                 </span>
                                 <div className="flex gap-2">
@@ -522,9 +522,9 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                     ))}
                 </div>
             ) : (
-                <div className="py-20 text-center bg-white/5 rounded-3xl border border-dashed border-white/10">
-                    <Car className="h-12 w-12 text-zinc-700 mx-auto mb-4" />
-                    <p className="text-zinc-500">No tienes vehículos registrados todavía.</p>
+                <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-gray-200">
+                    <Car className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">No tienes vehículos registrados todavía.</p>
                 </div>
             )}
         </div>

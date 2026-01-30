@@ -138,14 +138,14 @@ export default function MyPassengersSection() {
         }
     }
 
-    if (loading) return <div className="space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-24 bg-white/5 rounded-2xl animate-pulse" />)}</div>
+    if (loading) return <div className="space-y-4">{[1, 2, 3].map(i => <div key={i} className="h-24 bg-gray-50 rounded-2xl animate-pulse border border-gray-100" />)}</div>
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-xl font-bold">Mis Pasajeros</h2>
-                    <p className="text-zinc-400 text-sm">Usuarios que han desbloqueado tu contacto para solicitar servicios.</p>
+                    <h2 className="text-xl font-bold text-[#0F2137]">Mis Pasajeros</h2>
+                    <p className="text-gray-500 text-sm">Usuarios que han desbloqueado tu contacto para solicitar servicios.</p>
                 </div>
                 <Users className="h-8 w-8 text-blue-500 opacity-20" />
             </div>
@@ -159,21 +159,21 @@ export default function MyPassengersSection() {
                         const review = hasReview ? (Array.isArray(reviewsData) ? reviewsData[0] : reviewsData) : null
 
                         return (
-                            <div key={unlock.id} className="group relative bg-[#121214] border border-white/[0.05] rounded-[2.5rem] p-8 hover:bg-[#161619] transition-all duration-300">
+                            <div key={unlock.id} className="group relative bg-white border border-gray-100 rounded-[2.5rem] p-8 hover:bg-gray-50 transition-all duration-300 shadow-soft">
                                 {/* Header */}
                                 <div className="flex items-center gap-5 mb-6">
-                                    <div className="w-16 h-16 rounded-[1.25rem] bg-zinc-800 border border-white/10 overflow-hidden shadow-2xl">
+                                    <div className="w-16 h-16 rounded-[1.25rem] bg-gray-100 border border-gray-200 overflow-hidden shadow-sm">
                                         {passenger?.avatar_url ? (
                                             <img src={passenger.avatar_url} alt={passenger.full_name} className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-zinc-600">
+                                            <div className="w-full h-full flex items-center justify-center text-gray-400">
                                                 <User className="h-8 w-8" />
                                             </div>
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="text-xl font-bold text-white tracking-tight truncate">{passenger?.full_name}</h4>
-                                        <p className="text-sm text-zinc-500 font-medium mb-3">Pasajero • Te contactó el {new Date(unlock.created_at).toLocaleDateString()}</p>
+                                        <h4 className="text-xl font-bold text-[#0F2137] tracking-tight truncate">{passenger?.full_name}</h4>
+                                        <p className="text-sm text-gray-500 font-medium mb-3">Pasajero • Te contactó el {new Date(unlock.created_at).toLocaleDateString()}</p>
 
                                         <div className="flex flex-wrap items-center gap-3">
                                             <a
@@ -189,20 +189,20 @@ export default function MyPassengersSection() {
                                     </div>
                                 </div>
 
-                                <div className="h-px bg-white/5 w-full my-6" />
+                                <div className="h-px bg-gray-100 w-full my-6" />
 
                                 <div className="space-y-6">
                                     {hasReview ? (
                                         <div className="space-y-6">
-                                            <div className="flex items-center gap-2 bg-yellow-500/5 text-yellow-500 px-4 py-2 rounded-2xl border border-yellow-500/10 w-fit">
+                                            <div className="flex items-center gap-2 bg-yellow-50 text-yellow-600 px-4 py-2 rounded-2xl border border-yellow-100 w-fit">
                                                 <Star className="h-4 w-4 fill-current" />
                                                 <span className="text-sm font-black tracking-tight">{review.rating}.0</span>
                                                 <span className="text-[11px] font-bold opacity-60 ml-1">Calificación Recibida</span>
                                             </div>
 
-                                            <div className="bg-white/[0.03] border border-white/[0.05] rounded-[2rem] p-6 shadow-inner">
+                                            <div className="bg-gray-50 border border-gray-100 rounded-[2rem] p-6 shadow-inner">
                                                 <div className="flex items-center justify-between mb-6">
-                                                    <div className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">Seguimiento de Servicio</div>
+                                                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Seguimiento de Servicio</div>
                                                 </div>
                                                 <div className="scale-100 origin-top-left">
                                                     <ReviewThread
@@ -249,9 +249,9 @@ export default function MyPassengersSection() {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="flex items-center justify-between gap-4 py-4 px-6 bg-white/[0.02] rounded-2xl border border-white/[0.05]">
-                                            <p className="text-sm text-zinc-500 italic font-medium">Aún no has recibido una calificación.</p>
-                                            <div className="px-4 py-1.5 bg-white/5 text-zinc-400 text-[10px] font-black rounded-lg border border-white/5 uppercase tracking-widest">
+                                        <div className="flex items-center justify-between gap-4 py-4 px-6 bg-gray-50 rounded-2xl border border-gray-100">
+                                            <p className="text-sm text-gray-500 italic font-medium">Aún no has recibido una calificación.</p>
+                                            <div className="px-4 py-1.5 bg-gray-200 text-gray-600 text-[10px] font-black rounded-lg border border-gray-200 uppercase tracking-widest">
                                                 Pendiente
                                             </div>
                                         </div>
@@ -262,9 +262,9 @@ export default function MyPassengersSection() {
                     })}
                 </div>
             ) : (
-                <div className="py-20 text-center bg-white/5 rounded-3xl border border-dashed border-white/10">
-                    <Users className="h-12 w-12 text-zinc-700 mx-auto mb-4" />
-                    <p className="text-zinc-500">Aún ningún pasajero ha desbloqueado tu contacto.</p>
+                <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-gray-200 shadow-soft">
+                    <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">Aún ningún pasajero ha desbloqueado tu contacto.</p>
                 </div>
             )}
 
@@ -276,16 +276,16 @@ export default function MyPassengersSection() {
 
                 return (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setInteractionModal(null)} />
-                        <div className="relative bg-zinc-900 border border-white/10 rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-md" onClick={() => setInteractionModal(null)} />
+                        <div className="relative bg-white border border-gray-100 rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto">
                             <div className="text-center space-y-4 mb-8">
-                                <div className="w-20 h-20 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto">
-                                    <MessageSquare className="h-10 w-10 text-blue-500" />
+                                <div className="w-20 h-20 rounded-full bg-blue-50 flex items-center justify-center mx-auto">
+                                    <MessageSquare className="h-10 w-10 text-blue-600" />
                                 </div>
-                                <h3 className="text-2xl font-bold">
+                                <h3 className="text-2xl font-bold text-[#0F2137]">
                                     {isFinalReply ? 'Respuesta Final' : 'Interactuar'} con {interactionModal.unlock.users?.full_name}
                                 </h3>
-                                <p className="text-zinc-400 text-sm">
+                                <p className="text-gray-500 text-sm">
                                     {isFinalReply
                                         ? 'Cierra la conversación con un mensaje final para este pasajero.'
                                         : 'Responde a su reseña y califica tu experiencia con este pasajero.'}
@@ -297,19 +297,19 @@ export default function MyPassengersSection() {
                                     /* ULTRA SIMPLIFIED VIEW FOR FINAL REPLY */
                                     <div className="space-y-6">
                                         <div className="space-y-3">
-                                            <label className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest pl-2">Tu Respuesta Final</label>
+                                            <label className="text-[10px] font-bold uppercase text-gray-500 tracking-widest pl-2">Tu Respuesta Final</label>
                                             <textarea
                                                 value={replyContent}
                                                 onChange={(e) => setReplyContent(e.target.value)}
                                                 placeholder="Escribe tu mensaje final aquí..."
-                                                className="w-full bg-zinc-800 border border-white/10 rounded-2xl p-4 min-h-[150px] text-white focus:border-blue-500 transition-colors resize-none shadow-inner"
+                                                className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 min-h-[150px] text-[#0F2137] focus:border-blue-500 transition-colors resize-none shadow-inner"
                                             />
                                         </div>
 
                                         <div className="flex gap-3 pt-4">
                                             <button
                                                 onClick={() => setInteractionModal(null)}
-                                                className="flex-1 px-6 py-3 rounded-2xl text-sm font-bold bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors"
+                                                className="flex-1 px-6 py-3 rounded-2xl text-sm font-bold bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors"
                                             >
                                                 Cancelar
                                             </button>
@@ -327,10 +327,10 @@ export default function MyPassengersSection() {
                                     <>
                                         {/* 1. Context */}
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest pl-2">Contexto de la conversación</label>
-                                            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 italic text-zinc-400 text-sm space-y-4">
+                                            <label className="text-[10px] font-bold uppercase text-gray-500 tracking-widest pl-2">Contexto de la conversación</label>
+                                            <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 italic text-gray-600 text-sm space-y-4">
                                                 <div className="space-y-1">
-                                                    <p className="text-[10px] text-zinc-600 font-bold uppercase">Pasajero dice:</p>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase">Pasajero dice:</p>
                                                     <p>"{currentReview?.passenger_followup || currentReview?.comment}"</p>
                                                 </div>
                                             </div>
@@ -338,19 +338,19 @@ export default function MyPassengersSection() {
 
                                         {/* 2. Rate Passenger Section */}
                                         {!currentReview?.passenger_rating && (
-                                            <div className="space-y-6 bg-white/[0.02] border border-white/5 p-6 rounded-3xl">
+                                            <div className="space-y-6 bg-gray-50 border border-gray-100 p-6 rounded-3xl">
                                                 <div className="flex items-center justify-between px-2">
-                                                    <span className="text-xs font-bold text-zinc-400">¿Se concretó el servicio?</span>
+                                                    <span className="text-xs font-bold text-gray-500">¿Se concretó el servicio?</span>
                                                     <div className="flex gap-2">
                                                         <button
                                                             onClick={() => setAgreement(true)}
-                                                            className={`p-2 rounded-xl border transition-all ${agreement ? 'bg-green-500/20 border-green-500 text-green-500' : 'border-zinc-800 text-zinc-700'}`}
+                                                            className={`p-2 rounded-xl border transition-all ${agreement ? 'bg-green-50 border-green-500 text-green-600' : 'border-gray-200 text-gray-400'}`}
                                                         >
                                                             <ThumbsUp className="h-5 w-5" />
                                                         </button>
                                                         <button
                                                             onClick={() => setAgreement(false)}
-                                                            className={`p-2 rounded-xl border transition-all ${!agreement ? 'bg-red-500/20 border-red-500 text-red-500' : 'border-zinc-800 text-zinc-700'}`}
+                                                            className={`p-2 rounded-xl border transition-all ${!agreement ? 'bg-red-50 border-red-500 text-red-600' : 'border-gray-200 text-gray-400'}`}
                                                         >
                                                             <ThumbsDown className="h-5 w-5" />
                                                         </button>
@@ -358,13 +358,13 @@ export default function MyPassengersSection() {
                                                 </div>
 
                                                 <div className="space-y-4">
-                                                    <label className="text-[10px] font-bold uppercase text-zinc-500 text-center block tracking-widest">¿Qué calificación le das al pasajero?</label>
+                                                    <label className="text-[10px] font-bold uppercase text-gray-500 text-center block tracking-widest">¿Qué calificación le das al pasajero?</label>
                                                     <div className="flex justify-center gap-3">
                                                         {[1, 2, 3, 4, 5].map((num) => (
                                                             <button
                                                                 key={num}
                                                                 onClick={() => setPassRating(num)}
-                                                                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${passRating >= num ? 'bg-yellow-500 text-black' : 'bg-white/5 text-zinc-500 hover:bg-white/10'}`}
+                                                                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${passRating >= num ? 'bg-yellow-400 text-black shadow-lg shadow-yellow-400/20' : 'bg-white border border-gray-200 text-gray-300 hover:border-gray-300'}`}
                                                             >
                                                                 <Star className={`h-6 w-6 ${passRating >= num ? 'fill-current' : ''}`} />
                                                             </button>
@@ -377,12 +377,12 @@ export default function MyPassengersSection() {
                                         {/* 3. Driver Reply Section */}
                                         {!currentReview?.driver_reply && (
                                             <div className="space-y-3">
-                                                <label className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest pl-2">Tu Mensaje</label>
+                                                <label className="text-[10px] font-bold uppercase text-gray-500 tracking-widest pl-2">Tu Mensaje</label>
                                                 <textarea
                                                     value={replyContent}
                                                     onChange={(e) => setReplyContent(e.target.value)}
                                                     placeholder="Escribe una respuesta cordial al pasajero..."
-                                                    className="w-full bg-zinc-800 border border-white/10 rounded-2xl p-4 min-h-[120px] text-white focus:border-blue-500 transition-colors resize-none shadow-inner"
+                                                    className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 min-h-[120px] text-[#0F2137] focus:border-blue-500 transition-colors resize-none shadow-inner"
                                                 />
                                             </div>
                                         )}
@@ -390,7 +390,7 @@ export default function MyPassengersSection() {
                                         <div className="flex gap-3 pt-4">
                                             <button
                                                 onClick={() => setInteractionModal(null)}
-                                                className="flex-1 px-6 py-3 rounded-2xl text-sm font-bold bg-white/5 text-zinc-400 hover:bg-white/10 transition-colors"
+                                                className="flex-1 px-6 py-3 rounded-2xl text-sm font-bold bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors"
                                             >
                                                 Cancelar
                                             </button>

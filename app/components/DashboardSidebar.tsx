@@ -83,16 +83,16 @@ export default function DashboardSidebar() {
     return (
         <>
             {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 left-0 w-full bg-zinc-950 border-b border-white/5 h-16 flex items-center justify-between px-6 z-[60]">
+            <div className="lg:hidden fixed top-0 left-0 w-full bg-white/90 backdrop-blur-md border-b border-gray-200 h-16 flex items-center justify-between px-6 z-[60]">
                 <Link href="/" className="flex items-center gap-2">
                     <div className="w-8 h-8 flex items-center justify-center">
                         <AvivaLogo className="w-full h-full" showText={false} />
                     </div>
-                    <span className="text-xl font-bold text-white tracking-tight">AvivaGo</span>
+                    <span className="text-xl font-bold text-[#0F2137] tracking-tight">AvivaGo</span>
                 </Link>
                 <button
                     onClick={toggleSidebar}
-                    className="p-2 text-zinc-400 hover:text-white transition-colors"
+                    className="p-2 text-gray-600 hover:text-[#0F2137] transition-colors"
                 >
                     {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                 </button>
@@ -108,7 +108,7 @@ export default function DashboardSidebar() {
 
             {/* Sidebar Container */}
             <aside className={`
-                fixed left-0 top-0 h-full w-64 bg-zinc-950 border-r border-white/5 flex flex-col z-[58]
+                fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 flex flex-col z-[58]
                 transition-transform duration-300 ease-in-out
                 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             `}>
@@ -117,7 +117,7 @@ export default function DashboardSidebar() {
                         <div className="w-8 h-8 flex items-center justify-center group-hover:rotate-12 transition-transform h-auto">
                             <AvivaLogo className="w-full h-full" showText={false} />
                         </div>
-                        <span className="text-xl font-bold text-white tracking-tight">AvivaGo</span>
+                        <span className="text-xl font-bold text-[#0F2137] tracking-tight">AvivaGo</span>
                     </Link>
                 </div>
 
@@ -149,18 +149,18 @@ export default function DashboardSidebar() {
                                     onClick={() => !hasSubItems && setIsOpen(false)}
                                     className={`flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${isActive
                                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                                        : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                                        : 'text-gray-500 hover:bg-gray-50 hover:text-[#0F2137]'
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <item.icon className={`h-5 w-5 ${isActive ? 'text-white' : 'group-hover:text-blue-400 transition-colors'}`} />
+                                        <item.icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-blue-600 transition-colors'}`} />
                                         <span className="text-sm font-medium">{item.label}</span>
                                     </div>
                                     {isActive && !hasSubItems && <ChevronRight className="h-4 w-4" />}
                                 </Link>
 
                                 {hasSubItems && (
-                                    <div className="pl-9 space-y-1 mt-1 border-l border-white/5 ml-5">
+                                    <div className="pl-9 space-y-1 mt-1 border-l border-gray-200 ml-5">
                                         {item.subItems.map((sub) => {
                                             const subTab = sub.href.includes('tab=') ? sub.href.split('tab=')[1] : null
                                             const isSubActive = pathname === '/perfil' && currentTab === subTab;
@@ -171,11 +171,11 @@ export default function DashboardSidebar() {
                                                     href={sub.href}
                                                     onClick={() => setIsOpen(false)}
                                                     className={`flex items-center gap-3 p-2 rounded-lg text-xs font-medium transition-all ${isSubActive
-                                                        ? 'text-white bg-white/10'
-                                                        : 'text-zinc-500 hover:text-white hover:bg-white/5'
+                                                        ? 'text-blue-600 bg-blue-50'
+                                                        : 'text-gray-500 hover:text-[#0F2137] hover:bg-gray-50'
                                                         }`}
                                                 >
-                                                    <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isSubActive ? 'bg-blue-500' : 'bg-zinc-800'}`} />
+                                                    <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isSubActive ? 'bg-blue-600' : 'bg-gray-300 group-hover:bg-gray-400'}`} />
                                                     {sub.label}
                                                 </Link>
                                             )
@@ -187,10 +187,10 @@ export default function DashboardSidebar() {
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-white/5 space-y-4">
+                <div className="p-4 border-t border-gray-200 space-y-4">
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl text-zinc-400 hover:bg-red-500/10 hover:text-red-500 transition-all duration-200"
+                        className="w-full flex items-center gap-3 p-3 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
                     >
                         <LogOut className="h-5 w-5" />
                         <span className="text-sm font-medium">Cerrar Sesión</span>
