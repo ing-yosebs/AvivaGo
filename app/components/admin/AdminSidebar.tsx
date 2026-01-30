@@ -21,9 +21,8 @@ export default function AdminSidebar() {
 
     return (
         <>
-            {/* Mobile Header */}
             <div className="lg:hidden fixed top-0 left-0 w-full bg-black/60 backdrop-blur-xl border-b border-white/10 h-16 flex items-center justify-between px-6 z-[60]">
-                <Link href="/admin" className="flex items-center gap-2">
+                <Link href="/" className="flex items-center gap-2">
                     <div className="w-8 h-8 flex items-center justify-center">
                         <AvivaLogo className="w-full h-full" showText={false} />
                     </div>
@@ -53,7 +52,7 @@ export default function AdminSidebar() {
             `}>
                 <div className="flex grow flex-col gap-y-5 overflow-y-auto px-6 pb-4">
                     <div className="hidden lg:flex h-16 shrink-0 items-center gap-2 mt-4 group">
-                        <Link href="/admin" className="flex items-center gap-2">
+                        <Link href="/" className="flex items-center gap-2">
                             <div className="flex items-center justify-center group-hover:rotate-12 transition-transform h-10">
                                 <AvivaLogo className="h-10 w-auto" showText={false} />
                             </div>

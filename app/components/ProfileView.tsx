@@ -274,7 +274,7 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                         <ShieldCheck className="h-4 w-4 text-white" />
                                     </div>
                                     {driver.social_commitment && (
-                                        <div className="absolute bottom-0 left-1/2 -translate-x-12 translate-y-1 bg-indigo-500 p-1.5 rounded-full ring-4 ring-white shadow-[0_0_15px_rgba(99,102,241,0.3)] animate-pulse">
+                                        <div className="absolute bottom-0 left-1/2 -translate-x-12 translate-y-1 bg-violet-500 p-1.5 rounded-full ring-4 ring-white shadow-[0_0_15px_rgba(139,92,246,0.3)] animate-pulse">
                                             <Users className="h-4 w-4 text-white fill-current" />
                                         </div>
                                     )}
@@ -284,9 +284,9 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                     <h1 className="text-3xl font-bold mb-2 tracking-tight text-aviva-navy font-display">{driver.name}</h1>
 
                                     {driver.social_commitment && (
-                                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-lg text-[10px] font-bold uppercase tracking-widest mb-4">
+                                        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-violet-50 border border-violet-100 text-violet-600 rounded-lg text-[10px] font-bold uppercase tracking-widest mb-4">
                                             <Users className="h-3 w-3 fill-current" />
-                                            Conductor Comprometido
+                                            Trato igualitario
                                         </div>
                                     )}
 
@@ -450,24 +450,26 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                         </div>
                                         <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Experiencia Profesional</h3>
                                     </div>
-                                    <p className="text-aviva-subtext text-lg leading-relaxed font-medium">
-                                        {driver.bio}
-                                    </p>
+                                    <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl">
+                                        <p className="text-aviva-subtext text-lg leading-relaxed font-medium">
+                                            {driver.bio}
+                                        </p>
+                                    </div>
                                 </section>
 
-                                {driver.personal_bio && (
-                                    <section className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                        <div className="flex items-center gap-3 mb-6">
-                                            <div className="bg-purple-50 p-2 rounded-xl">
-                                                <User className="h-5 w-5 text-purple-600" />
-                                            </div>
-                                            <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Sobre mí (Reseña Personal)</h3>
+                                <section className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-purple-50 p-2 rounded-xl">
+                                            <User className="h-5 w-5 text-purple-600" />
                                         </div>
-                                        <p className="text-aviva-subtext text-lg leading-relaxed font-medium">
-                                            {driver.personal_bio}
+                                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Sobre mí (Reseña Personal)</h3>
+                                    </div>
+                                    <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl">
+                                        <p className={`text-lg leading-relaxed font-medium ${driver.personal_bio ? 'text-aviva-subtext' : 'text-gray-400 italic'}`}>
+                                            {driver.personal_bio || "Este conductor aun no ha redactado su reseña personal."}
                                         </p>
-                                    </section>
-                                )}
+                                    </div>
+                                </section>
 
                                 {/* Vehicle */}
                                 <section className="mb-10">
@@ -480,172 +482,6 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                     <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl">
                                         <div className="text-xl font-bold text-aviva-navy mb-1">{driver.vehicle}</div>
                                         <div className="text-sm text-aviva-subtext font-medium">Modelo {driver.year} • Capacidad para 4 pasajeros</div>
-                                    </div>
-                                </section>
-
-                                {/* Payment Methods */}
-                                <section className="mb-10">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="bg-emerald-50 p-2 rounded-xl">
-                                            <CreditCard className="h-5 w-5 text-emerald-600" />
-                                        </div>
-                                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Formas de Pago Aceptadas</h3>
-                                    </div>
-                                    <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl">
-                                        {driver.payment_methods && driver.payment_methods.length > 0 ? (
-                                            <div className="space-y-6">
-                                                <div className="flex flex-wrap gap-3">
-                                                    {driver.payment_methods.map(method => (
-                                                        <span key={method} className="px-4 py-2 bg-white border border-emerald-100 text-emerald-700 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm">
-                                                            {method === 'Efectivo' && '💵'}
-                                                            {method === 'Transferencia Bancaria' && '🏦'}
-                                                            {method === 'Tarjeta de Crédito/Débito' && '💳'}
-                                                            {method === 'Pago en Línea' && '🌐'}
-                                                            {method}
-                                                        </span>
-                                                    ))}
-                                                </div>
-
-                                                {isUnlocked && driver.payment_link && driver.payment_methods?.includes('Pago en Línea') && (
-                                                    <a
-                                                        href={driver.payment_link.startsWith('http') ? driver.payment_link : `https://${driver.payment_link}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="inline-flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98] group"
-                                                    >
-                                                        <Globe className="h-5 w-5 group-hover:rotate-12 transition-transform" />
-                                                        Pagar en Línea ahora
-                                                    </a>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <span className="text-aviva-subtext italic">No especificado</span>
-                                        )}
-                                    </div>
-                                </section>
-
-                                {/* Zones */}
-                                <section className="mb-10">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="bg-blue-50 p-2 rounded-xl">
-                                            <MapPin className="h-5 w-5 text-aviva-primary" />
-                                        </div>
-                                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Zonas de Cobertura</h3>
-                                    </div>
-                                    <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl text-sm">
-                                        <div className="flex flex-wrap gap-2">
-                                            {(driver.zones || []).length > 0 ? (
-                                                (driver.zones || []).map(zone => (
-                                                    <span key={zone} className="px-3 py-1 bg-white border border-blue-100 text-aviva-primary rounded-lg font-bold shadow-sm">{zone}</span>
-                                                ))
-                                            ) : <span className="text-aviva-subtext italic">No especificado</span>}
-                                        </div>
-                                    </div>
-                                </section>
-
-                                {/* Languages */}
-                                <section className="mb-10">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="bg-purple-50 p-2 rounded-xl">
-                                            <Globe className="h-5 w-5 text-purple-600" />
-                                        </div>
-                                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Idiomas</h3>
-                                    </div>
-                                    <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl">
-                                        <div className="flex flex-wrap gap-2">
-                                            {(driver.languages || []).length > 0 ? (
-                                                (driver.languages || []).map(lang => (
-                                                    <span key={lang} className="px-3 py-1 bg-white border border-purple-100 text-purple-600 rounded-lg text-sm font-bold shadow-sm">{lang}</span>
-                                                ))
-                                            ) : <span className="text-aviva-subtext italic">Español</span>}
-                                        </div>
-                                    </div>
-                                </section>
-
-                                {/* Indigenous Languages */}
-                                <section className="mb-10">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="bg-emerald-50 p-2 rounded-xl">
-                                            <Globe className="h-5 w-5 text-emerald-600" />
-                                        </div>
-                                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Lenguas Indígenas</h3>
-                                    </div>
-                                    <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl">
-                                        {(driver.indigenous || []).length > 0 ? (
-                                            <div className="flex flex-wrap gap-2">
-                                                {driver.indigenous?.map((lang: string) => (
-                                                    <span key={lang} className="px-3 py-1 bg-white border border-emerald-100 text-emerald-600 rounded-lg text-sm font-bold shadow-sm">
-                                                        {lang}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <span className="text-aviva-subtext italic">No se especificaron lenguas indígenas</span>
-                                        )}
-                                    </div>
-                                </section>
-
-                                {/* Inclusive Communication (Sign Language) */}
-                                {driver.knows_sign_language && (
-                                    <section className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                        <div className="flex items-center gap-3 mb-6">
-                                            <div className="bg-blue-50 p-2 rounded-xl">
-                                                <Zap className="h-5 w-5 text-aviva-primary" />
-                                            </div>
-                                            <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Comunicación Inclusiva</h3>
-                                        </div>
-                                        <div className="p-6 bg-blue-50 border border-blue-100 rounded-3xl flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                                                <CheckCircle className="h-6 w-6 text-aviva-primary" />
-                                            </div>
-                                            <div>
-                                                <p className="text-aviva-navy font-bold text-lg">Intérprete de Lenguaje de Señas (LSM)</p>
-                                                <p className="text-aviva-subtext text-sm">Este conductor está capacitado para comunicarse con personas con discapacidad auditiva.</p>
-                                            </div>
-                                        </div>
-                                    </section>
-                                )}
-
-                                {/* Transport Platforms */}
-                                {driver.transport_platforms && driver.transport_platforms.length > 0 && (
-                                    <section className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                        <div className="flex items-center gap-3 mb-6">
-                                            <div className="bg-emerald-50 p-2 rounded-xl">
-                                                <Car className="h-5 w-5 text-emerald-600" />
-                                            </div>
-                                            <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Plataformas donde opero</h3>
-                                        </div>
-                                        <div className="flex flex-wrap gap-3">
-                                            {driver.transport_platforms.map(platform => (
-                                                <div key={platform} className="px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-sm font-bold text-aviva-subtext shadow-sm">
-                                                    {platform}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
-
-                                <section className="mb-10">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="bg-blue-50 p-2 rounded-xl">
-                                            <Clock className="h-5 w-5 text-aviva-primary" />
-                                        </div>
-                                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Horario y Disponibilidad</h3>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(day => {
-                                            const time = driver.schedule?.[day];
-                                            const isActive = time && time.start !== '00:00' && time.end !== '00:00';
-
-                                            return (
-                                                <div key={day} className={`p-4 rounded-2xl border transition-all ${isActive ? 'bg-blue-50 border-blue-100' : 'bg-gray-50 border-gray-100 opacity-50'}`}>
-                                                    <div className="text-[10px] font-bold uppercase tracking-widest text-aviva-subtext mb-1">{day}</div>
-                                                    <div className={`text-sm font-bold ${isActive ? 'text-aviva-navy' : 'text-gray-300'}`}>
-                                                        {isActive ? `${time.start} - ${time.end}` : 'No disponible'}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
                                     </div>
                                 </section>
 
@@ -694,22 +530,22 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                 {/* Social Commitment */}
                                 {driver.social_commitment && (
                                     <section className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                        <div className="p-8 bg-indigo-50 border border-indigo-100 rounded-[2.5rem] relative overflow-hidden group shadow-soft">
+                                        <div className="p-8 bg-violet-50 border border-violet-100 rounded-[2.5rem] relative overflow-hidden group shadow-soft">
                                             {/* Decorative Background Icon */}
-                                            <Users className="absolute -right-4 -bottom-4 h-32 w-32 text-indigo-500/5 group-hover:scale-110 transition-transform duration-700" />
+                                            <Users className="absolute -right-4 -bottom-4 h-32 w-32 text-violet-500/5 group-hover:scale-110 transition-transform duration-700" />
 
                                             <div className="flex items-start gap-6 relative z-10">
                                                 <div className="bg-white p-4 rounded-2xl shadow-sm">
-                                                    <Users className="h-8 w-8 text-indigo-600 fill-indigo-600/10" />
+                                                    <Users className="h-8 w-8 text-violet-600 fill-violet-600/10" />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <h3 className="text-xl font-bold text-indigo-700 font-display">Compromiso de Trato Igualitario</h3>
-                                                    <p className="text-indigo-900/80 text-lg leading-relaxed font-medium italic">
+                                                    <h3 className="text-xl font-bold text-violet-700 font-display">Compromiso de Trato Igualitario</h3>
+                                                    <p className="text-violet-900/80 text-lg leading-relaxed font-medium italic">
                                                         "Me comprometo a brindar un trato cordial, respetuoso y equitativo a hombres, mujeres y a la comunidad LGBTQ+, sin distinción por ideologías o creencias religiosas de mis pasajeros."
                                                     </p>
                                                     <div className="flex items-center gap-2 pt-2">
-                                                        <ShieldCheck className="h-4 w-4 text-indigo-600" />
-                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600/70">Conductor Comprometido con la Inclusión</span>
+                                                        <ShieldCheck className="h-4 w-4 text-violet-600" />
+                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-violet-600/70">Conductor Comprometido con la Inclusión</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -717,7 +553,28 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                     </section>
                                 )}
 
-                                <section>
+                                {/* Inclusive Communication (Sign Language) */}
+                                {driver.knows_sign_language && (
+                                    <section className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <div className="bg-blue-50 p-2 rounded-xl">
+                                                <Zap className="h-5 w-5 text-aviva-primary" />
+                                            </div>
+                                            <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Comunicación Inclusiva</h3>
+                                        </div>
+                                        <div className="p-6 bg-blue-50 border border-blue-100 rounded-3xl flex items-center gap-4">
+                                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+                                                <CheckCircle className="h-6 w-6 text-aviva-primary" />
+                                            </div>
+                                            <div>
+                                                <p className="text-aviva-navy font-bold text-lg">Intérprete de Lenguaje de Señas (LSM)</p>
+                                                <p className="text-aviva-subtext text-sm">Este conductor está capacitado para comunicarse con personas con discapacidad auditiva.</p>
+                                            </div>
+                                        </div>
+                                    </section>
+                                )}
+
+                                <section className="mb-10">
                                     <div className="flex items-center gap-3 mb-8">
                                         <div className="bg-blue-50 p-2 rounded-xl">
                                             <Award className="h-5 w-5 text-aviva-primary" />
@@ -736,7 +593,7 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                                     { id: 'sport', label: 'Equipo Deportivo' },
                                                     { id: 'rack', label: 'Canastilla / Rack' },
                                                     { id: 'baby', label: 'Silla para Bebé' },
-                                                    { id: 'charge', label: 'Kit de Carga' },
+                                                    { id: 'charge', label: 'Kit de carga diversos celulares' },
                                                     { id: 'ac', label: 'Aire Acondicionado' }
                                                 ]
                                             },
@@ -803,6 +660,151 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                                                 {tag.label}
                                                             </span>
                                                         ))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </section>
+
+                                {/* Payment Methods */}
+                                <section className="mb-10">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-emerald-50 p-2 rounded-xl">
+                                            <CreditCard className="h-5 w-5 text-emerald-600" />
+                                        </div>
+                                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Formas de Pago Aceptadas</h3>
+                                    </div>
+                                    <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl">
+                                        {driver.payment_methods && driver.payment_methods.length > 0 ? (
+                                            <div className="space-y-6">
+                                                <div className="flex flex-wrap gap-3">
+                                                    {driver.payment_methods.map(method => (
+                                                        <span key={method} className="px-4 py-2 bg-white border border-emerald-100 text-emerald-700 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm">
+                                                            {method === 'Efectivo' && '💵'}
+                                                            {method === 'Transferencia Bancaria' && '🏦'}
+                                                            {method === 'Tarjeta de Crédito/Débito' && '💳'}
+                                                            {method === 'Pago en Línea' && '🌐'}
+                                                            {method}
+                                                        </span>
+                                                    ))}
+                                                </div>
+
+                                                {isUnlocked && driver.payment_link && driver.payment_methods?.includes('Pago en Línea') && (
+                                                    <a
+                                                        href={driver.payment_link.startsWith('http') ? driver.payment_link : `https://${driver.payment_link}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98] group"
+                                                    >
+                                                        <Globe className="h-5 w-5 group-hover:rotate-12 transition-transform" />
+                                                        Pagar en Línea ahora
+                                                    </a>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <span className="text-aviva-subtext italic">No especificado</span>
+                                        )}
+                                    </div>
+                                </section>
+
+                                {/* Zones */}
+                                <section className="mb-10">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-amber-50 p-2 rounded-xl">
+                                            <MapPin className="h-5 w-5 text-amber-800" />
+                                        </div>
+                                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Zonas de Cobertura</h3>
+                                    </div>
+                                    <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl text-sm">
+                                        <div className="flex flex-wrap gap-2">
+                                            {(driver.zones || []).length > 0 ? (
+                                                (driver.zones || []).map(zone => (
+                                                    <span key={zone} className="px-3 py-1 bg-white border border-amber-200 text-amber-900 rounded-lg font-bold shadow-sm">{zone}</span>
+                                                ))
+                                            ) : <span className="text-aviva-subtext italic">No especificado</span>}
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* Languages */}
+                                <section className="mb-10">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-blue-50 p-2 rounded-xl">
+                                            <Globe className="h-5 w-5 text-aviva-primary" />
+                                        </div>
+                                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Idiomas</h3>
+                                    </div>
+                                    <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl">
+                                        <div className="flex flex-wrap gap-2">
+                                            {(driver.languages || []).length > 0 ? (
+                                                (driver.languages || []).map(lang => (
+                                                    <span key={lang} className="px-3 py-1 bg-white border border-blue-100 text-aviva-primary rounded-lg text-sm font-bold shadow-sm">{lang}</span>
+                                                ))
+                                            ) : <span className="text-aviva-subtext italic">Español</span>}
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* Indigenous Languages */}
+                                <section className="mb-10">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-purple-50 p-2 rounded-xl">
+                                            <Globe className="h-5 w-5 text-purple-600" />
+                                        </div>
+                                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Lenguas Indígenas</h3>
+                                    </div>
+                                    <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl">
+                                        {(driver.indigenous || []).length > 0 ? (
+                                            <div className="flex flex-wrap gap-2">
+                                                {driver.indigenous?.map((lang: string) => (
+                                                    <span key={lang} className="px-3 py-1 bg-white border border-purple-100 text-purple-600 rounded-lg text-sm font-bold shadow-sm">
+                                                        {lang}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="text-aviva-subtext italic">No se especificaron lenguas indígenas</span>
+                                        )}
+                                    </div>
+                                </section>
+
+                                {/* Transport Platforms */}
+                                {driver.transport_platforms && driver.transport_platforms.length > 0 && (
+                                    <section className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <div className="bg-gray-100 p-2 rounded-xl">
+                                                <Car className="h-5 w-5 text-gray-700" />
+                                            </div>
+                                            <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Plataformas donde opero</h3>
+                                        </div>
+                                        <div className="flex flex-wrap gap-3">
+                                            {driver.transport_platforms.map(platform => (
+                                                <div key={platform} className="px-4 py-2 bg-gray-700 border border-gray-700 rounded-xl text-sm font-bold text-white shadow-sm">
+                                                    {platform}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+                                )}
+
+                                <section className="mb-10">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="bg-blue-50 p-2 rounded-xl">
+                                            <Clock className="h-5 w-5 text-aviva-primary" />
+                                        </div>
+                                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Horario y Disponibilidad</h3>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(day => {
+                                            const time = driver.schedule?.[day];
+                                            const isActive = time && time.start !== '00:00' && time.end !== '00:00';
+
+                                            return (
+                                                <div key={day} className={`p-4 rounded-2xl border transition-all ${isActive ? 'bg-blue-50 border-blue-100' : 'bg-gray-50 border-gray-100 opacity-50'}`}>
+                                                    <div className="text-[10px] font-bold uppercase tracking-widest text-aviva-subtext mb-1">{day}</div>
+                                                    <div className={`text-sm font-bold ${isActive ? 'text-aviva-navy' : 'text-gray-300'}`}>
+                                                        {isActive ? `${time.start} - ${time.end}` : 'No disponible'}
                                                     </div>
                                                 </div>
                                             );

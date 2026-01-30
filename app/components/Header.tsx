@@ -18,7 +18,7 @@ export default function Header() {
         const fetchProfile = async (userId: string) => {
             const { data } = await supabase
                 .from('users')
-                .select('full_name, avatar_url')
+                .select('full_name, avatar_url, roles')
                 .eq('id', userId)
                 .single();
             setProfile(data);
@@ -56,6 +56,10 @@ export default function Header() {
         router.push('/');
     };
 
+    const isAdmin = Array.isArray(profile?.roles) ? profile.roles.includes('admin') : profile?.roles === 'admin';
+    const targetLink = isAdmin ? '/admin' : '/dashboard';
+    const targetLabel = isAdmin ? 'Panel Admin' : 'Mi Perfil';
+
     return (
         <header className="fixed w-full top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-sm transition-all duration-300">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -66,13 +70,14 @@ export default function Header() {
                     </Link>
 
                     {/* Navigation - Public Section */}
-                    <nav className="hidden md:flex items-center gap-8 md:ml-12">
+                    <nav className="flex items-center gap-4 md:gap-8 ml-4 md:ml-12">
                         <Link
                             href="/comunidad"
                             className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
                         >
                             <Users className="h-4 w-4 opacity-70" />
-                            <span>Comunidad</span>
+                            <span className="hidden sm:inline">Comunidad</span>
+                            <span className="sm:hidden">Comunidad</span>
                         </Link>
                     </nav>
 
@@ -83,7 +88,7 @@ export default function Header() {
                             {user ? (
                                 <>
                                     <Link
-                                        href="/dashboard"
+                                        href={targetLink}
                                         className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 pl-1.5 pr-4 py-1.5 rounded-2xl transition-all hover:shadow-soft active:scale-95 group"
                                     >
                                         <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center border border-blue-200 text-blue-600 overflow-hidden shrink-0">
@@ -97,7 +102,7 @@ export default function Header() {
                                             <span className="text-xs font-bold text-gray-900 leading-none mb-0.5">
                                                 {profile?.full_name?.split(' ')[0] || user.email?.split('@')[0]}
                                             </span>
-                                            <span className="text-[10px] font-medium text-gray-400 leading-none">Mi Perfil</span>
+                                            <span className="text-[10px] font-medium text-gray-400 leading-none">{targetLabel}</span>
                                         </div>
                                     </Link>
 
@@ -152,7 +157,7 @@ export default function Header() {
                             {user ? (
                                 <>
                                     <Link
-                                        href="/dashboard"
+                                        href={targetLink}
                                         onClick={() => setIsMenuOpen(false)}
                                         className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100 text-gray-900 mb-2 transition-all active:scale-[0.98]"
                                     >
@@ -165,7 +170,7 @@ export default function Header() {
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="font-bold">{profile?.full_name || user.email?.split('@')[0]}</span>
-                                            <span className="text-xs text-gray-500">Mi Perfil y Panel</span>
+                                            <span className="text-xs text-gray-500">{isAdmin ? 'Panel General' : 'Mi Perfil y Panel'}</span>
                                         </div>
                                     </Link>
                                     <button

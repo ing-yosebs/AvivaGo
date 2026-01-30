@@ -107,6 +107,52 @@ export default function ServicesSection({ services, onSave, saving }: any) {
                 </div>
             </div>
 
+            {/* Sign Language & Social Commitment MOVED HERE */}
+            <div className="space-y-6 bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-soft">
+                <div className="flex flex-col gap-6">
+                    {/* Social Commitment */}
+                    <div className="flex flex-col gap-4">
+                        <p className="text-sm font-bold text-[#0F2137]">Compromiso de Trato Igualitario</p>
+                        <button
+                            onClick={() => setFormData({ ...formData, social_commitment: !formData.social_commitment })}
+                            className={`flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all text-left w-full ${formData.social_commitment
+                                ? 'bg-violet-50 border-violet-200 text-violet-700 shadow-sm'
+                                : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                                }`}
+                        >
+                            <div className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all flex-shrink-0 ${formData.social_commitment ? 'bg-violet-600 border-transparent' : 'border-gray-300'}`}>
+                                {formData.social_commitment && <CheckCircle2 className="h-4 w-4 text-white" />}
+                            </div>
+                            <span className={`font-bold text-sm leading-relaxed ${formData.social_commitment ? 'text-violet-900' : ''}`}>
+                                Me comprometo a brindar un trato cordial, respetuoso y equitativo a hombres, mujeres y a la comunidad LGBTQ+, sin distinción por ideologías o creencias religiosas de mis pasajeros.
+                            </span>
+                        </button>
+                        <p className="text-xs text-gray-500 leading-relaxed px-2">
+                            Puedes marcar o no esta opción; sin embargo, al hacerlo te comprometes con la comunidad. Cualquier incumplimiento de esta verificación podrá ser considerado una falta a las normas y políticas de la comunidad.
+                        </p>
+                    </div>
+
+                    <div className="w-full h-px bg-gray-100" />
+
+                    {/* Sign Language */}
+                    <div className="flex flex-col gap-4">
+                        <p className="text-sm font-bold text-[#0F2137]">¿Conoces el lenguaje de señas para comunicarte con personas con discapacidad auditiva?</p>
+                        <button
+                            onClick={() => setFormData({ ...formData, knows_sign_language: !formData.knows_sign_language })}
+                            className={`flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all text-left w-full sm:w-fit ${formData.knows_sign_language
+                                ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-sm'
+                                : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                                }`}
+                        >
+                            <div className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${formData.knows_sign_language ? 'bg-blue-600 border-transparent' : 'border-gray-300'}`}>
+                                {formData.knows_sign_language && <CheckCircle2 className="h-4 w-4 text-white" />}
+                            </div>
+                            <span className={`font-bold text-sm ${formData.knows_sign_language ? 'text-blue-900' : ''}`}>Sí, domino el lenguaje de señas (LSM)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             {/* Platforms */}
             <div className="space-y-6 bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-soft">
                 <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
@@ -120,7 +166,7 @@ export default function ServicesSection({ services, onSave, saving }: any) {
                                 key={platform}
                                 onClick={() => toggleItem('transport_platforms', platform)}
                                 className={`px-6 py-3 rounded-xl text-sm font-bold transition-all ${formData.transport_platforms.includes(platform)
-                                    ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
+                                    ? 'bg-gray-700 text-white shadow-lg shadow-gray-700/20'
                                     : 'bg-gray-50 border border-gray-200 text-gray-500 hover:bg-gray-100'
                                     }`}
                             >
@@ -144,7 +190,7 @@ export default function ServicesSection({ services, onSave, saving }: any) {
                                     key={zone}
                                     onClick={() => toggleItem('preferred_zones', zone)}
                                     className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${formData.preferred_zones.includes(zone)
-                                        ? 'bg-blue-600 text-white border-transparent shadow-md shadow-blue-600/20'
+                                        ? 'bg-amber-800 text-white border-transparent shadow-md shadow-amber-800/20'
                                         : 'bg-white border border-gray-200 text-gray-500 hover:bg-gray-50'
                                         }`}
                                 >
@@ -192,45 +238,7 @@ export default function ServicesSection({ services, onSave, saving }: any) {
                         </div>
                     </div>
 
-                    {/* Sign Language Question */}
-                    <div className="pt-6 border-t border-gray-100 space-y-6">
-                        <div className="flex flex-col gap-4">
-                            <p className="text-sm font-bold text-[#0F2137]">¿Conoces el lenguaje de señas para comunicarte con personas con discapacidad auditiva?</p>
-                            <button
-                                onClick={() => setFormData({ ...formData, knows_sign_language: !formData.knows_sign_language })}
-                                className={`flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all text-left w-full sm:w-fit ${formData.knows_sign_language
-                                    ? 'bg-blue-50 border-blue-200 text-blue-700 shadow-sm'
-                                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-                                    }`}
-                            >
-                                <div className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${formData.knows_sign_language ? 'bg-blue-600 border-transparent' : 'border-gray-300'}`}>
-                                    {formData.knows_sign_language && <CheckCircle2 className="h-4 w-4 text-white" />}
-                                </div>
-                                <span className={`font-bold text-sm ${formData.knows_sign_language ? 'text-blue-900' : ''}`}>Sí, domino el lenguaje de señas (LSM)</span>
-                            </button>
-                        </div>
 
-                        <div className="flex flex-col gap-4">
-                            <p className="text-sm font-bold text-[#0F2137]">Compromiso de Trato Igualitario</p>
-                            <button
-                                onClick={() => setFormData({ ...formData, social_commitment: !formData.social_commitment })}
-                                className={`flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all text-left w-full ${formData.social_commitment
-                                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700 shadow-sm'
-                                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
-                                    }`}
-                            >
-                                <div className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all flex-shrink-0 ${formData.social_commitment ? 'bg-emerald-600 border-transparent' : 'border-gray-300'}`}>
-                                    {formData.social_commitment && <CheckCircle2 className="h-4 w-4 text-white" />}
-                                </div>
-                                <span className={`font-bold text-sm leading-relaxed ${formData.social_commitment ? 'text-emerald-900' : ''}`}>
-                                    Me comprometo a brindar un trato cordial, respetuoso y equitativo a hombres, mujeres y a la comunidad LGBTQ+, sin distinción por ideologías o creencias religiosas de mis pasajeros.
-                                </span>
-                            </button>
-                            <p className="text-xs text-gray-500 leading-relaxed px-2">
-                                Puedes marcar o no esta opción; sin embargo, al hacerlo te comprometes con la comunidad. Cualquier incumplimiento de esta verificación podrá ser considerado una falta a las normas y políticas de la comunidad.
-                            </p>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Schedule */}
