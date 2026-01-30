@@ -157,10 +157,10 @@ export default function DriverBrowser() {
             <Header />
 
             {/* Hero Section */}
-            <div className="pt-32 pb-12 px-4 sm:px-6 lg:px-8 relative z-20">
+            <div className="pt-20 pb-12 px-4 sm:px-6 lg:px-8 relative z-20">
                 <div className="max-w-4xl mx-auto text-center mb-10">
                     <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-aviva-navy mb-6 drop-shadow-sm font-display">
-                        Tu chofer de <span className="text-aviva-primary inline-block">confianza</span>,<br className="hidden md:block" /> a un clic.
+                        Tu conductor de <span className="text-aviva-primary inline-block">confianza</span>,<br className="hidden md:block" /> a un clic.
                     </h1>
                     <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
                         Conecta con conductores profesionales verificados. Seguridad, privacidad y el mejor servicio para ti y tu familia.
