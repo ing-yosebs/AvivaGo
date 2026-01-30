@@ -40,7 +40,7 @@ export default function WelcomeVideo() {
                     >
                         <iframe
                             className="absolute inset-0 w-full h-full"
-                            src="https://www.youtube.com/embed/xbOh0GhCZ5M"
+                            src="https://www.youtube.com/embed/bLk0FTjRMms"
                             title="AvivaGo Welcome Video"
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
