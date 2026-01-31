@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Header from './Header';
 import DriverCard from './DriverCard';
 import TrustFooter from '@/app/components/marketing/v1/TrustFooter';
+import ValidatedUserCounter from '@/app/components/marketing/ValidatedUserCounter';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, Search, Filter } from 'lucide-react';
 
@@ -166,6 +167,7 @@ export default function DriverBrowser() {
                     <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
                         Conecta con conductores profesionales verificados. Seguridad, privacidad y el mejor servicio para ti y tu familia.
                     </p>
+                    <ValidatedUserCounter />
                 </div>
 
                 <div className="max-w-4xl mx-auto">
