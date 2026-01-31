@@ -1,7 +1,7 @@
 PROGRAMA DE AFILIADOS AVIVAGO
 “RED DE CERTEZA” – PROGRAMA DE EMBAJADORES
 Proyecto: AvivaGo – Plataforma de Movilidad con Certeza
-Estatus: Versión Final para Implementación
+Estatus: Implementado
 Responsables: Dirección General / COO / CTO
 ________________________________________
 1. OBJETIVO DEL PROGRAMA
