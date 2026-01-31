@@ -346,7 +346,7 @@ export default function AffiliateProgramPage() {
                                 <h3 className="font-bold text-blue-900 mb-1">Link de Afiliado</h3>
                                 <p className="text-blue-700 text-sm mb-3">Comparte en WhatsApp, Grupos de Facebook y Redes Sociales.</p>
                                 <div className="bg-white/50 p-3 rounded-lg text-sm text-blue-800 font-mono break-all border border-blue-100">
-                                    avivago.com/registro?ref=TU_CODIGO
+                                    avivago.mx/registro?ref=TU_CODIGO
                                 </div>
                             </div>
                         </div>

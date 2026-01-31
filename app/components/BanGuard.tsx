@@ -46,7 +46,7 @@ export default function BanGuard({ isBanned }: { isBanned: boolean }) {
 
                 <div className="flex items-center gap-3">
                     <a
-                        href="mailto:soporte@avivago.com"
+                        href="mailto:soporte@avivago.mx"
                         className="text-xs font-bold bg-white text-red-600 px-4 py-2 rounded-full whitespace-nowrap hover:bg-white/90 transition-colors"
                     >
                         Contactar Soporte

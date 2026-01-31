@@ -27,7 +27,7 @@ export default function SuspendedPage() {
                     </div>
 
                     <a
-                        href="mailto:soporte@avivago.com?subject=Apelación de Suspensión"
+                        href="mailto:soporte@avivago.mx?subject=Apelación de Suspensión"
                         className="block w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-zinc-200 transition-colors"
                     >
                         Contactar Soporte
