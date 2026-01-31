@@ -8,6 +8,7 @@ import DriverMarketingKit from '@/app/components/marketing/DriverMarketingKit'
 export default function WalletPage() {
     const [balance, setBalance] = useState({ available: 0, pending: 0 })
     const [transactions, setTransactions] = useState<any[]>([])
+    const [referrals, setReferrals] = useState<any[]>([])
     const [profile, setProfile] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [copiedCode, setCopiedCode] = useState(false)
@@ -19,6 +20,9 @@ export default function WalletPage() {
         const fetchData = async () => {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) return
+
+            // 0. Refresh pending funds (Liberar fondos vencidos automáticamente)
+            await supabase.rpc('release_pending_wallet_funds')
 
             // 1. Get Wallet
             const { data: wallet } = await supabase
@@ -45,7 +49,46 @@ export default function WalletPage() {
                 setTransactions(txs || [])
             }
 
-            // 3. Get Driver Profile (for Level and Referral Code)
+            // 3. Get Referrals List
+            const { data: refs } = await supabase
+                .from('users')
+                .select(`
+                    id,
+                    full_name,
+                    email,
+                    avatar_url,
+                    created_at,
+                    roles,
+                    driver_profiles (
+                        id,
+                        profile_photo_url,
+                        driver_memberships (
+                            status,
+                            origin
+                        )
+                    )
+                `)
+                .eq('referred_by', user.id)
+                .order('created_at', { ascending: false })
+
+            // Process referrals to flatten status
+            const processedRefs = (refs || []).map(ref => {
+                const driverProfile = ref.driver_profiles?.[0]
+                const isDriver = ref.roles?.includes('driver')
+                const hasPaid = driverProfile?.driver_memberships?.some(
+                    (m: any) => m.status === 'active' && m.origin === 'paid'
+                )
+
+                return {
+                    ...ref,
+                    isDriver,
+                    hasPaid,
+                    display_avatar: driverProfile?.profile_photo_url || ref.avatar_url
+                }
+            })
+            setReferrals(processedRefs)
+
+            // 4. Get Driver Profile (for Level and Referral Code)
             const { data: userData } = await supabase
                 .from('users')
                 .select('full_name, avatar_url, referral_code, passenger_credits')
@@ -54,7 +97,7 @@ export default function WalletPage() {
 
             const { data: driverData } = await supabase
                 .from('driver_profiles')
-                .select('id, affiliate_level, referral_count, b2c_referral_count, profile_photo_url')
+                .select('id, affiliate_level, referral_count, referral_count_pending, b2c_referral_count, profile_photo_url')
                 .eq('user_id', user.id)
                 .single()
 
@@ -146,8 +189,12 @@ export default function WalletPage() {
                     </div>
                     <div className="h-8 w-[1px] bg-gray-100" />
                     <div className="px-4 py-2">
-                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Referidos B2B</p>
-                        <p className="font-black text-[#0F2137]">{profile?.referral_count || 0}</p>
+                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Resumen Red</p>
+                        <p className="font-black text-[#0F2137] flex items-center gap-2">
+                            <span title="Conductores Activos">{profile?.referral_count || 0} A</span>
+                            <span className="text-gray-300">/</span>
+                            <span className="text-amber-500" title="Conductores Pendientes">{profile?.referral_count_pending || 0} P</span>
+                        </p>
                     </div>
                 </div>
             </header>
@@ -215,8 +262,16 @@ export default function WalletPage() {
                                 </span>
                             </div>
 
-                            <h3 className={`text-2xl font-black ${levelData.color} mb-1`}>Nivel {levelData.label}</h3>
-                            <p className="text-gray-500 text-sm font-medium">Bono: <span className="text-[#0F2137]">${levelData.commission} MXN</span> por activación</p>
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className={`text-2xl font-black ${levelData.color} mb-1`}>Nivel {levelData.label}</h3>
+                                    <p className="text-gray-500 text-sm font-medium">Bono: <span className="text-[#0F2137]">${levelData.commission} MXN</span></p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-3xl font-black text-[#0F2137]">{profile?.referral_count || 0}</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Activos</p>
+                                </div>
+                            </div>
 
                             <div className="mt-8 space-y-3">
                                 <div className="flex justify-between items-end">
@@ -236,11 +291,27 @@ export default function WalletPage() {
                             </div>
                         </div>
 
-                        <p className="mt-6 text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-relaxed">
-                            {levelData.nextLevel
-                                ? `Te faltan ${levelData.target - (profile?.referral_count || 0)} conductores para llegar a nivel ${levelData.nextLevel}`
-                                : '¡Eres un embajador Oro! Disfrutas de las máximas comisiones.'}
-                        </p>
+                        <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center">
+                            <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl shadow-sm border border-amber-100 hover:border-amber-300 transition-colors group/p">
+                                <div className="p-2 bg-amber-50 rounded-lg group-hover/p:scale-110 transition-transform">
+                                    <Clock className="h-4 w-4 text-amber-500" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xl font-black text-[#0F2137] leading-none">
+                                        {profile?.referral_count_pending || 0}
+                                    </span>
+                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em]">
+                                        Pendientes de Pago
+                                    </span>
+                                </div>
+                            </div>
+
+                            <p className="mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-relaxed text-center">
+                                {levelData.nextLevel
+                                    ? `Te faltan ${levelData.target - (profile?.referral_count || 0)} activos para nivel ${levelData.nextLevel}`
+                                    : '¡Embajador Oro! Máxima comisión activa.'}
+                            </p>
+                        </div>
                     </div>
 
                     {/* B2C Referrals (Pasajeros) */}
@@ -257,12 +328,11 @@ export default function WalletPage() {
 
                             <h3 className="text-2xl font-black text-[#0F2137] mb-1">Pasajeros Recomendados</h3>
                             <p className="text-gray-500 text-sm font-medium">
-                                Gana <span className="text-indigo-600">$200 MXN</span> por cada 20 registros
+                                Gana <span className="text-indigo-600">$200 MXN</span> por cada 20
                             </p>
 
                             <div className="mt-8 space-y-3">
                                 <div className="flex justify-between items-end">
-                                    <span className="text-xs font-bold uppercase tracking-widest text-indigo-400">Próxima Recompensa</span>
                                     <span className="text-xs font-black text-[#0F2137]">{b2cCount % 20} / 20</span>
                                 </div>
                                 <div className="h-3 bg-white rounded-full overflow-hidden border border-indigo-100 p-0.5">
@@ -274,9 +344,20 @@ export default function WalletPage() {
                             </div>
                         </div>
 
-                        <div className="mt-6 flex items-center gap-3 p-3 bg-white rounded-2xl border border-indigo-100 shadow-sm">
-                            <TrendingUp className="h-4 w-4 text-indigo-500" />
-                            <p className="text-xs text-indigo-600 font-bold">Total: {b2cCount} pasajeros registrados</p>
+                        <div className="mt-8 pt-6 border-t border-indigo-100 flex flex-col items-center">
+                            <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl shadow-sm border border-indigo-100">
+                                <div className="p-2 bg-indigo-50 rounded-lg">
+                                    <TrendingUp className="h-4 w-4 text-indigo-500" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-xl font-black text-indigo-600 leading-none">
+                                        {b2cCount}
+                                    </span>
+                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em]">
+                                        Pasajeros Registrados
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -345,6 +426,75 @@ export default function WalletPage() {
                             />
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Referrals Directory Section */}
+            <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-soft">
+                <div className="p-8 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h3 className="text-xl font-black text-[#0F2137]">Mi Red de Referidos</h3>
+                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Seguimiento de registros directos</p>
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-2xl border border-blue-100">
+                        <Users className="h-5 w-5 text-blue-500" />
+                    </div>
+                </div>
+
+                <div className="p-4 md:p-8">
+                    {referrals.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {referrals.map(ref => (
+                                <div key={ref.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-3xl border border-gray-100 hover:border-blue-200 hover:bg-white transition-all group">
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative">
+                                            <img
+                                                src={ref.display_avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(ref.full_name)}&background=random`}
+                                                alt={ref.full_name}
+                                                className="w-12 h-12 rounded-2xl object-cover shadow-sm ring-2 ring-white"
+                                            />
+                                            <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${ref.isDriver ? 'bg-purple-500' : 'bg-blue-500'}`} title={ref.isDriver ? 'Conductor' : 'Pasajero'} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-[#0F2137] group-hover:text-blue-600 transition-colors uppercase text-sm tracking-tight">{ref.full_name}</h4>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <span className="text-[10px] font-black uppercase text-gray-400">
+                                                    {ref.isDriver ? 'Conductor' : 'Pasajero'}
+                                                </span>
+                                                <div className="w-1 h-1 rounded-full bg-gray-300" />
+                                                <span className="text-[10px] text-gray-400 font-medium">
+                                                    {new Date(ref.created_at).toLocaleDateString()}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="text-right">
+                                        {ref.isDriver ? (
+                                            <div className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${ref.hasPaid
+                                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                : 'bg-amber-50 text-amber-600 border-amber-100'
+                                                }`}>
+                                                {ref.hasPaid ? 'Activo (Pagado)' : 'Pendiente Pago'}
+                                            </div>
+                                        ) : (
+                                            <div className="px-3 py-1.5 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-black uppercase tracking-widest">
+                                                Completado
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-20">
+                            <div className="h-20 w-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-gray-100">
+                                <Users className="h-10 w-10 text-gray-300" />
+                            </div>
+                            <h4 className="text-[#0F2137] font-black uppercase tracking-widest">Aún no tienes referidos</h4>
+                            <p className="text-gray-500 text-sm mt-2">Comparte tu código para empezar a construir tu red.</p>
+                        </div>
+                    )}
                 </div>
             </div>
 

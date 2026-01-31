@@ -1,0 +1,6 @@
+# AvivaGo Project Rules
+
+- Siempre responder en español.
+- Ser muy conciso en las explicaciones.
+- Análisis antes de actuar: Antes de realizar cambios, analizar el impacto, el código existente y consultar siempre la documentación en la carpeta `/docs` para asegurar la alineación con las reglas de negocio y diseño.
+- Mantener la consistencia con el diseño premium de AvivaGo definido en la documentación.

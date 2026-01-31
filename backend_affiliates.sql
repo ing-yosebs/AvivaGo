@@ -13,12 +13,17 @@ CREATE INDEX IF NOT EXISTS idx_users_referred_by ON users(referred_by);
 CREATE INDEX IF NOT EXISTS idx_users_referral_code ON users(referral_code);
 
 -- 2. EXTENSIÓN DE PERFIL DE CONDUCTOR (Niveles y Estadísticas)
-CREATE TYPE affiliate_level AS ENUM ('bronze', 'silver', 'gold');
+DO $$ BEGIN
+    CREATE TYPE affiliate_level AS ENUM ('bronze', 'silver', 'gold');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 ALTER TABLE driver_profiles
 ADD COLUMN IF NOT EXISTS affiliate_level affiliate_level DEFAULT 'bronze',
 ADD COLUMN IF NOT EXISTS referral_count INT DEFAULT 0, -- Cache de referidos activos (conductores)
-ADD COLUMN IF NOT EXISTS b2c_referral_count INT DEFAULT 0; -- Cache de pasajeros referidos
+ADD COLUMN IF NOT EXISTS b2c_referral_count INT DEFAULT 0, -- Cache de pasajeros referidos
+ADD COLUMN IF NOT EXISTS referral_count_pending INT DEFAULT 0; -- Conductores registrados sin pago
 
 -- 3. BILLETERA (WALLET) - Gestión Financiera
 CREATE TABLE IF NOT EXISTS wallets (
@@ -31,16 +36,24 @@ CREATE TABLE IF NOT EXISTS wallets (
 );
 
 -- 4. TRANSACCIONES DE BILLETERA
-CREATE TYPE wallet_tx_type AS ENUM (
-    'commission_activation', -- B2B: Bono por activación (Primer año)
-    'commission_renewal',    -- B2B: Comisión recurrente
-    'bonus_volume_b2c',      -- B2C: Bono por meta de 20/100 pasajeros
-    'withdrawal',            -- Retiro de fondos
-    'internal_payment',      -- Pago de servicios Aviva (Publicidad, Membresía propia)
-    'adjustment'             -- Ajuste administrativo
-);
+DO $$ BEGIN
+    CREATE TYPE wallet_tx_type AS ENUM (
+        'commission_activation', -- B2B: Bono por activación (Primer año)
+        'commission_renewal',    -- B2B: Comisión recurrente
+        'bonus_volume_b2c',      -- B2C: Bono por meta de 20/100 pasajeros
+        'withdrawal',            -- Retiro de fondos
+        'internal_payment',      -- Pago de servicios Aviva (Publicidad, Membresía propia)
+        'adjustment'             -- Ajuste administrativo
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
-CREATE TYPE wallet_tx_status AS ENUM ('pending', 'available', 'paid', 'cancelled', 'rejected');
+DO $$ BEGIN
+    CREATE TYPE wallet_tx_status AS ENUM ('pending', 'available', 'paid', 'cancelled', 'rejected');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 CREATE TABLE IF NOT EXISTS wallet_transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -62,19 +75,15 @@ CREATE INDEX IF NOT EXISTS idx_wallet_tx_status_date ON wallet_transactions(stat
 
 -- 5. LÓGICA DE NEGOCIO (FUNCTIONS & TRIGGERS)
 
--- 5.1 Generar Código de Referido Automático al crear Usuario y Asignar Referente
+-- 5.1 Generar Código de Referido Automático
 CREATE OR REPLACE FUNCTION generate_referral_code_and_attribute()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$
 DECLARE
     ref_code TEXT;
-    referrer_id UUID;
-    referrer_wallet_id UUID;
 BEGIN
-    -- A. Generar Código Único para este usuario si no tiene
     IF NEW.referral_code IS NULL THEN
-        -- Intentar generar hasta que sea único (loop simple)
         LOOP
             ref_code := UPPER(SUBSTRING(NEW.email FROM 1 FOR 3)) || '-' || UPPER(SUBSTRING(MD5(RANDOM()::TEXT) FROM 1 FOR 4));
             IF NOT EXISTS (SELECT 1 FROM users WHERE referral_code = ref_code) THEN
@@ -83,56 +92,90 @@ BEGIN
             END IF;
         END LOOP;
     END IF;
-
-    -- B. Atribución (Si viene en el insert manual, se respeta. Si no, no hacemos nada aquí porque handle_new_user lo hace al inicio)
-    -- Pero dado que users se llena via trigger handle_new_user, debemos modificar handle_new_user.
-    -- Esta función corre BEFORE INSERT on users.
-    
     RETURN NEW;
 END;
 $$;
 
-CREATE OR REPLACE TRIGGER on_user_created_gen_code
+DROP TRIGGER IF EXISTS on_user_created_gen_code ON users;
+CREATE TRIGGER on_user_created_gen_code
     BEFORE INSERT ON users
     FOR EACH ROW
     EXECUTE FUNCTION generate_referral_code_and_attribute();
 
--- OVERRIDE handle_new_user para capturar metadata
+-- Improved handle_new_user for referral attribution and counting
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 SECURITY DEFINER SET search_path = public
 AS $$
 DECLARE
+    desired_role user_role_type;
     referrer_id UUID;
     ref_code_used TEXT;
 BEGIN
-  -- Buscar si hubo código de referido en metadata
+  -- A. Determinar rol
+  BEGIN
+    desired_role := (NEW.raw_user_meta_data->>'role')::user_role_type;
+  EXCEPTION WHEN OTHERS THEN
+    desired_role := 'client';
+  END;
+
+  -- B. Atribución de Referido
   ref_code_used := NEW.raw_user_meta_data->>'referral_code';
-  
   IF ref_code_used IS NOT NULL THEN
      SELECT id INTO referrer_id FROM public.users WHERE referral_code = ref_code_used LIMIT 1;
   END IF;
 
-  INSERT INTO public.users (id, email, full_name, avatar_url, referred_by, passenger_credits)
+  -- C. Insertar Usuario
+  INSERT INTO public.users (id, email, full_name, avatar_url, roles, referred_by, passenger_credits)
   VALUES (
     NEW.id,
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', 'Sem Nombre'),
+    COALESCE(NEW.raw_user_meta_data->>'full_name', 'Sin Nombre'),
     NEW.raw_user_meta_data->>'avatar_url',
+    ARRAY[desired_role],
     referrer_id,
-    CASE WHEN referrer_id IS NOT NULL THEN 1 ELSE 0 END -- 1 Crédito GRATIS si fue referido (Bono Bienvenida)
+    CASE WHEN referrer_id IS NOT NULL THEN 1 ELSE 0 END
   );
   
-  -- Si hubo referido, dar reward al pasajero? Ya se dio el crédito arriba.
-  -- Y actualizar contador parcial del referrer (Bonus B2C) - Se hará asíncrono o con otro trigger.
-  
+  -- D. Lógica de Contadores según el Rol
+  IF referrer_id IS NOT NULL THEN
+    IF desired_role = 'client' THEN
+      UPDATE public.driver_profiles 
+      SET b2c_referral_count = b2c_referral_count + 1
+      WHERE user_id = referrer_id;
+    ELSIF desired_role = 'driver' THEN
+      UPDATE public.driver_profiles 
+      SET referral_count_pending = referral_count_pending + 1
+      WHERE user_id = referrer_id;
+    END IF;
+  END IF;
+
+  -- E. Si es Conductor, crear perfil inicial
+  IF desired_role = 'driver' THEN
+    INSERT INTO public.driver_profiles (
+        user_id, 
+        profile_photo_url, 
+        city, 
+        whatsapp_number,
+        bio,
+        status
+    )
+    VALUES (
+        NEW.id, 
+        COALESCE(NEW.raw_user_meta_data->>'avatar_url', 'https://via.placeholder.com/150'),
+        'Por Definir', 
+        '0000000000',
+        'Conductor nuevo',
+        'draft'
+    ) ON CONFLICT (user_id) DO NOTHING;
+  END IF;
+
   RETURN NEW;
 END;
 $$;
 
-
--- 5.2 Crear Billetera Automática para Conductores
+-- 5.2 Crear Billetera Automática
 CREATE OR REPLACE FUNCTION ensure_driver_wallet()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -145,7 +188,8 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE TRIGGER on_driver_profile_created_wallet
+DROP TRIGGER IF EXISTS on_driver_profile_created_wallet ON driver_profiles;
+CREATE TRIGGER on_driver_profile_created_wallet
     AFTER INSERT ON driver_profiles
     FOR EACH ROW
     EXECUTE FUNCTION ensure_driver_wallet();
@@ -162,7 +206,7 @@ DECLARE
     current_level affiliate_level;
     commission_amount DECIMAL;
 BEGIN
-    -- Solo procesar si el status cambia a 'active' Y el origen es 'paid' (o equivalente a pago real)
+    -- Solo procesar si el status cambia a 'active' Y el origen es 'paid'
     IF NEW.status = 'active' AND NEW.origin = 'paid' AND (OLD.status <> 'active' OR OLD.origin <> 'paid') THEN
         
         -- 1. Buscar quién refirió a este conductor
@@ -171,12 +215,11 @@ BEGIN
         JOIN users u ON u.id = dp.user_id
         WHERE dp.id = NEW.driver_profile_id;
         
-        -- Si no tiene referido, terminar
         IF referrer_user_id IS NULL THEN
             RETURN NEW;
         END IF;
 
-        -- 2. Obtener datos del Referente (Wallet y Perfil de Conductor)
+        -- 2. Obtener datos del Referente
         SELECT w.id, dp.id, dp.affiliate_level 
         INTO referrer_wallet_id, referrer_driver_id, current_level
         FROM users u
@@ -184,12 +227,11 @@ BEGIN
         JOIN driver_profiles dp ON dp.user_id = u.id
         WHERE u.id = referrer_user_id;
 
-        -- Si el referente no es conductor o no tiene wallet, terminar
         IF referrer_wallet_id IS NULL OR referrer_driver_id IS NULL THEN
             RETURN NEW;
         END IF;
 
-        -- 3. Calcular Monto
+        -- 3. Calcular Monto según nivel actual
         CASE current_level
             WHEN 'bronze' THEN commission_amount := 80.00;
             WHEN 'silver' THEN commission_amount := 100.00;
@@ -197,7 +239,7 @@ BEGIN
             ELSE commission_amount := 80.00;
         END CASE;
 
-        -- 4. Insertar Transacción
+        -- 4. Insertar Transacción Pendiente (15 días de validación)
         INSERT INTO wallet_transactions (
             wallet_id, amount, transaction_type, status, 
             source_reference_id, description, available_at
@@ -211,14 +253,14 @@ BEGIN
             NOW() + INTERVAL '15 days'
         );
 
-        -- 5. Actualizar Saldo
-        UPDATE wallets 
-        SET balance_pending = balance_pending + commission_amount
-        WHERE id = referrer_wallet_id;
+        -- 5. Actualizar Saldo Pendiente
+        UPDATE wallets SET balance_pending = balance_pending + commission_amount WHERE id = referrer_wallet_id;
         
-        -- 6. Actualizar Contador de Referidos
+        -- 6. MOVER DE PENDIENTE A ACTIVO
         UPDATE driver_profiles
-        SET referral_count = referral_count + 1
+        SET 
+            referral_count = referral_count + 1,
+            referral_count_pending = GREATEST(0, referral_count_pending - 1)
         WHERE id = referrer_driver_id;
         
     END IF;
@@ -226,7 +268,37 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE TRIGGER on_membership_payment_commission
+DROP TRIGGER IF EXISTS on_membership_payment_commission ON driver_memberships;
+CREATE TRIGGER on_membership_payment_commission
     AFTER UPDATE ON driver_memberships
     FOR EACH ROW
     EXECUTE FUNCTION process_b2b_commission();
+
+-- 6. FUNCIÓN PARA LIBERAR FONDOS AUTOMÁTICAMENTE
+CREATE OR REPLACE FUNCTION public.release_pending_wallet_funds()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN 
+        SELECT id, wallet_id, amount 
+        FROM public.wallet_transactions 
+        WHERE status = 'pending' 
+        AND available_at <= NOW()
+    LOOP
+        UPDATE public.wallet_transactions 
+        SET status = 'available' 
+        WHERE id = r.id;
+
+        UPDATE public.wallets 
+        SET 
+            balance_pending = balance_pending - r.amount,
+            balance_available = balance_available + r.amount,
+            updated_at = NOW()
+        WHERE id = r.wallet_id;
+    END LOOP;
+END;
+$$;
