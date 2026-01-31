@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Check, CreditCard } from 'lucide-react';
+import { Check, CreditCard, Car } from 'lucide-react';
 import AvivaLogo from '@/app/components/AvivaLogo';
 
 export default function Pricing() {
@@ -76,10 +76,14 @@ export default function Pricing() {
                         </div>
 
                         <div className="flex flex-col items-center gap-6">
+                            <span className="text-sm font-bold text-white/90 tracking-wide -mb-4">
+                                APLICA COMO CONDUCTOR
+                            </span>
                             <Link
                                 href="/register?role=driver"
-                                className="w-full bg-aviva-secondary hover:bg-aviva-secondary/90 text-white font-bold text-xl py-5 rounded-2xl transition-all shadow-lg hover:shadow-aviva-secondary/40 text-center"
+                                className="w-full bg-aviva-secondary hover:bg-aviva-secondary/90 text-white font-bold text-xl py-5 rounded-2xl transition-all shadow-lg hover:shadow-aviva-secondary/40 text-center flex items-center justify-center gap-3"
                             >
+                                <Car size={24} />
                                 Regístrate Gratis
                             </Link>
                             <p className="text-blue-200 text-sm font-medium">

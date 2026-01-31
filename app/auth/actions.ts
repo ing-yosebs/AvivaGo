@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendWelcomeEmail } from '@/lib/email'
+import { LEGAL_VERSIONS } from '@/lib/config/legal'
 import { z } from 'zod'
 
 const signUpSchema = z.object({
@@ -48,7 +49,7 @@ export async function signUp(formData: FormData) {
 
     const supabase = await createClient()
 
-    const { error } = await supabase.auth.signUp({
+    const { data: authData, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -68,6 +69,21 @@ export async function signUp(formData: FormData) {
 
     // Send a separate welcome email (optional, but requested)
     await sendWelcomeEmail(email, fullName)
+
+    // Audit Consent (Critical for Legal)
+    if (authData.user) {
+        // We use supabaseAdmin to bypass RLS since the user might not be fully logged in/verified yet
+        // or simply because it's a system record
+        await supabaseAdmin.from('user_consents').insert({
+            user_id: authData.user.id,
+            privacy_notice_version: LEGAL_VERSIONS.PRIVACY_NOTICE,
+            terms_version: LEGAL_VERSIONS.TERMS_AND_CONDITIONS,
+            acceptance_method: 'checkbox_web_register',
+            consent_text: LEGAL_VERSIONS.CONSENT_TEXT_REGISTER,
+            user_agent: (await headers()).get('user-agent') || 'unknown',
+            ip_address: (await headers()).get('x-forwarded-for') || 'unknown'
+        })
+    }
 
     return {
         success: true,

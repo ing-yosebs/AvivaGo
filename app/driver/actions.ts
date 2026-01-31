@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { logDriverAction } from '@/lib/logger'
@@ -153,5 +155,37 @@ export async function requestReview(driverProfileId: string, reason?: string) {
     } catch (err: any) {
         console.error('Request review error:', err)
         return { error: err.message || 'Error al solicitar revisión' }
+    }
+}
+
+export async function recordPaymentConsent(consentText: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: 'Unauthorized' }
+    }
+
+    try {
+        const supabaseAdmin = createAdminClient()
+        const headersList = await headers()
+        const ip = headersList.get('x-forwarded-for') || 'unknown'
+        const userAgent = headersList.get('user-agent') || 'unknown'
+
+        await supabaseAdmin.from('user_consents').insert({
+            user_id: user.id,
+            privacy_notice_version: 'payment_flow_v1',
+            terms_version: 'payment_flow_v1',
+            acceptance_method: 'checkbox_web_payment_flow',
+            consent_text: consentText,
+            user_agent: userAgent,
+            ip_address: ip
+        })
+
+        return { success: true }
+    } catch (err: any) {
+        console.error('Consent recording error:', err)
+        // Non-blocking error for payment flow, but logged
+        return { error: err.message }
     }
 }

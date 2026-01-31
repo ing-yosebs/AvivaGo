@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
 import { useSearchParams, useRouter } from 'next/navigation'
 import ReviewModal from '../../../components/ReviewModal'
-import { requestReview } from '@/app/driver/actions'
+import { requestReview, recordPaymentConsent } from '@/app/driver/actions'
 
 interface PaymentsSectionProps {
     isDriver: boolean
@@ -26,6 +26,7 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
     const [loading, setLoading] = useState(true)
     const [reviewModal, setReviewModal] = useState<{ open: boolean, driverId: string, driverName: string } | null>(null)
     const [purchasing, setPurchasing] = useState(false)
+    const [paymentConsent, setPaymentConsent] = useState(false)
 
     // Appeal Modal State
     const [appealModalOpen, setAppealModalOpen] = useState(false)
@@ -140,6 +141,8 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
     const handlePurchase = async () => {
         setPurchasing(true)
         try {
+            await recordPaymentConsent('Autorizo a que se me dirija a Stripe para realizar el pago correspondiente.')
+
             const response = await fetch('/api/checkout', {
                 method: 'POST',
             })
@@ -505,11 +508,29 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                             <div className="text-5xl font-black text-[#0F2137]">$524 <span className="text-sm font-medium text-gray-500 tracking-normal">MXN</span></div>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="space-y-6 max-w-md mx-auto">
+                            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 text-left hover:bg-white hover:shadow-sm transition-all cursor-pointer" onClick={() => setPaymentConsent(!paymentConsent)}>
+                                <div className="relative flex items-center pt-0.5">
+                                    <input
+                                        type="checkbox"
+                                        id="payment-consent"
+                                        checked={paymentConsent}
+                                        onChange={(e) => setPaymentConsent(e.target.checked)}
+                                        className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 transition-all checked:border-indigo-600 checked:bg-indigo-600 hover:border-indigo-400"
+                                    />
+                                    <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100">
+                                        <CheckCircle className="h-3.5 w-3.5" />
+                                    </div>
+                                </div>
+                                <label htmlFor="payment-consent" className="text-sm text-gray-600 cursor-pointer select-none leading-tight">
+                                    Autorizo a que se me dirija a Stripe para realizar el pago correspondiente.
+                                </label>
+                            </div>
+
                             <button
                                 onClick={handlePurchase}
-                                disabled={purchasing}
-                                className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 px-16 rounded-[2rem] transition-all shadow-[0_20px_40px_-15px_rgba(79,70,229,0.3)] flex items-center justify-center gap-3 mx-auto disabled:opacity-50 active:scale-[0.98] group"
+                                disabled={purchasing || !paymentConsent}
+                                className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 px-16 rounded-[2rem] transition-all shadow-[0_20px_40px_-15px_rgba(79,70,229,0.3)] flex items-center justify-center gap-3 mx-auto disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] group"
                             >
                                 {purchasing ? (
                                     <>
@@ -518,14 +539,20 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
                                     </>
                                 ) : (
                                     <>
-                                        <CheckCircle className="h-6 w-6 group-hover:rotate-12 transition-transform" />
-                                        Comenzar Activación Ahora
+                                        <CreditCard className="h-6 w-6 group-hover:rotate-12 transition-transform" />
+                                        Pagar Membresía Ahora
                                     </>
                                 )}
                             </button>
-                            <div className="flex items-center justify-center gap-2 opacity-40">
-                                <Shield className="h-3 w-3" />
-                                <p className="text-[10px] text-white uppercase font-bold tracking-[0.1em]">Transacción Protegida por AvivaGo Secure</p>
+
+                            <div className="flex flex-col items-center justify-center gap-2 text-center pt-2">
+                                <div className="flex items-center gap-1.5 text-gray-400 opacity-80">
+                                    <Shield className="h-3.5 w-3.5" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">Pago Seguro</span>
+                                </div>
+                                <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
+                                    El pago se procesará de forma segura a través de Stripe. AvivaGo no almacena información financiera sensible.
+                                </p>
                             </div>
                         </div>
                     </div>

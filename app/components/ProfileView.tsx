@@ -74,6 +74,7 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [showShareFeedback, setShowShareFeedback] = useState(false);
     const [isUnlocking, setIsUnlocking] = useState(false);
+    const [hasConsented, setHasConsented] = useState(false);
     const hasViewedRef = useState(false);
 
     useEffect(() => {
@@ -327,10 +328,29 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                             <p className="text-[10px] text-center text-gray-400 uppercase font-bold">Sin cargos adicionales por contacto directo</p>
                                         </div>
                                     ) : (
-                                        <div className="space-y-4">
+                                        <div className="space-y-4 animate-in fade-in zoom-in duration-500">
                                             <div className="p-6 bg-white border border-blue-100 rounded-3xl text-center shadow-soft ring-4 ring-blue-50/50">
                                                 <p className="text-aviva-subtext text-xs font-bold uppercase tracking-wider mb-2">Costo para contactar</p>
-                                                <h4 className="text-4xl font-extrabold text-aviva-navy mb-6 font-display">$18.00 <span className="text-sm font-medium text-gray-400">MXN</span></h4>
+                                                <h4 className="text-4xl font-extrabold text-aviva-navy mb-2 font-display">$18.00 <span className="text-sm font-medium text-gray-400">MXN</span></h4>
+                                                <p className="mb-6 text-[10px] text-gray-500 leading-tight">
+                                                    Este pago corresponde al uso de la plataforma para obtener los datos de contacto del conductor y no forma parte del pago por el servicio de transporte. Te invitamos a revisar los <Link href="/legales/terminos-y-condiciones" className="text-aviva-primary hover:underline font-semibold">Términos y Condiciones</Link> de AvivaGo.
+                                                </p>
+
+                                                {/* Consent Checkbox */}
+                                                <div className="flex items-start gap-3 mb-4 text-left p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                    <div className="flex items-center h-5">
+                                                        <input
+                                                            id="stripe-consent"
+                                                            type="checkbox"
+                                                            checked={hasConsented}
+                                                            onChange={(e) => setHasConsented(e.target.checked)}
+                                                            className="w-4 h-4 text-aviva-primary border-gray-300 rounded focus:ring-aviva-primary"
+                                                        />
+                                                    </div>
+                                                    <label htmlFor="stripe-consent" className="text-xs text-gray-600 font-medium cursor-pointer select-none">
+                                                        Autorizo que se me redirija a Stripe para realizar el pago correspondiente.
+                                                    </label>
+                                                </div>
 
                                                 <button
                                                     onClick={async () => {
@@ -381,7 +401,7 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                                             setIsUnlocking(false);
                                                         }
                                                     }}
-                                                    disabled={isUnlocking}
+                                                    disabled={isUnlocking || !hasConsented}
                                                     className="w-full flex items-center justify-center gap-3 bg-aviva-primary text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 group active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
                                                 >
                                                     {isUnlocking ? (
@@ -391,11 +411,16 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                                         </div>
                                                     ) : (
                                                         <>
-                                                            <Lock className="h-4 w-4 group-hover:rotate-12 transition-transform" />
-                                                            Contactar ahora
+                                                            <CreditCard className="h-5 w-5 group-hover:rotate-6 transition-transform" />
+                                                            Pagar ahora
                                                         </>
                                                     )}
                                                 </button>
+
+                                                {/* Security Disclaimer */}
+                                                <p className="mt-4 text-[10px] text-gray-400 leading-tight">
+                                                    El pago se procesará de forma segura a través de Stripe. AvivaGo no almacena información financiera sensible.
+                                                </p>
                                             </div>
                                             <div className="flex items-center justify-center gap-2 text-gray-400">
                                                 <ShieldCheck className="h-4 w-4 text-green-500" />

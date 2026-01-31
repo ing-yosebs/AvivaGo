@@ -16,7 +16,8 @@ import {
     CreditCard,
     Lock,
     Briefcase,
-    LayoutDashboard
+    LayoutDashboard,
+    FileText
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -70,6 +71,7 @@ export default function DashboardSidebar() {
         { icon: Lock, label: 'Seguridad', href: '/perfil?tab=security' },
         { icon: Users, label: 'Comunidad', href: '/comunidad' },
         { icon: Heart, label: 'Mis Favoritos', href: '/favoritos' },
+        { icon: FileText, label: 'Información Legal AvivaGo', href: '/legales' },
     ]
 
     const handleLogout = async () => {

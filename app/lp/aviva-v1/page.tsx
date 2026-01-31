@@ -6,6 +6,7 @@ import BookingDemo from '@/app/components/marketing/v1/BookingDemo';
 import CaseStudy from '@/app/components/marketing/v1/CaseStudy';
 import Pricing from '@/app/components/marketing/v1/Pricing';
 import TrustFooter from '@/app/components/marketing/v1/TrustFooter';
+import PassengerCTA from '@/app/components/marketing/v1/PassengerCTA';
 
 export default function LandingPage() {
     return (
@@ -16,6 +17,7 @@ export default function LandingPage() {
             <BookingDemo />
             <CaseStudy />
             <Pricing />
+            <PassengerCTA />
         </main>
     );
 }

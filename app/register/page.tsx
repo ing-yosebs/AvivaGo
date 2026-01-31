@@ -19,8 +19,11 @@ function RegisterForm() {
 
     const searchParams = useSearchParams()
     const forcedRole = searchParams.get('role') === 'driver'
+    const forcedPassenger = searchParams.get('role') === 'passenger'
+    const isRoleForced = forcedRole || forcedPassenger
     const [invitationCode, setInvitationCode] = useState('')
     const [referralName, setReferralName] = useState<string | null>(null)
+    const [termsAccepted, setTermsAccepted] = useState(false)
 
     // Pre-fill invitation code from URL
     useEffect(() => {
@@ -31,8 +34,10 @@ function RegisterForm() {
     }, [searchParams])
 
     // Force driver mode if specified in URL
+    // Force role mode if specified in URL
     useState(() => {
         if (forcedRole) setIsDriver(true)
+        if (forcedPassenger) setIsDriver(false)
     })
 
     async function handleSubmit(formData: FormData) {
@@ -159,7 +164,7 @@ function RegisterForm() {
                     </p>
                 </div>
 
-                {!forcedRole && (
+                {!isRoleForced && (
                     <div className="flex bg-white/5 p-1 rounded-xl mb-8 relative border border-white/5">
                         <div
                             className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-lg transition-all duration-300 ease-spring ${isDriver
@@ -267,17 +272,39 @@ function RegisterForm() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 px-1">
-                        <input
-                            type="checkbox"
-                            name="terms"
-                            id="terms"
-                            required
-                            className="w-4 h-4 rounded border-white/10 bg-black/20 text-purple-600 focus:ring-purple-500/50 focus:ring-offset-0"
-                        />
-                        <label htmlFor="terms" className="text-sm text-zinc-400 select-none cursor-pointer">
-                            Acepto los <Link href="/terms" className="text-white hover:underline">términos y condiciones</Link>
-                        </label>
+                    <div className="space-y-2 px-1">
+                        <div className="flex items-start gap-2">
+                            <input
+                                type="checkbox"
+                                name="terms"
+                                id="terms"
+                                required
+                                checked={termsAccepted}
+                                onChange={(e) => setTermsAccepted(e.target.checked)}
+                                className="mt-1 w-4 h-4 rounded border-white/10 bg-black/20 text-purple-600 focus:ring-purple-500/50 focus:ring-offset-0"
+                            />
+                            <div className="flex flex-col">
+                                <label htmlFor="terms" className="text-sm text-zinc-400 select-none cursor-pointer leading-tight">
+                                    He leído y acepto los <Link href="/legales/terminos-y-condiciones" className="text-white hover:underline">Términos y Condiciones</Link> y el <Link href="/legales/aviso-de-privacidad" className="text-white hover:underline">Aviso de Privacidad</Link> de AvivaGo.
+                                </label>
+                                <div className="flex gap-3 mt-1">
+                                    <Link
+                                        href="/legales/aviso-de-privacidad"
+                                        target="_blank"
+                                        className="text-xs text-purple-400 hover:text-purple-300 hover:underline"
+                                    >
+                                        Aviso de Privacidad Integral
+                                    </Link>
+                                    <Link
+                                        href="/legales/terminos-y-condiciones"
+                                        target="_blank"
+                                        className="text-xs text-purple-400 hover:text-purple-300 hover:underline"
+                                    >
+                                        Términos y Condiciones
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {error && (
@@ -295,7 +322,7 @@ function RegisterForm() {
 
                     <button
                         type="submit"
-                        disabled={pending}
+                        disabled={pending || !termsAccepted}
                         className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
                     >
                         {pending && <Loader2 className="h-4 w-4 animate-spin" />}

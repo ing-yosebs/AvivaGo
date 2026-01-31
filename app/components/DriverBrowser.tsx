@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Header from './Header';
 import DriverCard from './DriverCard';
+import TrustFooter from '@/app/components/marketing/v1/TrustFooter';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, Search, Filter } from 'lucide-react';
 
@@ -276,6 +277,7 @@ export default function DriverBrowser() {
                     )}
                 </div>
             </main>
+            <TrustFooter />
         </div>
     );
 }

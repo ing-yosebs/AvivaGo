@@ -19,6 +19,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toggleLike } from '@/app/actions/reviews'
 import ReviewThread from '../../components/ReviewThread'
+import TrustFooter from '@/app/components/marketing/v1/TrustFooter'
 
 export default function CommunityPage() {
     const [posts, setPosts] = useState<any[]>([])
@@ -456,6 +457,7 @@ export default function CommunityPage() {
                     </div>
                 </div>
             </div>
+            <TrustFooter />
         </div>
     )
 }
