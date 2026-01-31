@@ -7,9 +7,9 @@ export default function ComoFuncionaPage() {
     const [activeTab, setActiveTab] = useState<'passenger' | 'driver'>('passenger');
 
     return (
-        <div className="space-y-12">
+        <div className="space-y-8 md:space-y-12">
             <div className="text-center space-y-4">
-                <h1 className="text-3xl font-bold text-[#0F2137]">¿Cómo funciona AvivaGo?</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-[#0F2137]">¿Cómo funciona AvivaGo?</h1>
                 <p className="text-gray-600 max-w-2xl mx-auto">
                     Somos la primera comunidad de confianza que conecta a pasajeros con conductores privados de forma directa, sin intermediarios y sin comisiones por viaje.
                 </p>
@@ -37,7 +37,7 @@ export default function ComoFuncionaPage() {
             </div>
 
             {/* Steps Section */}
-            <div className={`grid gap-8 relative grid-cols-1 md:grid-cols-2 lg:grid-cols-4`}>
+            <div className={`grid gap-4 md:gap-8 relative grid-cols-1 md:grid-cols-2 lg:grid-cols-4`}>
                 {/* Connecting Line (Desktop) - Only show for passenger view where layout is predictable */}
 
 
@@ -91,8 +91,8 @@ export default function ComoFuncionaPage() {
             </div>
 
             {/* Benefits Grid */}
-            <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
-                <h2 className="text-2xl font-bold text-[#0F2137] mb-8 text-center">
+            <div className="bg-gray-50 rounded-2xl p-5 md:p-8 border border-gray-100">
+                <h2 className="text-xl md:text-2xl font-bold text-[#0F2137] mb-6 md:mb-8 text-center">
                     {activeTab === 'passenger' ? 'Beneficios para Pasajeros' : 'Beneficios para Conductores'}
                 </h2>
 
@@ -120,7 +120,7 @@ export default function ComoFuncionaPage() {
 
 function StepCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
     return (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center transition-transform hover:-translate-y-1 duration-300">
+        <div className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center transition-transform hover:-translate-y-1 duration-300">
             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 shadow-sm">
                 {icon}
             </div>

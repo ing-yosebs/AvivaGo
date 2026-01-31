@@ -3,18 +3,18 @@ import { Coffee, Shield, PiggyBank, Users, CheckCircle2 } from 'lucide-react';
 
 export default function PreciosPage() {
     return (
-        <div className="space-y-12">
+        <div className="space-y-8 md:space-y-12">
             <div className="text-center space-y-4">
-                <h1 className="text-3xl font-bold text-[#0F2137]">Precios Justos y Transparentes</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-[#0F2137]">Precios Justos y Transparentes</h1>
                 <p className="text-gray-600 max-w-2xl mx-auto text-lg">
                     Sin algoritmos ocultos. Sin tarifas dinámicas. Solo una contribución justa para mantener nuestra comunidad segura y funcional.
                 </p>
             </div>
 
             {/* Pricing Logic Section */}
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid md:grid-cols-2 gap-4 md:gap-8">
                 {/* Conductor Card */}
-                <div className="relative overflow-hidden bg-gradient-to-br from-[#0F2137] to-[#1a2f4d] rounded-2xl shadow-xl text-white p-8 group transition-all hover:shadow-2xl">
+                <div className="relative overflow-hidden bg-gradient-to-br from-[#0F2137] to-[#1a2f4d] rounded-2xl shadow-xl text-white p-6 md:p-8 group transition-all hover:shadow-2xl">
                     <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Shield size={120} />
                     </div>
@@ -59,7 +59,7 @@ export default function PreciosPage() {
                 </div>
 
                 {/* Pasajero Card */}
-                <div className="relative overflow-hidden bg-white border border-gray-200 rounded-2xl shadow-lg p-8">
+                <div className="relative overflow-hidden bg-white border border-gray-200 rounded-2xl shadow-lg p-6 md:p-8">
                     <h3 className="text-xl font-medium text-gray-500 mb-2">Pasajeros</h3>
                     <div className="flex items-baseline gap-1 mb-6">
                         <span className="text-4xl font-bold text-[#0F2137]">$18</span>
@@ -86,7 +86,7 @@ export default function PreciosPage() {
             </div>
 
             {/* Philosophy Section */}
-            <div className="bg-gray-50 rounded-2xl p-8 text-center mt-12">
+            <div className="bg-gray-50 rounded-2xl p-6 md:p-8 text-center mt-8 md:mt-12">
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-sm mb-4">
                     <PiggyBank className="text-green-600" size={32} />
                 </div>

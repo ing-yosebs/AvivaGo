@@ -42,6 +42,11 @@ export default function TrustFooter() {
                                 </Link>
                             </li>
                             <li>
+                                <Link href="/legales/afiliados" className="hover:text-[#0066FF] transition-colors">
+                                    Afiliados
+                                </Link>
+                            </li>
+                            <li>
                                 <Link href="/legales/terminos-y-condiciones" className="hover:text-[#0066FF] transition-colors">
                                     Términos y Condiciones
                                 </Link>

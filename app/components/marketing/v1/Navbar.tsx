@@ -44,6 +44,7 @@ export default function Navbar() {
     const navLinks = [
         { name: 'Cómo Funciona', href: '/legales/como-funciona' },
         { name: 'Precios', href: '/legales/precios' },
+        { name: 'Afiliados', href: '/legales/afiliados' },
         { name: 'Aviso de Privacidad', href: '/legales/aviso-de-privacidad' },
         { name: 'Términos y Condiciones', href: '/legales/terminos-y-condiciones' },
     ];

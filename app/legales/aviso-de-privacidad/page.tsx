@@ -3,14 +3,15 @@ import React from 'react';
 export default function AvisoPrivacidadPage() {
     return (
         <>
-            <h1 className="text-3xl font-bold text-center text-[#0F2137] mb-8 border-b pb-4">
+
+            <h1 className="text-xl md:text-3xl font-bold text-center text-[#0F2137] mb-6 md:mb-8 border-b pb-4">
                 AVISO DE PRIVACIDAD INTEGRAL – AVIVAGO
             </h1>
 
-            <div className="space-y-8 text-gray-700 leading-relaxed">
+            <div className="space-y-6 md:space-y-8 text-gray-700 leading-relaxed text-sm md:text-base">
                 {/* 1. IDENTIDAD Y DOMICILIO */}
                 <section>
-                    <h2 className="text-xl font-semibold text-[#0F2137] mb-4">
+                    <h2 className="text-lg md:text-xl font-semibold text-[#0F2137] mb-3 md:mb-4">
                         1. IDENTIDAD Y DOMICILIO DEL RESPONSABLE
                     </h2>
                     <p>

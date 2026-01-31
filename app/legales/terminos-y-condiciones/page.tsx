@@ -3,14 +3,14 @@ import React from 'react';
 export default function TerminosCondicionesPage() {
     return (
         <>
-            <h1 className="text-3xl font-bold text-center text-[#0F2137] mb-8 border-b pb-4">
+            <h1 className="text-xl md:text-3xl font-bold text-center text-[#0F2137] mb-6 md:mb-8 border-b pb-4">
                 TÉRMINOS Y CONDICIONES DE USO – AVIVAGO
             </h1>
 
-            <div className="space-y-8 text-gray-700 leading-relaxed">
+            <div className="space-y-6 md:space-y-8 text-gray-700 leading-relaxed text-sm md:text-base">
 
                 {/* AVISO IMPORTANTE */}
-                <div className="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-lg">
+                <div className="bg-amber-50 border-l-4 border-amber-500 p-4 md:p-6 rounded-r-lg">
                     <h2 className="text-lg font-bold text-amber-800 mb-2 uppercase">
                         AVISO IMPORTANTE: DEFINICIÓN DEL SERVICIO
                     </h2>
@@ -24,7 +24,7 @@ export default function TerminosCondicionesPage() {
 
                 {/* 1. INTRODUCCIÓN */}
                 <section>
-                    <h2 className="text-xl font-semibold text-[#0F2137] mb-4">
+                    <h2 className="text-lg md:text-xl font-semibold text-[#0F2137] mb-3 md:mb-4">
                         1. ACEPTACIÓN DE LOS TÉRMINOS
                     </h2>
                     <p>
