@@ -56,9 +56,9 @@ export default function AffiliateProgramPage() {
     const earnings = calculateEarnings(referralCount);
 
     return (
-        <div className="space-y-12 md:space-y-20 py-8 md:py-16">
+        <div className="space-y-8 md:space-y-12 pt-0 pb-4 md:pt-2 md:pb-10">
             {/* Hero Section */}
-            <section className="text-center space-y-8">
+            <section className="text-center space-y-4">
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -74,7 +74,7 @@ export default function AffiliateProgramPage() {
                         </span>
                     </div>
                     <h1 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-                        AvivaGo <span className="text-blue-600">Red de Certeza</span>
+                        AvivaGo <span className="text-blue-600">Red de Seguridad, Confianza y Certeza</span>
                     </h1>
                     <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
                         Multiplica tus ingresos construyendo la red. Gana invitando a otros conductores o registrando pasajeros.
@@ -82,7 +82,7 @@ export default function AffiliateProgramPage() {
                 </motion.div>
 
                 {/* Tab Toggle */}
-                <div className="flex justify-center mt-8 md:mt-12">
+                <div className="flex justify-center mt-4 md:mt-6">
                     <div className="bg-gray-100 p-1.5 rounded-xl inline-flex relative">
                         <button
                             onClick={() => setActiveTab('driver')}
@@ -120,7 +120,7 @@ export default function AffiliateProgramPage() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ duration: 0.3 }}
-                        className="space-y-12 md:space-y-24"
+                        className="space-y-8 md:space-y-12"
                     >
                         {/* Driver Benefits Cards */}
                         <div className="space-y-6 text-center">
@@ -173,6 +173,24 @@ export default function AffiliateProgramPage() {
                                     </ul>
                                 </div>
                             ))}
+                        </div>
+
+                        {/* Activation Bonus Clarification */}
+                        <div className="bg-blue-50 border border-blue-100 p-8 rounded-3xl space-y-4">
+                            <h3 className="text-xl font-bold text-blue-900 flex items-center gap-2">
+                                ¡Haz crecer la comunidad AvivaGo y gana! 🤝
+                            </h3>
+                            <p className="text-blue-800">
+                                Recibe tu <strong>Bono de Activación</strong> (desde $80 hasta $120 MXN) por cada colega que sumes a AvivaGo.
+                            </p>
+                            <div className="bg-white/60 p-6 rounded-2xl border border-blue-200">
+                                <p className="text-blue-900 leading-relaxed">
+                                    <span className="font-bold text-blue-600">La Regla de Oro:</span> Tu bono se liberará en tu Saldo AvivaGo en el momento exacto en que tu referido complete el pago de su <strong>Membresía Anual ($524 MXN)</strong>. Sin letras chiquitas: si él se activa y paga, tú ganas.
+                                </p>
+                            </div>
+                            <p className="text-sm text-blue-600/80 italic">
+                                <strong>Nota:</strong> El saldo pasará a "Disponible" tras el periodo de validación de seguridad de 15 días.
+                            </p>
                         </div>
 
                         {/* Earnings Calculator */}
@@ -249,7 +267,7 @@ export default function AffiliateProgramPage() {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.3 }}
-                        className="space-y-12 md:space-y-24"
+                        className="space-y-8 md:space-y-12"
                     >
                         {/* Passenger Benefits for DRIVERS */}
                         <div className="bg-indigo-50 rounded-3xl p-8 md:p-12 relative overflow-hidden">
@@ -259,7 +277,7 @@ export default function AffiliateProgramPage() {
                             <div className="relative z-10 max-w-2xl">
                                 <h2 className="text-2xl font-bold text-indigo-900 mb-6">Invita Pasajeros y Gana</h2>
                                 <p className="text-lg text-indigo-800 mb-8">
-                                    Comparte tu código QR con tus pasajeros. Ellos obtienen beneficios y tú generas Saldo Aviva por volumen.
+                                    Comparte tu código QR con tus pasajeros. Ellos obtienen beneficios y tú generas Saldo AvivaGo por volumen.
                                 </p>
 
                                 <div className="grid sm:grid-cols-2 gap-6">
@@ -281,12 +299,28 @@ export default function AffiliateProgramPage() {
                                             <QrCode size={20} />
                                         </div>
                                         <h3 className="font-semibold text-gray-900 mb-2">Beneficio para tu Pasajero</h3>
-                                        <p className="text-xs text-gray-500 mb-3">Úsalo para convencerlos de registrarse:</p>
+                                        <p className="text-xs text-gray-500 mb-3">Úsalo para motivarlos a sumarse:</p>
                                         <ul className="text-sm text-gray-600 space-y-2">
                                             <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-green-500" /> Desbloquean tu WhatsApp directo</li>
                                             <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-green-500" /> Reciben 1 Crédito GRATIS</li>
                                         </ul>
                                     </div>
+                                </div>
+
+                                {/* Conversion Rule Section */}
+                                <div className="mt-10 pt-8 border-t border-indigo-200/50">
+                                    <h3 className="text-xl font-bold text-indigo-900 mb-3">Regla de Conversión Real: Transparencia AvivaGo</h3>
+                                    <p className="text-indigo-800 mb-6 leading-relaxed">
+                                        Para garantizar la sostenibilidad de nuestra red, las comisiones por referir pasajeros se activan mediante la <strong>Conversión Real</strong>.
+                                    </p>
+                                    <div className="bg-white/60 p-6 rounded-2xl border border-indigo-200 mb-6">
+                                        <p className="text-indigo-900 leading-relaxed">
+                                            <strong className="text-indigo-600">¿Cómo funciona?</strong> Cuando invitas a un pasajero, él recibe acceso gratuito a tu contacto y un crédito de regalo para conocer a otro conductor. Sin embargo, tu comisión como afiliado se verá reflejada en tu Saldo AvivaGo una vez que dicho pasajero realice su <strong>primer pago real</strong> (compra de micro-cuota de $18 MXN) para contactar a un tercer conductor de la red.
+                                        </p>
+                                    </div>
+                                    <p className="text-indigo-900 font-bold">
+                                        En AvivaGo, premiamos el crecimiento de una comunidad que valora y paga por la certeza.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -322,7 +356,7 @@ export default function AffiliateProgramPage() {
             <hr className="border-gray-200" />
 
             {/* Marketing / Invitation Section */}
-            <section className="space-y-8 md:space-y-16">
+            <section className="space-y-6 md:space-y-10">
                 <h2 className="text-3xl font-bold text-gray-900 text-center">Herramientas de Crecimiento</h2>
 
                 <div className="grid md:grid-cols-2 gap-8">
@@ -372,7 +406,7 @@ export default function AffiliateProgramPage() {
                 </div>
             </section>
 
-            <div className="text-center text-xs text-gray-500 pt-8 border-t border-gray-100 max-w-3xl mx-auto">
+            <div className="text-center text-xs text-gray-500 py-4 border-t border-gray-100 max-w-3xl mx-auto">
                 <p>
                     Nota: Este programa es temporal y está sujeto a vigencia. AvivaGo se reserva el derecho de cancelar o modificar el programa de afiliados en cualquier momento, deteniendo la recepción de nuevas solicitudes. Los beneficios y comisiones generados y confirmados durante la vigencia del programa serán respetados conforme a las reglas de operación aplicables en ese momento.
                 </p>
