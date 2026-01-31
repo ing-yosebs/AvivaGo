@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
+import { Analytics } from '@vercel/analytics/next';
 
 const inter = Inter({
     subsets: ["latin"],
@@ -45,6 +46,7 @@ export default async function RootLayout({
             <body className="font-sans antialiased" suppressHydrationWarning>
                 <BanGuard isBanned={isBanned} />
                 {children}
+                <Analytics />
             </body>
         </html>
     );
