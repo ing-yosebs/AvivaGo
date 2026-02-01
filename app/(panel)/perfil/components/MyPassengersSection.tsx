@@ -142,14 +142,6 @@ export default function MyPassengersSection() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-xl font-bold text-[#0F2137]">Mis Pasajeros</h2>
-                    <p className="text-gray-500 text-sm">Usuarios que han desbloqueado tu contacto para solicitar servicios.</p>
-                </div>
-                <Users className="h-8 w-8 text-blue-500 opacity-20" />
-            </div>
-
             {unlocks.length > 0 ? (
                 <div className={`grid gap-6 ${unlocks.length === 1 ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-2'}`}>
                     {unlocks.map((unlock) => {
@@ -177,13 +169,13 @@ export default function MyPassengersSection() {
 
                                         <div className="flex flex-wrap items-center gap-3">
                                             <a
-                                                href={`https://wa.me/${passenger?.phone_number?.replace(/\D/g, '')}`}
+                                                href={`https://wa.me/${passenger?.phone_number?.replace(/\D/g, '')}?text=${encodeURIComponent(`Hola ${passenger?.full_name}, soy tu conductor de AvivaGo y te contacto para coordinar el servicio.`)}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 text-xs font-bold hover:bg-[#25D366]/20 transition-all"
+                                                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 text-xs font-bold hover:bg-[#25D366]/20 transition-all font-black uppercase tracking-wider"
                                             >
                                                 <MessageSquare className="h-4 w-4 fill-current opacity-70" />
-                                                WhatsApp
+                                                Escribir al WhatsApp
                                             </a>
                                         </div>
                                     </div>

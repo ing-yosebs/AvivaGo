@@ -122,7 +122,14 @@ export async function updateSession(request: NextRequest) {
     }
 
     // 3. Auth Redirection (Users already logged in should not see login/register)
-    if (path.startsWith('/auth') && user) {
+    // 3. Auth Redirection (Users already logged in should not see login/register)
+    // Matches /auth/* AND /register (root registration page)
+    if ((path.startsWith('/auth') || path.startsWith('/register')) && user) {
+        // Prevent infinite redirect loop if they are already on the warning page
+        if (path === '/auth/session-active') {
+            return response
+        }
+
         // Check for Admin Role to redirect to Admin Panel
         // Profile already fetched above
         const roles = profile?.roles || []
@@ -132,7 +139,11 @@ export async function updateSession(request: NextRequest) {
             return NextResponse.redirect(new URL('/admin', request.url))
         }
 
-        return NextResponse.redirect(new URL('/', request.url))
+        // NEW: Redirect to "Session Active" warning instead of silent Home redirect
+        const nextUrl = new URL('/auth/session-active', request.url)
+        // Pass the originally requested path to return to it after potential logout
+        nextUrl.searchParams.set('next', path)
+        return NextResponse.redirect(nextUrl)
     }
 
     return response

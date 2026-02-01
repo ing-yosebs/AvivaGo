@@ -17,7 +17,8 @@ import {
     Lock,
     Briefcase,
     LayoutDashboard,
-    FileText
+    FileText,
+    Car
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -30,7 +31,9 @@ export default function DashboardSidebar() {
     const router = useRouter()
     const supabase = createClient()
     const [isOpen, setIsOpen] = useState(false)
-    const [isDriver, setIsDriver] = useState(false)
+    const [hasDriverRole, setHasDriverRole] = useState(false)
+    const [viewMode, setViewMode] = useState<'passenger' | 'driver'>('passenger')
+    const [userEmail, setUserEmail] = useState<string | null>(null)
 
     useEffect(() => {
         const checkRole = async () => {
@@ -43,8 +46,13 @@ export default function DashboardSidebar() {
                 .eq('id', user.id)
                 .single()
 
+            if (user) {
+                setUserEmail(user.email || null)
+            }
+
             if (userData?.roles?.includes('driver')) {
-                setIsDriver(true)
+                setHasDriverRole(true)
+                setViewMode('driver')
             }
         }
         checkRole()
@@ -53,9 +61,9 @@ export default function DashboardSidebar() {
     const menuItems = [
         { icon: LayoutDashboard, label: 'Panel Principal', href: '/dashboard' },
         { icon: User, label: 'Datos Personales', href: '/perfil?tab=personal' },
-        ...(isDriver ? [{ icon: Wallet, label: 'Mi Billetera', href: '/billetera' }] : []),
-        ...(isDriver ? [{ icon: CreditCard, label: 'Membresía', href: '/perfil?tab=payments' }] : []),
-        ...(isDriver ? [
+        ...(viewMode === 'driver' ? [{ icon: Wallet, label: 'Mi Billetera', href: '/billetera' }] : []),
+        ...(viewMode === 'driver' ? [{ icon: CreditCard, label: 'Membresía', href: '/perfil?tab=payments' }] : []),
+        ...(viewMode === 'driver' ? [
             {
                 icon: Briefcase,
                 label: 'Gestión de Servicio',
@@ -67,7 +75,7 @@ export default function DashboardSidebar() {
                 ]
             }
         ] : []),
-        ...(!isDriver ? [{ icon: Shield, label: 'Mis Conductores', href: '/perfil?tab=trusted_drivers' }] : []),
+        ...(viewMode === 'passenger' ? [{ icon: Shield, label: 'Mis Conductores', href: '/perfil?tab=trusted_drivers' }] : []),
         { icon: Lock, label: 'Seguridad', href: '/perfil?tab=security' },
         { icon: Users, label: 'Comunidad', href: '/comunidad' },
         { icon: Heart, label: 'Mis Favoritos', href: '/favoritos' },
@@ -189,7 +197,33 @@ export default function DashboardSidebar() {
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-gray-200 space-y-4">
+                <div className="px-4 py-2 border-t border-gray-200">
+                    {hasDriverRole && (
+                        <div className="bg-gray-50 rounded-xl p-1 flex items-center relative mb-2">
+                            <button
+                                onClick={() => setViewMode('passenger')}
+                                className={`flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg text-xs font-bold transition-all z-10 ${viewMode === 'passenger' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                            >
+                                <User className="h-3.5 w-3.5" />
+                                Pasajero
+                            </button>
+                            <button
+                                onClick={() => setViewMode('driver')}
+                                className={`flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg text-xs font-bold transition-all z-10 ${viewMode === 'driver' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                            >
+                                <Car className="h-3.5 w-3.5" />
+                                Conductor
+                            </button>
+                        </div>
+                    )}
+                    {userEmail && (
+                        <div className="px-3 py-2 bg-gray-50 rounded-xl mb-2">
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Sesión Actual</p>
+                            <p className="text-xs font-mono text-gray-600 truncate" title={userEmail}>
+                                {userEmail}
+                            </p>
+                        </div>
+                    )}
                     <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 p-3 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200"

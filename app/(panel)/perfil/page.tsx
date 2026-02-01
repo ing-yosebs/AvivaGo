@@ -22,6 +22,7 @@ import TrustedDriversSection from './components/TrustedDriversSection'
 import MyPassengersSection from './components/MyPassengersSection'
 import SecuritySection from './components/SecuritySection'
 import MembershipRequiredView from './components/MembershipRequiredView'
+import BecomeDriverButton from './components/BecomeDriverButton'
 
 export default function ProfilePage() {
     return (
@@ -238,7 +239,10 @@ function ProfileContent() {
 
     const tabs = [
         { id: 'personal', label: 'Datos Personales', icon: User },
-        ...(isDriver ? [
+        // If it's pure driver vs passenger toggle?
+        // Ideally we should show trusted drivers if I am explicitly there OR if I am not a driver.
+        // For now, let's make it available if activeTab matches, to ensure the Title renders correctly.
+        ...((isDriver && activeTab !== 'trusted_drivers') ? [
             { id: 'services', label: 'Mis Servicios', icon: Clock },
             { id: 'vehicles', label: 'Mis Vehículos', icon: Car },
             { id: 'my_passengers', label: 'Mis Pasajeros', icon: Users }
@@ -258,8 +262,18 @@ function ProfileContent() {
                 <p className="text-gray-500">
                     {activeTab === 'payments'
                         ? 'Gestiona tu suscripción y consulta tu historial de pagos.'
-                        : 'Gestiona tu información personal y preferencias de la cuenta.'}
+                        : activeTab === 'trusted_drivers'
+                            ? 'Conductores que has desbloqueado y con los que puedes contactar.'
+                            : activeTab === 'my_passengers'
+                                ? 'Usuarios que han desbloqueado tu contacto para solicitar servicios.'
+                                : 'Gestiona tu información personal y preferencias de la cuenta.'}
                 </p>
+
+                {!isDriver && !loading && (
+                    <div className="mt-6">
+                        <BecomeDriverButton />
+                    </div>
+                )}
             </div>
 
 
@@ -315,7 +329,7 @@ function ProfileContent() {
                         )
                     )}
 
-                    {!isDriver && activeTab === 'trusted_drivers' && (
+                    {activeTab === 'trusted_drivers' && (
                         <TrustedDriversSection />
                     )}
 
