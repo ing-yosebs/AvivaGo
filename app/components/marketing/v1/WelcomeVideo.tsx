@@ -13,7 +13,7 @@ export default function WelcomeVideo() {
                 <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-aviva-secondary/10 rounded-full blur-[100px]"></div>
             </div>
 
-            <div className="container mx-auto px-4 pt-8 pb-8 relative z-10">
+            <div className="container mx-auto px-4 pt-24 md:pt-32 pb-8 relative z-10">
                 <div className="max-w-4xl mx-auto text-center space-y-8">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}

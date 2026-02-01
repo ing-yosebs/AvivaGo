@@ -41,18 +41,11 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, [supabase]);
 
-    const navLinks = [
-        { name: 'Cómo Funciona', href: '/legales/como-funciona' },
-        { name: 'Precios', href: '/legales/precios' },
-        { name: 'Afiliados', href: '/legales/afiliados' },
-        { name: 'Aviso de Privacidad', href: '/legales/aviso-de-privacidad' },
-        { name: 'Términos y Condiciones', href: '/legales/terminos-y-condiciones' },
-    ];
+    const navLinks: { name: string; href: string }[] = [];
 
     return (
         <nav
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-6'
-                }`}
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/95 backdrop-blur-md shadow-sm ${isScrolled ? 'py-4' : 'py-5'}`}
         >
             <div className="container mx-auto px-4 md:px-6">
                 <div className="flex items-center justify-between">
@@ -98,13 +91,13 @@ export default function Navbar() {
                         ) : (
                             <>
                                 <Link
-                                    href="/login"
+                                    href="/auth/login"
                                     className="text-sm font-medium text-aviva-primary hover:text-aviva-primary/80 transition-colors"
                                 >
                                     Iniciar Sesión
                                 </Link>
                                 <Link
-                                    href="/register"
+                                    href="/register?role=driver"
                                     className="bg-aviva-primary text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-aviva-primary/90 transition-all shadow-lg shadow-aviva-primary/20 hover:shadow-aviva-primary/40"
                                 >
                                     Regístrate Ya
@@ -167,14 +160,14 @@ export default function Navbar() {
                             ) : (
                                 <>
                                     <Link
-                                        href="/login"
+                                        href="/auth/login"
                                         className="text-base font-medium text-aviva-primary hover:text-aviva-primary/80 py-2"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >
                                         Iniciar Sesión
                                     </Link>
                                     <Link
-                                        href="/register"
+                                        href="/register?role=driver"
                                         className="bg-aviva-primary text-white px-5 py-3 rounded-full text-base font-medium text-center hover:bg-aviva-primary/90 transition-all shadow-lg"
                                         onClick={() => setIsMobileMenuOpen(false)}
                                     >

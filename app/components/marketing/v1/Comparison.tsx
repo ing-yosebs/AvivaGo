@@ -121,6 +121,15 @@ export default function Comparison() {
                                     <p className="text-sm text-blue-200">Web profesional con tu nombre y foto.</p>
                                 </div>
                             </li>
+                            <li className="flex items-start gap-4">
+                                <div className="p-1 bg-green-500/20 rounded-full text-green-400 mt-1">
+                                    <Check size={20} />
+                                </div>
+                                <div>
+                                    <p className="font-bold text-white">Bonos de por Vida</p>
+                                    <p className="text-sm text-blue-200">Gana por cada cliente que refieras a ver tus datos.</p>
+                                </div>
+                            </li>
                         </ul>
                     </motion.div>
                 </div>

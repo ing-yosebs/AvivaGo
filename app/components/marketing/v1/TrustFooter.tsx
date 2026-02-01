@@ -27,16 +27,6 @@ export default function TrustFooter() {
                         <h4 className="font-bold text-gray-900 mb-6">Plataforma</h4>
                         <ul className="space-y-3 text-sm text-gray-600">
                             <li>
-                                <Link href="/legales/como-funciona" className="hover:text-[#0066FF] transition-colors">
-                                    Cómo Funciona
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/legales/precios" className="hover:text-[#0066FF] transition-colors">
-                                    Precios
-                                </Link>
-                            </li>
-                            <li>
                                 <Link href="/legales/aviso-de-privacidad" className="hover:text-[#0066FF] transition-colors">
                                     Aviso de Privacidad
                                 </Link>
