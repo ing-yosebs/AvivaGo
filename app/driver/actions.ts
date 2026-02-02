@@ -189,3 +189,121 @@ export async function recordPaymentConsent(consentText: string) {
         return { error: err.message }
     }
 }
+
+const quoteRequestSchema = z.object({
+    driverId: z.string().uuid(),
+    scheduledDate: z.string().refine((date) => new Date(date) > new Date(), {
+        message: "La fecha debe ser futura",
+    }),
+    details: z.string().min(10, "Por favor incluye más detalles sobre tu viaje"),
+    contactPhone: z.string().min(10, "El teléfono debe tener al menos 10 dígitos"),
+});
+
+export async function submitQuoteRequest(formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: 'Debes iniciar sesión para solicitar una cotización.' }
+    }
+
+    const driverId = formData.get('driverId') as string
+    const scheduledDate = formData.get('scheduledDate') as string
+    const details = formData.get('details') as string
+    const contactPhone = formData.get('contactPhone') as string
+
+    const validated = quoteRequestSchema.safeParse({
+        driverId,
+        scheduledDate,
+        details,
+        contactPhone
+    })
+
+    if (!validated.success) {
+        return { error: validated.error.issues[0].message }
+    }
+
+    try {
+        const { data, error } = await supabase
+            .from('quote_requests')
+            .insert({
+                passenger_id: user.id,
+                driver_id: driverId,
+                scheduled_date: new Date(scheduledDate).toISOString(),
+                details,
+                contact_phone: contactPhone,
+                status: 'pending'
+            })
+            .select('id') // Return the ID for logging
+            .single()
+
+        if (error) throw error
+
+        // AUDIT LOG: Create
+        await supabase.from('quote_audit_logs').insert({
+            quote_id: data.id,
+            actor_id: user.id,
+            action: 'created',
+            details: {
+                scheduled_date: scheduledDate,
+                driver_id: driverId
+            }
+        });
+
+        return { success: true }
+    } catch (err: any) {
+        console.error('Quote request error:', err)
+        return { error: err.message || 'Error al enviar la solicitud' }
+    }
+}
+
+export async function updateQuoteStatus(quoteId: string, status: 'accepted' | 'rejected') {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: 'Unauthorized' }
+    }
+
+    try {
+        const { error } = await supabase
+            .from('quote_requests')
+            .update({ status })
+            .eq('id', quoteId)
+
+        if (error) throw error
+
+        // AUDIT LOG: Status Change
+        await supabase.from('quote_audit_logs').insert({
+            quote_id: quoteId,
+            actor_id: user.id,
+            action: 'status_changed',
+            details: { new_status: status }
+        });
+
+        return { success: true }
+    } catch (err: any) {
+        console.error('Update quote status error:', err)
+        return { error: err.message || 'Error al actualizar el estado' }
+    }
+}
+
+export async function logQuoteInteraction(quoteId: string, action: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { error: 'Unauthorized' }
+
+    try {
+        await supabase.from('quote_audit_logs').insert({
+            quote_id: quoteId,
+            actor_id: user.id,
+            action: action,
+            details: {}
+        });
+        return { success: true }
+    } catch (err: any) {
+        console.error('Log interaction error:', err)
+        return { error: err.message }
+    }
+}

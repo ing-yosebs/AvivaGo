@@ -10,7 +10,10 @@ import {
     Lock,
     Clock,
     Shield,
-    Users
+    Briefcase,
+    LayoutDashboard,
+    FileText,
+    Eye
 } from 'lucide-react'
 
 // Sub-components
@@ -18,11 +21,13 @@ import PersonalDataSection from './components/PersonalDataSection'
 import VehiclesSection from './components/VehiclesSection'
 import ServicesSection from './components/ServicesSection'
 import PaymentsSection from './components/PaymentsSection'
-import TrustedDriversSection from './components/TrustedDriversSection'
-import MyPassengersSection from './components/MyPassengersSection'
+
 import SecuritySection from './components/SecuritySection'
 import MembershipRequiredView from './components/MembershipRequiredView'
 import BecomeDriverButton from './components/BecomeDriverButton'
+import QuoteRequestsSection from './components/QuoteRequestsSection'
+import VisibilitySection from './components/VisibilitySection'
+import DriverDashboardSection from './components/DriverDashboardSection'
 
 export default function ProfilePage() {
     return (
@@ -162,7 +167,7 @@ function ProfileContent() {
 
                 if (urlTab) setActiveTab(urlTab)
             } else {
-                if (urlTab === 'vehicles' || urlTab === 'services') {
+                if (urlTab === 'vehicles' || urlTab === 'services' || urlTab === 'trusted_drivers') {
                     setActiveTab('personal')
                 } else if (urlTab) {
                     setActiveTab(urlTab)
@@ -242,13 +247,14 @@ function ProfileContent() {
         // If it's pure driver vs passenger toggle?
         // Ideally we should show trusted drivers if I am explicitly there OR if I am not a driver.
         // For now, let's make it available if activeTab matches, to ensure the Title renders correctly.
-        ...((isDriver && activeTab !== 'trusted_drivers') ? [
+        ...(isDriver ? [
+            { id: 'driver_dashboard', label: 'Panel Conductor', icon: LayoutDashboard },
             { id: 'services', label: 'Mis Servicios', icon: Clock },
             { id: 'vehicles', label: 'Mis Vehículos', icon: Car },
-            { id: 'my_passengers', label: 'Mis Pasajeros', icon: Users }
-        ] : [
-            { id: 'trusted_drivers', label: 'Conductores de Confianza', icon: Shield }
-        ]),
+
+            { id: 'solicitudes', label: 'Mis Solicitudes', icon: Briefcase },
+            { id: 'visibility', label: 'Mi Visibilidad', icon: Eye }
+        ] : []),
         { id: 'payments', label: isDriver ? 'Pagos y Membresía' : 'Mis Pagos', icon: CreditCard },
         { id: 'security', label: 'Seguridad', icon: Lock },
     ]
@@ -262,11 +268,15 @@ function ProfileContent() {
                 <p className="text-gray-500">
                     {activeTab === 'payments'
                         ? 'Gestiona tu suscripción y consulta tu historial de pagos.'
-                        : activeTab === 'trusted_drivers'
-                            ? 'Conductores que has desbloqueado y con los que puedes contactar.'
-                            : activeTab === 'my_passengers'
-                                ? 'Usuarios que han desbloqueado tu contacto para solicitar servicios.'
-                                : 'Gestiona tu información personal y preferencias de la cuenta.'}
+                        : activeTab === 'services'
+                            ? 'Administra tus servicios de transporte y configuraciones.'
+                            : activeTab === 'driver_dashboard'
+                                ? 'Resumen de tu actividad y métricas como conductor.'
+                                : activeTab === 'solicitudes'
+                                    ? 'Administra las cotizaciones recibidas de pasajeros interesados.'
+                                    : activeTab === 'visibility'
+                                        ? 'Controla quién puede ver tu perfil y contactarte.'
+                                        : 'Gestiona tu información personal y preferencias de la cuenta.'}
                 </p>
 
                 {!isDriver && !loading && (
@@ -329,13 +339,8 @@ function ProfileContent() {
                         )
                     )}
 
-                    {activeTab === 'trusted_drivers' && (
-                        <TrustedDriversSection />
-                    )}
 
-                    {isDriver && activeTab === 'my_passengers' && (
-                        <MyPassengersSection />
-                    )}
+
 
                     {activeTab === 'payments' && (
                         <PaymentsSection
@@ -352,22 +357,25 @@ function ProfileContent() {
                     )}
 
                     {activeTab === 'security' && (
-                        <SecuritySection
-                            isDriver={isDriver}
-                            isVisible={profile?.driver_profile?.is_visible}
-                            onToggleVisibility={async (visible: boolean) => {
-                                try {
-                                    const { error } = await supabase
-                                        .from('driver_profiles')
-                                        .update({ is_visible: visible })
-                                        .eq('user_id', user.id)
-                                    if (error) throw error
-                                    await loadProfile()
-                                    setMessage({ type: 'success', text: `Perfil ${visible ? 'ahora es visible' : 'ahora está oculto'}` })
-                                } catch (err: any) {
-                                    setMessage({ type: 'error', text: err.message })
-                                }
-                            }}
+                        <SecuritySection />
+                    )}
+
+                    {isDriver && activeTab === 'solicitudes' && (
+                        hasMembership ? (
+                            <QuoteRequestsSection driverProfileId={profile?.driver_profile?.id} />
+                        ) : (
+                            <MembershipRequiredView onTabChange={(tab) => setActiveTab(tab)} />
+                        )
+                    )}
+
+                    {isDriver && activeTab === 'driver_dashboard' && (
+                        <DriverDashboardSection userId={profile?.id} />
+                    )}
+
+                    {isDriver && activeTab === 'visibility' && (
+                        <VisibilitySection
+                            driverProfileId={profile?.driver_profile?.id}
+                            initialIsVisible={profile?.driver_profile?.is_visible}
                         />
                     )}
                 </div>

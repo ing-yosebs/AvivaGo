@@ -5,7 +5,11 @@ import { useEffect, useState } from 'react'
 import { Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, Award, Copy, Check, Info, Users, Share2, DollarSign } from 'lucide-react'
 import DriverMarketingKit from '@/app/components/marketing/DriverMarketingKit'
 
+import { useRouter } from 'next/navigation'
+import MembershipRequiredView from '../perfil/components/MembershipRequiredView'
+
 export default function WalletPage() {
+    const router = useRouter()
     const [balance, setBalance] = useState({ available: 0, pending: 0 })
     const [transactions, setTransactions] = useState<any[]>([])
     const [referrals, setReferrals] = useState<any[]>([])
@@ -14,6 +18,7 @@ export default function WalletPage() {
     const [copiedCode, setCopiedCode] = useState(false)
     const [copiedLink, setCopiedLink] = useState(false)
     const [referralLink, setReferralLink] = useState('')
+    const [hasMembership, setHasMembership] = useState(false)
     const supabase = createClient()
 
     useEffect(() => {
@@ -101,6 +106,20 @@ export default function WalletPage() {
                 .eq('user_id', user.id)
                 .single()
 
+            if (driverData) {
+                const { data: membershipData } = await supabase
+                    .from('driver_memberships')
+                    .select('status, expires_at')
+                    .eq('driver_profile_id', driverData.id)
+                    .eq('status', 'active')
+                    .gt('expires_at', new Date().toISOString())
+                    .maybeSingle()
+
+                if (membershipData) {
+                    setHasMembership(true)
+                }
+            }
+
             setProfile({
                 ...userData,
                 ...driverData,
@@ -129,6 +148,10 @@ export default function WalletPage() {
     }
 
     if (loading) return <div className="p-8"><div className="w-8 h-8 border-4 border-blue-600 rounded-full animate-spin border-t-transparent" /></div>
+
+    if (!hasMembership) {
+        return <MembershipRequiredView onTabChange={(tab) => router.push(`/perfil?tab=${tab}`)} />
+    }
 
     // Calculate level thresholds
     const getLevelData = (count = 0, currentLevel = 'bronze') => {

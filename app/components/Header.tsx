@@ -69,17 +69,6 @@ export default function Header() {
                         <AvivaLogo className="h-8 sm:h-9 w-auto" showText={true} />
                     </Link>
 
-                    {/* Navigation - Public Section */}
-                    <nav className="flex items-center gap-4 md:gap-8 ml-4 md:ml-12">
-                        <Link
-                            href="/comunidad"
-                            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                        >
-                            <Users className="h-4 w-4 opacity-70" />
-                            <span className="hidden sm:inline">Comunidad</span>
-                            <span className="sm:hidden">Comunidad</span>
-                        </Link>
-                    </nav>
 
                     {/* Nav actions */}
                     <div className="flex items-center gap-3">
@@ -144,14 +133,6 @@ export default function Header() {
                 <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-gray-100 animate-in slide-in-from-top-2 duration-200 shadow-xl max-h-[calc(100vh-80px)] overflow-y-auto">
                     <div className="p-4 space-y-3">
 
-                        <Link
-                            href="/comunidad"
-                            onClick={() => setIsMenuOpen(false)}
-                            className="flex items-center gap-3 p-4 rounded-2xl hover:bg-gray-50 text-gray-700 font-medium transition-colors"
-                        >
-                            <Users className="h-5 w-5 text-gray-400" />
-                            <span>Comunidad</span>
-                        </Link>
 
                         <div className="border-t border-gray-100 my-2 pt-2">
                             {user ? (

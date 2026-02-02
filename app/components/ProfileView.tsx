@@ -27,9 +27,11 @@ import {
     Edit3,
     CreditCard,
     Share2,
-    Check
+    Check,
+    FileText
 } from 'lucide-react';
 import ReviewModal from './ReviewModal';
+import QuoteModal from './QuoteModal';
 
 interface ProfileViewProps {
     driver: {
@@ -67,14 +69,11 @@ interface ProfileViewProps {
 
 const ProfileView = ({ driver }: ProfileViewProps) => {
     const supabase = createClient();
-    // Initial state is locked (false) to show the contact information hidden
-    const [isUnlocked, setIsUnlocked] = useState(false);
     const [isFavorite, setIsFavorite] = useState(false);
     const [loadingFav, setLoadingFav] = useState(true);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
     const [showShareFeedback, setShowShareFeedback] = useState(false);
-    const [isUnlocking, setIsUnlocking] = useState(false);
-    const [hasConsented, setHasConsented] = useState(false);
+    const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
     const hasViewedRef = useState(false);
 
     useEffect(() => {
@@ -110,90 +109,26 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
         checkFavorite();
     }, [driver.id, supabase]);
 
-    // Check for URL param ?unlocked=true (Stripe Return)
-    const searchParams = useSearchParams();
-    const router = useRouter();
-
-    // Check if unlocked on mount (DB check)
-    const checkUnlock = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        const { data } = await supabase
-            .from('unlocks') // Assuming table name
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('driver_profile_id', driver.id)
-            .single();
-
-        if (data) setIsUnlocked(true);
-    };
-
     useEffect(() => {
-        checkUnlock();
-    }, [driver.id, supabase]);
-
-    // Popup Logic
-    const openStripeCheckout = (url: string) => {
-        const width = 500;
-        const height = 700;
-        const left = window.screenX + (window.outerWidth - width) / 2;
-        const top = window.screenY + (window.outerHeight - height) / 2;
-
-        const popup = window.open(
-            url,
-            'StripeCheckout',
-            `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,status=yes`
-        );
-
-        if (!popup) {
-            alert('Por favor habilita las ventanas emergentes para continuar con el pago.');
-            return;
-        }
-
-        // Listener for the callback page
-        const handleMessage = (event: MessageEvent) => {
-            if (event.origin !== window.location.origin) return;
-            if (event.data?.source === 'avivago-payment') {
-                if (event.data.status === 'success') {
-                    // Start manual verification to ensure DB persistence
-                    if (event.data.sessionId) {
-                        fetch('/api/checkout/verify', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ sessionId: event.data.sessionId })
-                        }).then(async (res) => {
-                            if (res.ok) {
-                                setIsUnlocked(true);
-                                checkUnlock(); // Final sync
-                            } else {
-                                const err = await res.text();
-                                console.error('Verification failed:', err);
-                                alert('Error al verificar el pago: ' + err);
-                            }
-                        });
-                    } else {
-                        setIsUnlocked(true);
-                        checkUnlock();
-                    }
-                    alert('¡Pago completado con éxito!');
-                } else {
-                    alert('El pago fue cancelado o no se pudo procesar.');
-                }
-                window.removeEventListener('message', handleMessage);
+        const checkFavorite = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                setLoadingFav(false);
+                return;
             }
+
+            const { data } = await supabase
+                .from('favorites')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('driver_profile_id', driver.id)
+                .single();
+
+            if (data) setIsFavorite(true);
+            setLoadingFav(false);
         };
-
-        window.addEventListener('message', handleMessage);
-
-        const timer = setInterval(() => {
-            if (popup.closed) {
-                clearInterval(timer);
-                window.removeEventListener('message', handleMessage);
-                checkUnlock(); // Refresh status just in case
-            }
-        }, 1000);
-    };
+        checkFavorite();
+    }, [driver.id, supabase]);
 
     const toggleFavorite = async () => {
         const { data: { user } } = await supabase.auth.getUser();
@@ -307,127 +242,24 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
 
                                 {/* Contact Section */}
                                 <div className="space-y-4">
-                                    {isUnlocked ? (
-                                        <div className="space-y-4 animate-in fade-in zoom-in duration-500">
-                                            <div className="p-6 bg-green-50 border border-green-100 rounded-3xl text-center shadow-soft">
-                                                <p className="text-green-600 font-bold text-[10px] uppercase tracking-widest mb-2">Contacto Desbloqueado</p>
-                                                <p className="text-3xl font-mono font-bold text-gray-900 mb-6 tracking-wider">
-                                                    {driver.phone}
-                                                </p>
-                                                <a
-                                                    href={`https://wa.me/${driver.phone?.replace(/\D/g, '')}?text=Hola ${driver.name}, vi tu perfil en AvivaGo y me gustaría consultar por un servicio.`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="w-full flex items-center justify-center gap-3 bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-green-500/20 active:scale-[0.98]"
-                                                >
-                                                    <MessageCircle className="h-5 w-5 fill-current" />
-                                                    Escribir al WhatsApp
-                                                </a>
-                                            </div>
+                                    {/* Quote Request Section */}
+                                    <div className="space-y-4 animate-in fade-in zoom-in duration-500">
+                                        <div className="p-6 bg-white border border-blue-100 rounded-3xl text-center shadow-soft ring-4 ring-blue-50/50">
+                                            <p className="text-aviva-subtext text-xs font-bold uppercase tracking-wider mb-2">Agenda tu viaje</p>
+                                            <button
+                                                onClick={() => setIsQuoteModalOpen(true)}
+                                                className="w-full flex items-center justify-center gap-3 bg-aviva-primary text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 group active:scale-[0.98]"
+                                            >
+                                                <FileText className="h-5 w-5 group-hover:-translate-y-1 transition-transform" />
+                                                Solicitar Cotización
+                                            </button>
 
-                                            <p className="text-[10px] text-center text-gray-400 uppercase font-bold">Sin cargos adicionales por contacto directo</p>
+                                            <p className="mt-4 text-[10px] text-gray-400 leading-tight">
+                                                Sin compromiso. El conductor te contactará con los detalles si acepta tu solicitud.
+                                            </p>
                                         </div>
-                                    ) : (
-                                        <div className="space-y-4 animate-in fade-in zoom-in duration-500">
-                                            <div className="p-6 bg-white border border-blue-100 rounded-3xl text-center shadow-soft ring-4 ring-blue-50/50">
-                                                <p className="text-aviva-subtext text-xs font-bold uppercase tracking-wider mb-2">Costo para contactar</p>
-                                                <h4 className="text-4xl font-extrabold text-aviva-navy mb-2 font-display">$18.00 <span className="text-sm font-medium text-gray-400">MXN</span></h4>
-                                                <p className="mb-6 text-[10px] text-gray-500 leading-tight">
-                                                    Este pago corresponde al uso de la plataforma para obtener los datos de contacto del conductor y no forma parte del pago por el servicio de transporte. Te invitamos a revisar los <Link href="/legales/terminos-y-condiciones" className="text-aviva-primary hover:underline font-semibold">Términos y Condiciones</Link> de AvivaGo.
-                                                </p>
+                                    </div>
 
-                                                {/* Consent Checkbox */}
-                                                <div className="flex items-start gap-3 mb-4 text-left p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                                    <div className="flex items-center h-5">
-                                                        <input
-                                                            id="stripe-consent"
-                                                            type="checkbox"
-                                                            checked={hasConsented}
-                                                            onChange={(e) => setHasConsented(e.target.checked)}
-                                                            className="w-4 h-4 text-aviva-primary border-gray-300 rounded focus:ring-aviva-primary"
-                                                        />
-                                                    </div>
-                                                    <label htmlFor="stripe-consent" className="text-xs text-gray-600 font-medium cursor-pointer select-none">
-                                                        Autorizo que se me redirija a Stripe para realizar el pago correspondiente.
-                                                    </label>
-                                                </div>
-
-                                                <button
-                                                    onClick={async () => {
-                                                        setIsUnlocking(true);
-                                                        try {
-                                                            const { data: { user } } = await supabase.auth.getUser();
-                                                            if (!user) {
-                                                                router.push(`/auth/login?returnTo=${encodeURIComponent(window.location.pathname)}`);
-                                                                return;
-                                                            }
-
-                                                            // Check for Ban Status
-                                                            const { data: userProfile } = await supabase
-                                                                .from('users')
-                                                                .select('is_banned')
-                                                                .eq('id', user.id)
-                                                                .single();
-
-                                                            if (userProfile?.is_banned) {
-                                                                alert('Tu cuenta tiene una restricción temporal. Contacta soporte.');
-                                                                return;
-                                                            }
-
-                                                            // REAL Payment Flow (Unlock)
-                                                            const response = await fetch('/api/checkout', {
-                                                                method: 'POST',
-                                                                headers: { 'Content-Type': 'application/json' },
-                                                                body: JSON.stringify({
-                                                                    type: 'unlock',
-                                                                    driverId: driver.id,
-                                                                    amount: 18.00,
-                                                                    returnPath: window.location.pathname
-                                                                })
-                                                            });
-
-                                                            if (!response.ok) {
-                                                                const text = await response.text();
-                                                                throw new Error(text);
-                                                            }
-
-                                                            const { url } = await response.json();
-                                                            openStripeCheckout(url);
-
-                                                        } catch (err: any) {
-                                                            console.error('Checkout error:', err);
-                                                            alert('Error iniciando pago: ' + err.message);
-                                                        } finally {
-                                                            setIsUnlocking(false);
-                                                        }
-                                                    }}
-                                                    disabled={isUnlocking || !hasConsented}
-                                                    className="w-full flex items-center justify-center gap-3 bg-aviva-primary text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/25 group active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
-                                                >
-                                                    {isUnlocking ? (
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                            Procesando...
-                                                        </div>
-                                                    ) : (
-                                                        <>
-                                                            <CreditCard className="h-5 w-5 group-hover:rotate-6 transition-transform" />
-                                                            Pagar ahora
-                                                        </>
-                                                    )}
-                                                </button>
-
-                                                {/* Security Disclaimer */}
-                                                <p className="mt-4 text-[10px] text-gray-400 leading-tight">
-                                                    El pago se procesará de forma segura a través de Stripe. AvivaGo no almacena información financiera sensible.
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center justify-center gap-2 text-gray-400">
-                                                <ShieldCheck className="h-4 w-4 text-green-500" />
-                                                <span className="text-[10px] font-bold uppercase tracking-widest">Protección al cliente</span>
-                                            </div>
-                                        </div>
-                                    )}
 
                                     <button
                                         onClick={toggleFavorite}
@@ -715,7 +547,7 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                                                     ))}
                                                 </div>
 
-                                                {isUnlocked && driver.payment_link && driver.payment_methods?.includes('Pago en Línea') && (
+                                                {driver.payment_link && driver.payment_methods?.includes('Pago en Línea') && (
                                                     <a
                                                         href={driver.payment_link.startsWith('http') ? driver.payment_link : `https://${driver.payment_link}`}
                                                         target="_blank"
@@ -860,6 +692,13 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                 onClose={() => setIsReviewOpen(false)}
                 driverId={String(driver.id)}
                 driverName={driver.name}
+            />
+
+            <QuoteModal
+                driverId={driver.id.toString()}
+                driverName={driver.name}
+                isOpen={isQuoteModalOpen}
+                onClose={() => setIsQuoteModalOpen(false)}
             />
         </div>
     );

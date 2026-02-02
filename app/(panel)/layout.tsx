@@ -22,9 +22,8 @@ export default function PanelLayout({
     useEffect(() => {
         const checkAuth = async () => {
             const { data: { user } } = await supabase.auth.getUser()
-            const isPublicRoute = pathname.startsWith('/comunidad')
 
-            if (!user && !isPublicRoute) {
+            if (!user) {
                 router.push('/auth/login')
             } else {
                 setUser(user)

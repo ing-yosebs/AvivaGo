@@ -18,7 +18,8 @@ import {
     Briefcase,
     LayoutDashboard,
     FileText,
-    Car
+    Car,
+    History
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -32,7 +33,6 @@ export default function DashboardSidebar() {
     const supabase = createClient()
     const [isOpen, setIsOpen] = useState(false)
     const [hasDriverRole, setHasDriverRole] = useState(false)
-    const [viewMode, setViewMode] = useState<'passenger' | 'driver'>('passenger')
     const [userEmail, setUserEmail] = useState<string | null>(null)
 
     useEffect(() => {
@@ -52,7 +52,6 @@ export default function DashboardSidebar() {
 
             if (userData?.roles?.includes('driver')) {
                 setHasDriverRole(true)
-                setViewMode('driver')
             }
         }
         checkRole()
@@ -61,24 +60,27 @@ export default function DashboardSidebar() {
     const menuItems = [
         { icon: LayoutDashboard, label: 'Panel Principal', href: '/dashboard' },
         { icon: User, label: 'Datos Personales', href: '/perfil?tab=personal' },
-        ...(viewMode === 'driver' ? [{ icon: Wallet, label: 'Mi Billetera', href: '/billetera' }] : []),
-        ...(viewMode === 'driver' ? [{ icon: CreditCard, label: 'Membresía', href: '/perfil?tab=payments' }] : []),
-        ...(viewMode === 'driver' ? [
+
+        { icon: FileText, label: 'Mis Solicitudes', href: '/mis-solicitudes' },
+        { icon: Lock, label: 'Seguridad', href: '/perfil?tab=security' },
+        { icon: Heart, label: 'Mis Favoritos', href: '/favoritos' },
+        ...(hasDriverRole ? [
             {
                 icon: Briefcase,
-                label: 'Gestión de Servicio',
-                href: '/perfil?tab=services',
+                label: 'Gestión conductor',
+                href: '/perfil?tab=driver_dashboard',
                 subItems: [
                     { label: 'Mis Servicios', href: '/perfil?tab=services' },
                     { label: 'Mis Vehículos', href: '/perfil?tab=vehicles' },
-                    { label: 'Mis Pasajeros', href: '/perfil?tab=my_passengers' }
+
+                    { label: 'Mi Visibilidad', href: '/perfil?tab=visibility' },
+                    { label: 'Mis cotizaciones', href: '/perfil?tab=solicitudes' },
+                    { label: 'Mis Invitados', href: '/billetera' },
+                    { label: 'Membresía', href: '/perfil?tab=payments' }
                 ]
             }
         ] : []),
-        ...(viewMode === 'passenger' ? [{ icon: Shield, label: 'Mis Conductores', href: '/perfil?tab=trusted_drivers' }] : []),
-        { icon: Lock, label: 'Seguridad', href: '/perfil?tab=security' },
-        { icon: Users, label: 'Comunidad', href: '/comunidad' },
-        { icon: Heart, label: 'Mis Favoritos', href: '/favoritos' },
+
         { icon: FileText, label: 'Información Legal AvivaGo', href: '/legales' },
     ]
 
@@ -198,24 +200,7 @@ export default function DashboardSidebar() {
                 </nav>
 
                 <div className="px-4 py-2 border-t border-gray-200">
-                    {hasDriverRole && (
-                        <div className="bg-gray-50 rounded-xl p-1 flex items-center relative mb-2">
-                            <button
-                                onClick={() => setViewMode('passenger')}
-                                className={`flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg text-xs font-bold transition-all z-10 ${viewMode === 'passenger' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                            >
-                                <User className="h-3.5 w-3.5" />
-                                Pasajero
-                            </button>
-                            <button
-                                onClick={() => setViewMode('driver')}
-                                className={`flex-1 flex items-center justify-center gap-2 py-1.5 rounded-lg text-xs font-bold transition-all z-10 ${viewMode === 'driver' ? 'bg-white text-purple-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                            >
-                                <Car className="h-3.5 w-3.5" />
-                                Conductor
-                            </button>
-                        </div>
-                    )}
+
                     {userEmail && (
                         <div className="px-3 py-2 bg-gray-50 rounded-xl mb-2">
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Sesión Actual</p>

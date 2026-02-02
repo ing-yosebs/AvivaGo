@@ -5,7 +5,7 @@ const path = require('path');
 
 // Configuración
 const STRIPE_EXE_PATH = 'C:\\Antigravity\\stripe.exe';
-const ENV_FILE_PATH = path.join(__dirname, '.env.local');
+const ENV_FILE_PATH = path.join(__dirname, '..', '.env.local');
 const WEBHOOK_URL = 'http://localhost:3000/api/webhooks/stripe';
 
 console.log('🚀 Iniciando Super-Automatización de AvivaGo...');

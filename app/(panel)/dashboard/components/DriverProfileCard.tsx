@@ -39,7 +39,7 @@ export function DriverProfileCard({ driverProfileId }: DriverProfileCardProps) {
                 <div className="space-y-3">
                     <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-3 text-white">
                         <Share2 className="h-7 w-7 text-white" />
-                        Tu Perfil Público
+                        Tu Perfil Público como conductor
                     </h2>
                     <p className="text-blue-50 text-sm md:text-base max-w-lg leading-relaxed">
                         Aquí puedes ver cómo tus pasajeros verán tu perfil, tu reputación y tus servicios antes de solicitar un viaje contigo. ¡Asegúrate de tenerlo siempre actualizado!

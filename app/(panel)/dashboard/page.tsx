@@ -13,7 +13,7 @@ import {
     Rocket,
     User,
     Heart,
-    Car,
+    FileText,
 } from 'lucide-react'
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
@@ -22,10 +22,12 @@ import { es } from 'date-fns/locale'
 import { useDashboardData } from './hooks/useDashboardData'
 import { StatCard } from './components/StatCard'
 import { ActivityItem } from './components/ActivityItem'
-import { DriverProfileCard } from './components/DriverProfileCard'
+
 
 export default function Dashboard() {
-    const { user, isDriver, stats, activities, loading, driverProfileId } = useDashboardData()
+    const { user, isDriver, stats, activities, loading } = useDashboardData()
+
+
 
     if (loading) {
         return <div className="p-8 text-center text-zinc-400">Cargando panel...</div>
@@ -36,40 +38,26 @@ export default function Dashboard() {
             {/* Welcome Header */}
             <div>
                 <div className="flex items-center gap-3 mb-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${isDriver ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-blue-500/10 text-blue-500 border-blue-500/20'}`}>
-                        {isDriver ? 'Perfil Conductor Activo' : 'Perfil Pasajero'}
+                    <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-blue-500/10 text-blue-500 border-blue-500/20">
+                        Perfil Único
                     </span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-3">
-                    Hola {user?.user_metadata?.full_name?.split(' ')[0] || (isDriver ? 'Conductor' : 'Pasajero')}
+                    Hola {user?.user_metadata?.full_name?.split(' ')[0] || 'Viajero'}
                 </h1>
                 <p className="text-lg text-gray-500 font-medium">
                     Aquí está el resumen de tu actividad de hoy.
                 </p>
             </div>
 
-            {/* Driver Profile Link Component */}
-            {isDriver && driverProfileId && (
-                <DriverProfileCard driverProfileId={driverProfileId} />
-            )}
+
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {isDriver ? (
-                    <>
-                        <StatCard icon={<Eye className="h-5 w-5 text-blue-500" />} label="Visualizaciones" value={stats.views} />
-                        <StatCard icon={<Unlock className="h-5 w-5 text-purple-500" />} label="Mis pasajeros" value={stats.unlocks} />
-                        <StatCard icon={<Star className="h-5 w-5 text-yellow-500" />} label="Calificación Media" value={stats.rating.toFixed(1)} />
-                        <StatCard icon={<Calendar className="h-5 w-5 text-green-500" />} label="Días Activo" value={stats.active_days} />
-                    </>
-                ) : (
-                    <>
-                        <StatCard icon={<Heart className="h-5 w-5 text-red-500" />} label="Conductores Favoritos" value={stats.favorites} />
-                        <StatCard icon={<Car className="h-5 w-5 text-purple-500" />} label="Mis conductores" value={stats.unlocks || 0} />
-                        <StatCard icon={<Star className="h-5 w-5 text-yellow-500" />} label="Calificación Promedio" value={stats.rating.toFixed(1)} />
-                        <StatCard icon={<Rocket className="h-5 w-5 text-green-500" />} label="Días Activo" value={stats.active_days} />
-                    </>
-                )}
+                <StatCard icon={<Heart className="h-5 w-5 text-red-500" />} label="Conductores Favoritos" value={stats.favorites} />
+                <StatCard icon={<FileText className="h-5 w-5 text-purple-500" />} label="Cotizaciones Solicitadas" value={stats.quote_requests || 0} />
+                <StatCard icon={<Star className="h-5 w-5 text-yellow-500" />} label="Calificación Promedio" value={stats.rating.toFixed(1)} />
+                <StatCard icon={<Rocket className="h-5 w-5 text-green-500" />} label="Días Activo" value={stats.active_days} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
