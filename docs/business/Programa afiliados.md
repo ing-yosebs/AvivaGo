@@ -33,10 +33,9 @@ Este modelo está diseñado para eliminar la fricción del conductor al comparti
 4.1 Proceso de Registro
 Cuando un pasajero se registra escaneando el Código QR de un conductor, se activa un sistema de beneficios inmediatos para ambas partes.
 4.2 Beneficios para el Pasajero
-•	Certeza Inmediata: Desbloqueo gratuito del WhatsApp del conductor que lo invitó.
-•	Bono de Bienvenida: Un (1) crédito adicional sin costo para contactar a cualquier otro conductor de la red.
+•	Certeza Inmediata: Acceso directo y permanente en sus favoritos al conductor que lo invitó.
 4.3 Beneficios para el Conductor (Saldo Aviva)
-En lugar de micropagos por evento, el conductor acumula Saldo Aviva mediante metas de volumen:
+El conductor acumula Saldo Aviva mediante metas de volumen:
 Meta de Usuarios Registrados	Recompensa
 Cada 20 usuarios	$200 MXN
 100 usuarios	Bono especial de $1,000 MXN

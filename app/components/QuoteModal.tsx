@@ -7,14 +7,109 @@ import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/style.css';
 import { submitQuoteRequest } from '@/app/driver/actions';
 
-// --- Circular Time Picker Sub-component ---
-interface CircularTimePickerProps {
-    value: string; // HH:mm format
+// --- Modern Calendar Picker Sub-component ---
+interface ModernCalendarPickerProps {
+    value: string; // YYYY-MM-DD
     onChange: (val: string) => void;
     isOpen: boolean;
     onClose: () => void;
 }
 
+const ModernCalendarPicker = ({ value, onChange, isOpen, onClose }: ModernCalendarPickerProps) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [viewDate, setViewDate] = useState(new Date(value + 'T12:00:00'));
+    const [selectedDate, setSelectedDate] = useState(new Date(value + 'T12:00:00'));
+
+    const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const daysShort = ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'];
+
+    const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+    const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+
+    const renderDays = () => {
+        const year = viewDate.getFullYear();
+        const month = viewDate.getMonth();
+        const daysInMonth = getDaysInMonth(year, month);
+        const firstDay = getFirstDayOfMonth(year, month);
+        const days = [];
+
+        // Preceding empty slots
+        for (let i = 0; i < firstDay; i++) {
+            days.push(<div key={`empty-${i}`} className="w-9 h-9 sm:w-10 sm:h-10" />);
+        }
+
+        // Days of the month
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateObj = new Date(year, month, d);
+            const isToday = dateObj.toDateString() === today.toDateString();
+            const isSelected = dateObj.toDateString() === selectedDate.toDateString();
+            const isPast = dateObj < today;
+
+            days.push(
+                <button
+                    key={d}
+                    type="button"
+                    disabled={isPast}
+                    onClick={() => {
+                        setSelectedDate(dateObj);
+                        onChange(dateObj.toISOString().split('T')[0]);
+                        onClose();
+                    }}
+                    className={`w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl text-xs sm:text-sm font-bold transition-all relative
+                        ${isSelected ? 'bg-aviva-primary text-white shadow-lg' : isPast ? 'text-gray-200 cursor-not-allowed' : 'hover:bg-blue-50 text-gray-600'}
+                    `}
+                >
+                    {d}
+                    {isToday && !isSelected && <div className="absolute bottom-1 w-1 h-1 bg-aviva-primary rounded-full" />}
+                </button>
+            );
+        }
+        return days;
+    };
+
+    const changeMonth = (offset: number) => {
+        const newDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + offset, 1);
+        setViewDate(newDate);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            className="absolute z-[110] top-full left-0 right-0 mx-auto sm:mx-0 sm:left-0 sm:right-auto mt-2 bg-white rounded-[2rem] shadow-2xl border border-blue-50 p-4 sm:p-5 w-[280px] sm:w-[320px]"
+            onClick={(e) => e.stopPropagation()}
+        >
+            <div className="flex items-center justify-between mb-4 px-2">
+                <button type="button" onClick={() => changeMonth(-1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                    <ChevronLeft className="w-4 h-4 text-gray-500" />
+                </button>
+                <div className="text-sm font-bold text-aviva-navy">
+                    {monthNames[viewDate.getMonth()]} {viewDate.getFullYear()}
+                </div>
+                <button type="button" onClick={() => changeMonth(1)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                    <ChevronRight className="w-4 h-4 text-gray-500" />
+                </button>
+            </div>
+
+            <div className="grid grid-cols-7 gap-1 mb-2">
+                {daysShort.map(d => (
+                    <div key={d} className="text-[10px] font-bold text-gray-300 uppercase text-center py-2">
+                        {d}
+                    </div>
+                ))}
+            </div>
+
+            <div className="grid grid-cols-7 gap-1">
+                {renderDays()}
+            </div>
+        </motion.div>
+    );
+};
 const CircularTimePicker = ({ value, onChange, isOpen, onClose }: CircularTimePickerProps) => {
     const [mode, setMode] = useState<'hours' | 'minutes'>('hours');
     const [hour, setHour] = useState(parseInt(value.split(':')[0]) % 12 || 12);
@@ -40,7 +135,7 @@ const CircularTimePicker = ({ value, onChange, isOpen, onClose }: CircularTimePi
         const nums = mode === 'hours' ? [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] : [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
         return nums.map((n, i) => {
             const angle = (i * 30) * (Math.PI / 180);
-            const radius = 95;
+            const radius = typeof window !== 'undefined' && window.innerWidth < 640 ? 80 : 95;
             const x = Math.sin(angle) * radius;
             const y = -Math.cos(angle) * radius;
             const isSelected = mode === 'hours' ? hour === n : minute === n;
@@ -66,7 +161,7 @@ const CircularTimePicker = ({ value, onChange, isOpen, onClose }: CircularTimePi
             initial={{ opacity: 0, scale: 0.9, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 10 }}
-            className="absolute z-[110] top-full right-0 mt-2 bg-white rounded-[2rem] shadow-2xl border border-blue-50 p-6 w-[280px]"
+            className="absolute z-[110] top-full left-0 right-0 mx-auto sm:mx-0 sm:left-auto sm:right-0 mt-2 bg-white rounded-[2rem] shadow-2xl border border-blue-50 p-4 sm:p-6 w-[260px] sm:w-[280px]"
             onClick={(e) => e.stopPropagation()}
         >
             <div className="flex items-center justify-between mb-6">
@@ -110,7 +205,7 @@ const CircularTimePicker = ({ value, onChange, isOpen, onClose }: CircularTimePi
                 <div
                     className="absolute w-1 bg-aviva-primary origin-bottom"
                     style={{
-                        height: '80px',
+                        height: typeof window !== 'undefined' && window.innerWidth < 640 ? '65px' : '80px',
                         bottom: '50%',
                         transform: `rotate(${mode === 'hours' ? (hour % 12) * 30 : minute * 6}deg)`,
                         transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
@@ -147,15 +242,27 @@ export default function QuoteModal({ driverId, driverName, isOpen, onClose }: Qu
     const [phoneCode, setPhoneCode] = useState('52');
     const [phoneNumber, setPhoneNumber] = useState('');
 
-    // Time picker state
+    // Date & Time picker state
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+    const [showDatePicker, setShowDatePicker] = useState(false);
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [selectedTime, setSelectedTime] = useState(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
     const timePickerRef = useRef<HTMLDivElement>(null);
+    const datePickerRef = useRef<HTMLDivElement>(null);
+
+    const displayDate = new Date(selectedDate + 'T12:00:00').toLocaleDateString('es-MX', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (timePickerRef.current && !timePickerRef.current.contains(event.target as Node)) {
                 setShowTimePicker(false);
+            }
+            if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+                setShowDatePicker(false);
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
@@ -201,7 +308,7 @@ export default function QuoteModal({ driverId, driverName, isOpen, onClose }: Qu
             onClick={onClose}
         >
             <div
-                className="bg-white rounded-[30px] w-full max-w-xl shadow-2xl relative animate-in zoom-in-95 duration-200"
+                className="bg-white rounded-[30px] w-full max-w-[95vw] sm:max-w-xl shadow-2xl relative animate-in zoom-in-95 duration-200 overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
             >
 
@@ -228,21 +335,34 @@ export default function QuoteModal({ driverId, driverName, isOpen, onClose }: Qu
                         </p>
                     </div>
                 ) : (
-                    <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                        <div className="grid grid-cols-2 gap-4">
+                    <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 sm:space-y-5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-bold text-gray-700 flex items-center gap-2">
                                     <Calendar className="w-4 h-4 text-aviva-primary" />
                                     Día del Viaje
                                 </label>
-                                <input
-                                    name="date"
-                                    type="date"
-                                    required
-                                    min={new Date().toISOString().split('T')[0]}
-                                    defaultValue={new Date().toISOString().split('T')[0]}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-aviva-primary focus:border-aviva-primary outline-none transition-all font-medium text-gray-600"
-                                />
+                                <div className="relative" ref={datePickerRef}>
+                                    <div
+                                        onClick={() => setShowDatePicker(!showDatePicker)}
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl group hover:bg-white hover:border-aviva-primary transition-all font-medium text-gray-700 flex items-center justify-between cursor-pointer"
+                                    >
+                                        <span>{displayDate}</span>
+                                        <ChevronRight className={`w-4 h-4 text-gray-400 group-hover:text-aviva-primary transition-all ${showDatePicker ? 'rotate-90' : ''}`} />
+                                    </div>
+                                    <input type="hidden" name="date" value={selectedDate} />
+
+                                    <AnimatePresence>
+                                        {showDatePicker && (
+                                            <ModernCalendarPicker
+                                                value={selectedDate}
+                                                onChange={setSelectedDate}
+                                                isOpen={showDatePicker}
+                                                onClose={() => setShowDatePicker(false)}
+                                            />
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             </div>
                             <div className="space-y-2 relative" ref={timePickerRef}>
                                 <label className="text-sm font-bold text-gray-700 flex items-center gap-2">

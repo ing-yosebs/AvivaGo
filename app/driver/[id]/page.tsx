@@ -122,6 +122,35 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         }
     };
 
+    // Check for accepted quote if user is logged in
+    const { data: { user } } = await supabase.auth.getUser();
+    let hasAcceptedQuote = false;
+
+    if (user) {
+        // Fetch user profiles to check role
+        const { data: userData } = await supabase
+            .from('users')
+            .select('roles')
+            .eq('id', user.id)
+            .single();
+
+        const isPassenger = userData?.roles?.includes('client');
+
+        if (isPassenger) {
+            const { data: quotes } = await supabase
+                .from('quote_requests')
+                .select('id')
+                .eq('passenger_id', user.id)
+                .eq('driver_id', id)
+                .eq('status', 'accepted')
+                .limit(1);
+
+            if (quotes && quotes.length > 0) {
+                hasAcceptedQuote = true;
+            }
+        }
+    }
+
     // Convert Supabase driver data to the format expected by ProfileView
     const formattedDriver = {
         id: driver.id,
@@ -152,7 +181,8 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         knows_sign_language: services?.knows_sign_language || false,
         social_commitment: services?.social_commitment || false,
         payment_methods: services?.payment_methods || [],
-        payment_link: services?.payment_link || ""
+        payment_link: services?.payment_link || "",
+        hasAcceptedQuote: hasAcceptedQuote
     };
 
     return <ProfileView driver={formattedDriver} />;

@@ -30,6 +30,7 @@ export default function FavoritesPage() {
                 .from('favorites')
                 .select(`
                     id,
+                    is_locked,
                     driver_profile_id,
                     driver_profiles (
                         *,
@@ -94,13 +95,22 @@ export default function FavoritesPage() {
                     {favorites.map((fav) => (
                         <div key={fav.id} className="relative group/fav">
                             <DriverCard driver={fav.driver_profiles} />
-                            <button
-                                onClick={(e) => handleUnfavorite(e, fav.id)}
-                                className="absolute top-4 right-4 z-20 p-2.5 bg-red-500/10 hover:bg-red-500 backdrop-blur-md rounded-xl text-red-500 hover:text-white border border-red-500/20 transition-all shadow-xl"
-                                title="Eliminar de favoritos"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </button>
+                            {fav.is_locked ? (
+                                <div
+                                    className="absolute top-4 right-4 z-20 p-2.5 bg-amber-500/10 backdrop-blur-md rounded-xl text-amber-600 border border-amber-500/20 shadow-xl cursor-help"
+                                    title="Tu Referente: No se puede eliminar"
+                                >
+                                    <ShieldCheck className="h-4 w-4 fill-current" />
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={(e) => handleUnfavorite(e, fav.id)}
+                                    className="absolute top-4 right-4 z-20 p-2.5 bg-red-500/10 hover:bg-red-500 backdrop-blur-md rounded-xl text-red-500 hover:text-white border border-red-500/20 transition-all shadow-xl"
+                                    title="Eliminar de favoritos"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </button>
+                            )}
                         </div>
                     ))}
                 </div>

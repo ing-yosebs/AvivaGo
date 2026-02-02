@@ -8,7 +8,7 @@ export default function HowItWorks() {
         {
             icon: <UserPlus className="w-8 h-8 text-aviva-primary" />,
             title: "1. Regístrate",
-            description: "Crea gratis tu perfil profesional y sube tus documentos en minutos."
+            description: "Crea gratis tu perfil profesional como conductor y sube tus documentos en minutos."
         },
         {
             icon: <CreditCard className="w-8 h-8 text-aviva-secondary" />,

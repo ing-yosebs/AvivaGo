@@ -2,6 +2,7 @@ import Navbar from '@/app/components/marketing/v1/Navbar';
 import WelcomeVideo from '@/app/components/marketing/v1/WelcomeVideo';
 import Hero from '@/app/components/marketing/v1/Hero';
 import HowItWorks from '@/app/components/marketing/v1/HowItWorks';
+import PaymentMethods from '@/app/components/marketing/v1/PaymentMethods';
 import ReferralEarnings from '@/app/components/marketing/v1/ReferralEarnings';
 import Comparison from '@/app/components/marketing/v1/Comparison';
 import BookingDemo from '@/app/components/marketing/v1/BookingDemo';
@@ -16,6 +17,7 @@ export default function LandingPage() {
             <WelcomeVideo />
             <Hero />
             <HowItWorks />
+            <PaymentMethods />
             <ReferralEarnings />
             <Comparison />
             <BookingDemo />

@@ -144,6 +144,15 @@ BEGIN
       UPDATE public.driver_profiles 
       SET b2c_referral_count = b2c_referral_count + 1
       WHERE user_id = referrer_id;
+      
+      -- [NUEVO] Agregar automáticamente a Favoritos
+      -- Buscamos el driver_profile_id del referente
+      INSERT INTO public.favorites (user_id, driver_profile_id)
+      SELECT NEW.id, dp.id
+      FROM public.driver_profiles dp
+      WHERE dp.user_id = referrer_id
+      ON CONFLICT DO NOTHING;
+      
     ELSIF desired_role = 'driver' THEN
       UPDATE public.driver_profiles 
       SET referral_count_pending = referral_count_pending + 1

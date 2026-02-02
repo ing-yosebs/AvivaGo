@@ -14,6 +14,10 @@ export async function getPassengerQuotes(passengerId: string) {
                     user:user_id (
                         full_name,
                         avatar_url
+                    ),
+                    services:driver_services (
+                        payment_methods,
+                        payment_link
                     )
                 )
             `)

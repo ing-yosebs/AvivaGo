@@ -29,7 +29,7 @@ export default function Hero() {
                                 Crea tu propia página de <span className="text-aviva-primary">servicios de transporte</span> y fideliza a tus clientes
                             </h1>
                             <p className="text-xl text-gray-700 font-medium">
-                                Tu sitio web propio + bonos de por vida para los primeros 50 conductores.
+                                Tu sitio web propio + bonos por invitar a pasajeros + bonos de por vida para los primeros 50 conductores
                             </p>
                         </div>
 

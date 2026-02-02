@@ -1,7 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import Link from 'next/link'
 import { Mail, Lock, Loader2, Eye, EyeOff, CheckCircle, X } from 'lucide-react'
@@ -14,6 +14,8 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const redirectUrl = searchParams.get('redirect')
     const supabase = createClient()
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -30,17 +32,17 @@ export default function LoginPage() {
             console.log("Login error:", error.message)
             if (error.message.includes('Email not confirmed')) {
                 setError('Correo no verificado.')
-                // Optionally redirect or show a button, but for now just clear msg
-                // Actually, let's just push them there if we know the email, 
-                // but better to show a custom UI state. 
-                // Simplest: Show error with link.
-                // But `error` state is string.
-                // Let's make error state clearer in the render.
             } else {
                 setError(error.message)
             }
             setLoading(false)
         } else {
+            // Priority Redirect
+            if (redirectUrl) {
+                router.push(redirectUrl)
+                return
+            }
+
             // Check for Admin Role
             const { data: { user } } = await supabase.auth.getUser()
 

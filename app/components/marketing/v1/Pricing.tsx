@@ -87,7 +87,7 @@ export default function Pricing() {
                                 Regístrate Gratis
                             </Link>
                             <p className="text-blue-200 text-sm font-medium">
-                                *Para hacer público tu perfil debes pagar la membresía
+                                * Para hacer público tu perfil como conductor y recibir los bonos y solicitudes de pasajeros es necesario tener una membresía activa
                             </p>
 
                             <div className="flex flex-col items-center gap-3">

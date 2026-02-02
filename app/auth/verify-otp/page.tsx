@@ -14,6 +14,7 @@ function VerifyOTPForm() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const email = searchParams.get('email')
+    const redirectUrl = searchParams.get('redirect')
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -37,7 +38,11 @@ function VerifyOTPForm() {
         } else {
             setSuccess(true)
             setTimeout(() => {
-                router.push('/dashboard')
+                if (redirectUrl) {
+                    router.push(redirectUrl)
+                } else {
+                    router.push('/dashboard')
+                }
             }, 2000)
         }
     }

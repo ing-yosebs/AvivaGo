@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Calendar, FileText, Clock, MapPin, User } from 'lucide-react';
+import { Calendar, FileText, Clock, MapPin, User, Globe } from 'lucide-react';
+import Link from 'next/link';
 
 interface Quote {
     id: string;
@@ -17,7 +18,14 @@ interface Quote {
         user?: {
             full_name: string;
             avatar_url: string;
-        }
+        },
+        services?: {
+            payment_methods?: string[];
+            payment_link?: string;
+        }[] | {
+            payment_methods?: string[];
+            payment_link?: string;
+        };
     };
 }
 
@@ -39,7 +47,8 @@ export default function PassengerQuoteList({ quotes }: { quotes: Quote[] }) {
             {quotes.map((quote) => {
                 const driverName = quote.driver?.user?.full_name || 'Conductor';
                 const driverAvatar = quote.driver?.user?.avatar_url;
-                const rideDate = new Date(quote.scheduled_date).toLocaleString();
+                const rideDate = new Date(quote.scheduled_date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const rideTime = new Date(quote.scheduled_date).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
 
                 return (
                     <div key={quote.id} className="bg-white border border-gray-100 rounded-[20px] p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
@@ -57,24 +66,27 @@ export default function PassengerQuoteList({ quotes }: { quotes: Quote[] }) {
 
                         <div className="flex flex-col md:flex-row gap-6">
                             {/* Driver Info */}
-                            <div className="flex-shrink-0">
-                                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-400 overflow-hidden">
+                            <Link href={`/driver/${quote.driver_id}`} className="flex-shrink-0 group/avatar">
+                                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-400 overflow-hidden ring-0 group-hover/avatar:ring-4 group-hover/avatar:ring-blue-50 transition-all">
                                     {driverAvatar ? (
                                         <img src={driverAvatar} alt={driverName} className="w-full h-full object-cover" />
                                     ) : (
                                         <User className="w-6 h-6" />
                                     )}
                                 </div>
-                            </div>
+                            </Link>
 
                             <div className="flex-1 space-y-4">
                                 <div>
                                     <h3 className="text-lg font-bold text-[#0F2137] font-display">
-                                        Solicitud a {driverName}
+                                        Solicitud a{' '}
+                                        <Link href={`/driver/${quote.driver_id}`} className="hover:text-blue-600 transition-colors hover:underline decoration-blue-200 underline-offset-4">
+                                            {driverName}
+                                        </Link>
                                     </h3>
                                     <p className="text-xs text-gray-400 flex items-center gap-1.5 mt-0.5">
                                         <Clock className="w-3.5 h-3.5" />
-                                        Enviada el: {new Date(quote.created_at).toLocaleDateString()}
+                                        Enviada el: {new Date(quote.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                                     </p>
                                 </div>
 
@@ -82,7 +94,7 @@ export default function PassengerQuoteList({ quotes }: { quotes: Quote[] }) {
                                     <div className="flex items-center gap-2 text-sm text-gray-600">
                                         <Calendar className="w-4 h-4 text-blue-500" />
                                         <span className="font-medium">
-                                            Fecha de Viaje: {rideDate}
+                                            Fecha de Viaje: {rideDate} a las {rideTime}
                                         </span>
                                     </div>
                                     {(quote.origin_location || quote.destination_location) && (
@@ -98,6 +110,36 @@ export default function PassengerQuoteList({ quotes }: { quotes: Quote[] }) {
                                 <div className="bg-gray-50 border border-gray-100 p-3 rounded-xl text-sm text-gray-600 italic">
                                     "{quote.details}"
                                 </div>
+
+                                {/* Online Payment Button */}
+                                {quote.status === 'accepted' && (() => {
+                                    const services = Array.isArray(quote.driver?.services)
+                                        ? quote.driver?.services[0]
+                                        : quote.driver?.services;
+
+                                    const hasOnlinePayment = services?.payment_methods?.includes('Pago en Línea');
+                                    const paymentLink = services?.payment_link;
+
+                                    if (hasOnlinePayment && paymentLink) {
+                                        return (
+                                            <div className="pt-2 animate-in fade-in slide-in-from-top-2 duration-500">
+                                                <a
+                                                    href={paymentLink.startsWith('http') ? paymentLink : `https://${paymentLink}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-md shadow-emerald-500/20 active:scale-[0.98] group text-sm w-full md:w-auto"
+                                                >
+                                                    <Globe className="h-4 w-4 group-hover:rotate-12 transition-transform" />
+                                                    Pagar en Línea ahora
+                                                </a>
+                                                <p className="text-[10px] text-emerald-600 mt-1.5 font-medium ml-1">
+                                                    * El conductor ha habilitado pagos directos para esta reserva.
+                                                </p>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                })()}
                             </div>
                         </div>
                     </div>

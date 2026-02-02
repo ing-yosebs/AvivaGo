@@ -18,6 +18,7 @@ function RegisterForm() {
     const [existingEmail, setExistingEmail] = useState('')
 
     const searchParams = useSearchParams()
+    const redirectUrl = searchParams.get('redirect')
     const forcedRole = searchParams.get('role') === 'driver'
     const forcedPassenger = searchParams.get('role') === 'passenger'
     const isRoleForced = forcedRole || forcedPassenger
@@ -78,7 +79,11 @@ function RegisterForm() {
             }
         } else if (res?.success) {
             // Redirect to verify-otp page
-            window.location.href = `/auth/verify-otp?email=${encodeURIComponent(email)}`
+            let nextUrl = `/auth/verify-otp?email=${encodeURIComponent(email)}`
+            if (redirectUrl) {
+                nextUrl += `&redirect=${encodeURIComponent(redirectUrl)}`
+            }
+            window.location.href = nextUrl
             return
         }
         setPending(false)
@@ -332,7 +337,7 @@ function RegisterForm() {
 
                 <div className="mt-8 text-center text-sm text-zinc-500">
                     ¿Ya tienes cuenta?{' '}
-                    <Link href="/auth/login" className="text-white hover:underline">
+                    <Link href={`/auth/login${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} className="text-white hover:underline">
                         Iniciar Sesión
                     </Link>
                 </div>
