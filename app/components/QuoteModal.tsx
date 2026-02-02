@@ -110,6 +110,14 @@ const ModernCalendarPicker = ({ value, onChange, isOpen, onClose }: ModernCalend
         </motion.div>
     );
 };
+// --- Circular Time Picker Sub-component ---
+interface CircularTimePickerProps {
+    value: string;
+    onChange: (val: string) => void;
+    isOpen: boolean;
+    onClose: () => void;
+}
+
 const CircularTimePicker = ({ value, onChange, isOpen, onClose }: CircularTimePickerProps) => {
     const [mode, setMode] = useState<'hours' | 'minutes'>('hours');
     const [hour, setHour] = useState(parseInt(value.split(':')[0]) % 12 || 12);
