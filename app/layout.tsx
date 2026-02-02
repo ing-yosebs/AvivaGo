@@ -20,6 +20,7 @@ export const metadata: Metadata = {
 
 import { createClient } from '@/lib/supabase/server'
 import BanGuard from '@/app/components/BanGuard'
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 export default async function RootLayout({
     children,
@@ -40,9 +41,12 @@ export default async function RootLayout({
         isBanned = !!profile?.is_banned
     }
 
+    const gaId = process.env.NEXT_PUBLIC_GA_ID;
+
     return (
         <html lang="es" className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning>
             <body className="font-sans antialiased" suppressHydrationWarning>
+                {gaId && <GoogleAnalytics gaId={gaId} />}
                 <BanGuard isBanned={isBanned} />
                 {children}
             </body>
