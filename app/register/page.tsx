@@ -78,6 +78,14 @@ function RegisterForm() {
                 setError(res.error)
             }
         } else if (res?.success) {
+            // Track Facebook Pixel 'CompleteRegistration' event
+            if (typeof window.fbq !== 'undefined') {
+                window.fbq('track', 'CompleteRegistration', {
+                    content_name: isDriver ? 'Driver Signup' : 'Passenger Signup',
+                    status: 'success'
+                });
+            }
+
             // Redirect to verify-otp page
             let nextUrl = `/auth/verify-otp?email=${encodeURIComponent(email)}`
             if (redirectUrl) {

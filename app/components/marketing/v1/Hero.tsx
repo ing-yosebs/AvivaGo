@@ -50,6 +50,14 @@ export default function Hero() {
                             <div className="flex flex-col sm:flex-row items-center gap-6">
                                 <Link
                                     href="/register?role=driver"
+                                    onClick={() => {
+                                        if (typeof window.fbq !== 'undefined') {
+                                            window.fbq('track', 'Lead', {
+                                                content_name: 'Hero CTA - Driver Registration',
+                                                content_category: 'Drivers'
+                                            });
+                                        }
+                                    }}
                                     className="inline-flex items-center justify-center gap-2 bg-aviva-secondary hover:bg-aviva-secondary/90 text-white text-lg font-bold px-10 py-5 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 w-full sm:w-max group"
                                 >
                                     <Car size={24} />

@@ -153,6 +153,17 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
             }
 
             const { url } = await response.json()
+
+            // Track Facebook Pixel 'InitiateCheckout' event
+            if (typeof window.fbq !== 'undefined') {
+                window.fbq('track', 'InitiateCheckout', {
+                    content_name: 'Membresía Driver AvivaGo',
+                    content_category: 'Membership',
+                    value: 524,
+                    currency: 'MXN'
+                });
+            }
+
             openStripeCheckout(url)
         } catch (error: any) {
             alert('Error al procesar el pago: ' + error.message)

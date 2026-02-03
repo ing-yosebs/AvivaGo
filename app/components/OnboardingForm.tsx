@@ -20,6 +20,15 @@ export default function OnboardingForm() {
                 setError(result.error);
             } else {
                 setSuccess(true);
+
+                // Track Facebook Pixel 'CompleteRegistration'
+                if (typeof window.fbq !== 'undefined') {
+                    window.fbq('track', 'CompleteRegistration', {
+                        content_name: 'Driver Registration',
+                        status: 'Success'
+                    });
+                }
+
                 setTimeout(() => {
                     router.push('/driver/dashboard');
                     router.refresh();

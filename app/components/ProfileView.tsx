@@ -66,9 +66,19 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
 
             // Call RPC to increment view
             await supabase.rpc('increment_profile_view', { profile_id: driver.id });
+
+            // Track Facebook Pixel 'ViewContent'
+            if (typeof window.fbq !== 'undefined') {
+                window.fbq('track', 'ViewContent', {
+                    content_name: driver.name,
+                    content_type: 'product',
+                    content_ids: [driver.id.toString()],
+                    content_category: 'Driver Profile'
+                });
+            }
         };
         registerView();
-    }, [driver.id]);
+    }, [driver.id, driver.name, supabase]);
 
     const [isLocked, setIsLocked] = useState(false);
 

@@ -98,6 +98,14 @@ export default function Navbar() {
                                 </Link>
                                 <Link
                                     href="/register?role=driver"
+                                    onClick={() => {
+                                        if (typeof window.fbq !== 'undefined') {
+                                            window.fbq('track', 'Lead', {
+                                                content_name: 'Navbar CTA - Registration',
+                                                content_category: 'Drivers'
+                                            });
+                                        }
+                                    }}
                                     className="bg-aviva-primary text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-aviva-primary/90 transition-all shadow-lg shadow-aviva-primary/20 hover:shadow-aviva-primary/40"
                                 >
                                     Regístrate Ya
@@ -169,7 +177,15 @@ export default function Navbar() {
                                     <Link
                                         href="/register?role=driver"
                                         className="bg-aviva-primary text-white px-5 py-3 rounded-full text-base font-medium text-center hover:bg-aviva-primary/90 transition-all shadow-lg"
-                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        onClick={() => {
+                                            setIsMobileMenuOpen(false);
+                                            if (typeof window.fbq !== 'undefined') {
+                                                window.fbq('track', 'Lead', {
+                                                    content_name: 'Mobile Navbar CTA - Registration',
+                                                    content_category: 'Drivers'
+                                                });
+                                            }
+                                        }}
                                     >
                                         Regístrate Ya
                                     </Link>

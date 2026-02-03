@@ -300,6 +300,17 @@ export default function QuoteModal({ driverId, driverName, isOpen, onClose }: Qu
 
         if (result.success) {
             setSuccess(true);
+
+            // Track Facebook Pixel 'Contact' event
+            if (typeof window.fbq !== 'undefined') {
+                window.fbq('track', 'Contact', {
+                    content_name: 'Solicitud de Cotización',
+                    content_category: 'Lead',
+                    value: 0, // No monetary value assigned yet
+                    currency: 'MXN'
+                });
+            }
+
             setTimeout(() => {
                 onClose();
                 setSuccess(false); // Reset for next time

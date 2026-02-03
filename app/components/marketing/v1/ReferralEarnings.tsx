@@ -106,6 +106,14 @@ export default function ReferralEarnings() {
                                     <p className="text-blue-200 text-sm mb-4">Haz crecer tu red y genera ingresos pasivos mes con mes.</p>
                                     <Link
                                         href="/register?role=driver"
+                                        onClick={() => {
+                                            if (typeof window.fbq !== 'undefined') {
+                                                window.fbq('track', 'Lead', {
+                                                    content_name: 'Referral Earnings CTA - Claim Page',
+                                                    content_category: 'Drivers'
+                                                });
+                                            }
+                                        }}
                                         className="inline-block bg-aviva-secondary hover:bg-aviva-secondary/90 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg w-full"
                                     >
                                         ¡Quiero mi página ahora!

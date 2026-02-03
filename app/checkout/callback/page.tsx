@@ -37,6 +37,17 @@ function CallbackContent() {
                 }
 
                 setVerified(true);
+
+                // Track Facebook Pixel 'Purchase' event
+                if (typeof window.fbq !== 'undefined') {
+                    window.fbq('track', 'Purchase', {
+                        content_name: type === 'membership' ? 'Membresía Driver AvivaGo' : 'Desbloqueo de Conductor',
+                        content_type: 'product',
+                        value: type === 'membership' ? 524 : 0, // Set specific value if it's membership
+                        currency: 'MXN'
+                    });
+                }
+
                 // Notify parent window ONLY after verification
                 if (window.opener) {
                     window.opener.postMessage({
