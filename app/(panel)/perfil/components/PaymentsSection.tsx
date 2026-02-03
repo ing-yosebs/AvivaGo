@@ -1,12 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { BadgeCheck, Calendar, CreditCard, Loader2, CheckCircle, Shield, Info, Star, Clock, AlertTriangle, Car } from 'lucide-react'
-import { createPortal } from 'react-dom'
-import { createClient } from '@/lib/supabase/client'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { Info } from 'lucide-react'
 import ReviewModal from '../../../components/ReviewModal'
-import { requestReview, recordPaymentConsent } from '@/app/driver/actions'
+
+// Hooks
+import { usePaymentHistory } from './hooks/usePaymentHistory'
+import { useDriverAppeal } from './hooks/useDriverAppeal'
+import { useProfileValidation } from './hooks/useProfileValidation'
+import { useMembershipPurchase } from './hooks/useMembershipPurchase'
+
+// UI Components
+import AppealModal from './ui/AppealModal'
+import MembershipStatusCard from './ui/MembershipStatusCard'
+import VerificationStatusPanel from './ui/VerificationStatusPanel'
+import MembershipPurchaseFlow from './ui/MembershipPurchaseFlow'
+import PaymentHistoryTable from './ui/PaymentHistoryTable'
 
 interface PaymentsSectionProps {
     isDriver: boolean
@@ -20,553 +29,94 @@ interface PaymentsSectionProps {
     pendingPayment?: any
 }
 
-export default function PaymentsSection({ isDriver, hasMembership, driverStatus, driverProfileId, onPurchaseSuccess, profile, vehicles, services, pendingPayment }: PaymentsSectionProps) {
-    const supabase = createClient()
-    const [unlocks, setUnlocks] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
+export default function PaymentsSection({
+    isDriver,
+    hasMembership,
+    driverStatus,
+    driverProfileId,
+    onPurchaseSuccess,
+    profile,
+    vehicles,
+    services,
+    pendingPayment
+}: PaymentsSectionProps) {
     const [reviewModal, setReviewModal] = useState<{ open: boolean, driverId: string, driverName: string } | null>(null)
-    const [purchasing, setPurchasing] = useState(false)
-    const [paymentConsent, setPaymentConsent] = useState(false)
 
-    // Appeal Modal State
-    const [appealModalOpen, setAppealModalOpen] = useState(false)
-    const [appealReason, setAppealReason] = useState('')
-    const [mounted, setMounted] = useState(false)
+    // Data Hooks
+    const { unlocks, loading: historyLoading, refreshHistory } = usePaymentHistory({
+        isDriver,
+        hasMembership,
+        onPurchaseSuccess,
+        reviewModal
+    })
 
-    useEffect(() => {
-        setMounted(true)
-        const fetchHistory = async () => {
-            // ... existing fetch logic ...
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return
+    const { validateProfile } = useProfileValidation()
 
-            // 1. Fetch Membership (Mock for now, checking if there are membership payments)
-            if (isDriver) {
-                const { data: membershipData } = await supabase
-                    .from('unlocks') // Using unlocks for now as per project structure, but filtering by type if exists or amount
-                    .select('id')
-                    .eq('user_id', user.id)
-                    .eq('amount_paid', 524) // Our membership price
-                    .limit(1)
+    const {
+        appealModalOpen,
+        setAppealModalOpen,
+        appealReason,
+        setAppealReason,
+        submittingAppeal,
+        handleRequestReview: initRequestReview,
+        confirmRequestReview
+    } = useDriverAppeal(driverProfileId)
 
-                if (membershipData && membershipData.length > 0) {
-                    onPurchaseSuccess()
-                }
-            }
+    const {
+        purchasing,
+        paymentConsent,
+        setPaymentConsent,
+        handlePurchase,
+        openStripeCheckout
+    } = useMembershipPurchase(onPurchaseSuccess)
 
-            // 1. Fetch Unlocks
-            const { data: unlocksData, error: unlockError } = await supabase
-                .from('unlocks')
-                .select(`
-                    id,
-                    amount_paid,
-                    created_at,
-                    driver_profile_id,
-                    driver_profiles (
-                        users (full_name)
-                    )
-                `)
-                .eq('user_id', user.id)
-                .order('created_at', { ascending: false })
-
-            if (unlockError) {
-                console.error('Error fetching unlocks:', unlockError)
-                setLoading(false)
-                return
-            }
-
-            // 2. Fetch Reviews for these unlocks
-            const unlockIds = (unlocksData || []).map(u => u.id)
-            const { data: reviewsData, error: reviewError } = await supabase
-                .from('reviews')
-                .select('id, rating, passenger_rating, unlock_id')
-                .in('unlock_id', unlockIds)
-
-            // 3. Merge them
-            const merged = (unlocksData || []).map(unlock => ({
-                ...unlock,
-                reviews: (reviewsData || []).filter(r => r.unlock_id === unlock.id)
-            }))
-
-            setUnlocks(merged)
-            setLoading(false)
-        }
-        fetchHistory()
-    }, [isDriver, reviewModal, hasMembership, supabase, onPurchaseSuccess])
-
-    const searchParams = useSearchParams()
-    const router = useRouter()
-
-    // ... existing openStripeCheckout ...
-    const openStripeCheckout = (url: string) => {
-        const width = 500;
-        const height = 700;
-        const left = window.screenX + (window.outerWidth - width) / 2;
-        const top = window.screenY + (window.outerHeight - height) / 2;
-
-        const popup = window.open(
-            url,
-            'StripeCheckout',
-            `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,status=yes`
-        );
-
-        if (!popup) {
-            alert('Por favor habilita las ventanas emergentes para continuar con el pago.');
-            return;
-        }
-
-        const handleMessage = (event: MessageEvent) => {
-            if (event.origin !== window.location.origin) return;
-            if (event.data?.source === 'avivago-payment') {
-                if (event.data.status === 'success') {
-                    onPurchaseSuccess();
-                    // Alert removed for cleaner UX
-                } else {
-                    alert('El pago fue cancelado o no se pudo procesar.');
-                }
-                window.removeEventListener('message', handleMessage);
-            }
-        };
-
-        window.addEventListener('message', handleMessage);
-
-        const timer = setInterval(() => {
-            if (popup.closed) {
-                clearInterval(timer);
-                window.removeEventListener('message', handleMessage);
-            }
-        }, 1000);
-    };
-
-    const handlePurchase = async () => {
-        setPurchasing(true)
-        try {
-            await recordPaymentConsent('Autorizo a que se me dirija a Stripe para realizar el pago correspondiente.')
-
-            const response = await fetch('/api/checkout', {
-                method: 'POST',
-            })
-
-            if (!response.ok) {
-                const text = await response.text()
-                throw new Error(text)
-            }
-
-            const { url } = await response.json()
-
-            // Track Facebook Pixel 'InitiateCheckout' event
-            if (typeof window.fbq !== 'undefined') {
-                window.fbq('track', 'InitiateCheckout', {
-                    content_name: 'Membresía Driver AvivaGo',
-                    content_category: 'Membership',
-                    value: 524,
-                    currency: 'MXN'
-                });
-            }
-
-            openStripeCheckout(url)
-        } catch (error: any) {
-            alert('Error al procesar el pago: ' + error.message)
-            console.error('Purchase error:', error)
-        } finally {
-            setPurchasing(false)
-        }
+    // Handlers
+    const handleRequestReviewWrapper = () => {
+        const errors = validateProfile(profile, vehicles, services)
+        initRequestReview(errors)
     }
 
-    const validateProfile = () => {
-        if (!profile) return ['No hay datos de perfil']
-
-        const errors = []
-        // Personal Data
-        if (!profile.full_name) errors.push('Nombre completo')
-        if (!profile.phone_number) errors.push('Teléfono')
-        if (!profile.nationality) errors.push('Nacionalidad')
-        if (!profile.curp) errors.push('CURP')
-        if (!profile.address_street) errors.push('Calle')
-        if (!profile.address_number_ext) errors.push('Número exterior')
-        if (!profile.address_suburb) errors.push('Colonia/Municipio')
-        if (!profile.address_postal_code) errors.push('Código postal')
-        if (!profile.address_state) errors.push('Estado')
-        if (!profile.address_country) errors.push('País')
-        if (!profile.id_document_url) errors.push('Identificación oficial o pasaporte (foto)')
-        if (!profile.address_proof_url) errors.push('Comprobante de domicilio (foto)')
-
-        // Vehicles Validation
-        if (!vehicles || vehicles.length === 0) {
-            errors.push('Registrar al menos un vehículo')
-        }
-
-        // Services Validation
-        if (!services) {
-            errors.push('Configuración de servicios')
-        } else {
-            if (!services.preferred_zones || services.preferred_zones.length === 0) {
-                errors.push('Seleccionar tus zonas de cobertura (Mis Servicios)')
-            }
-            // Optional: Check questionnaire completion if deemed critical
-            // if (!services.professional_questionnaire || Object.keys(services.professional_questionnaire).length === 0) {
-            //     errors.push('Completar el Cuestionario Profesional (Mis Servicios)')
-            // }
-        }
-
-        return errors
+    const handleRateDriver = (driverId: string, driverName: string) => {
+        setReviewModal({
+            open: true,
+            driverId,
+            driverName
+        })
     }
 
-    const handleRequestReview = async () => {
-        if (!driverProfileId) return
-
-        const errors = validateProfile()
-        if (errors.length > 0) {
-            alert('No podemos proceder con tu solicitud porque faltan los siguientes datos obligatorios:\n\n- ' + errors.join('\n- '))
-            return
-        }
-
-        // Open modal instead of instant confirm
-        setAppealReason('')
-        setAppealModalOpen(true)
-    }
-
-    const confirmRequestReview = async () => {
-        if (!driverProfileId) return
-
-        setAppealModalOpen(false)
-        setPurchasing(true) // Reuse loading state
-
-        try {
-            const result = await requestReview(driverProfileId, appealReason)
-            if (result.error) throw new Error(result.error)
-            alert('Solicitud enviada con éxito. Tu perfil está ahora en revisión.')
-            window.location.reload() // Reload to refresh status
-        } catch (error: any) {
-            alert(error.message)
-        } finally {
-            setPurchasing(false)
-        }
-    }
-
-    if (loading) return <div className="animate-pulse h-40 bg-gray-50 rounded-3xl border border-gray-100" />
+    if (historyLoading) return <div className="animate-pulse h-40 bg-gray-50 rounded-3xl border border-gray-100" />
 
     return (
         <div className="space-y-8">
-            {/* ... rest of the render code ... */}
-
-            {/* Appeal Modal */}
-            {appealModalOpen && mounted && createPortal(
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white border border-gray-100 rounded-2xl w-full max-w-md p-6 shadow-2xl scale-100 animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-xl font-bold text-[#0F2137] mb-2">
-                            Solicitar Nueva Revisión
-                        </h3>
-                        <p className="text-gray-500 text-sm mb-4">
-                            Por favor explica brevemente tus correcciones o apelación para ayudar a nuestro staff a revisar tu perfil más rápido.
-                        </p>
-
-                        <textarea
-                            value={appealReason}
-                            onChange={(e) => setAppealReason(e.target.value)}
-                            placeholder="Ej: He actualizado mi comprobante de domicilio y corregido mi nombre..."
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-[#0F2137] placeholder-gray-400 min-h-[120px] focus:outline-none focus:border-blue-500 transition-colors mb-6 resize-none"
-                            autoFocus
-                        />
-
-                        <div className="flex gap-3 justify-end">
-                            <button
-                                onClick={() => setAppealModalOpen(false)}
-                                className="px-4 py-2 rounded-xl text-gray-500 hover:text-[#0F2137] hover:bg-gray-50 transition-colors font-medium text-sm"
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                onClick={confirmRequestReview}
-                                className="px-4 py-2 rounded-xl bg-[#0F2137] text-white hover:bg-[#0F2137]/90 transition-colors font-bold text-sm shadow-lg shadow-[#0F2137]/20"
-                            >
-                                Enviar Solicitud
-                            </button>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
+            <AppealModal
+                isOpen={appealModalOpen}
+                onClose={() => setAppealModalOpen(false)}
+                appealReason={appealReason}
+                setAppealReason={setAppealReason}
+                onConfirm={confirmRequestReview}
+            />
 
             {isDriver ? (
-                // ... rest of the code ... (Use existing code, just return it)
-                // ...
-
                 hasMembership ? (
                     <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-3xl p-8 relative overflow-hidden animate-in fade-in zoom-in duration-500 shadow-soft">
-                        <div className="absolute top-0 right-0 p-8 opacity-5">
-                            <BadgeCheck className="h-32 w-32 text-indigo-900" />
-                        </div>
-                        <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-4">
-                                <span className="px-3 py-1 bg-indigo-600 text-[10px] font-bold uppercase tracking-wider rounded-lg text-white">Membresía Activa</span>
-                            </div>
-                            <h3 className="text-2xl font-bold mb-2 text-[#0F2137]">Plan Driver Premium</h3>
-                            <p className="text-gray-500 text-sm mb-6 max-w-md">Tu suscripción anual te permite aparecer en los resultados de búsqueda y recibir contactos directos de pasajeros.</p>
+                        <MembershipStatusCard />
 
-                            <div className="flex items-center gap-4 text-sm font-medium">
-                                <div className="flex items-center gap-2 text-gray-600">
-                                    <Calendar className="h-4 w-4 text-indigo-600" />
-                                    <span>Próximo cobro: {new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
-                                </div>
-                            </div>
-
-                            {/* Status / Review Section */}
-                            <div className="mt-8 pt-8 border-t border-indigo-100">
-                                <h4 className="font-bold text-[#0F2137] mb-4 flex items-center gap-2">
-                                    <Shield className="h-5 w-5 text-indigo-600" />
-                                    Estado de Verificación
-                                </h4>
-
-                                {driverStatus === 'active' ? (
-                                    <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-3">
-                                        <div className="h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
-                                            <CheckCircle className="h-6 w-6" />
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-emerald-700">Cuenta Validada</p>
-                                            <p className="text-xs text-emerald-600/80">Ya puedes recibir solicitudes de pasajeros.</p>
-                                        </div>
-                                    </div>
-                                ) : driverStatus === 'pending_approval' ? (
-                                    <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 flex items-center gap-3">
-                                        <div className="h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600">
-                                            <Clock className="h-6 w-6" />
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-orange-700">En Revisión</p>
-                                            <p className="text-xs text-orange-600/80">Estamos validando tu información. Te notificaremos pronto.</p>
-                                        </div>
-                                    </div>
-                                ) : driverStatus === 'rejected' ? (
-                                    <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 space-y-4">
-                                        <div className="flex items-start gap-3">
-                                            <div className="h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shrink-0">
-                                                <Info className="h-6 w-6" />
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-orange-700">Solicitud Rechazada</p>
-                                                <p className="text-xs text-orange-600/80 mt-1 mb-3">
-                                                    Tu perfil no cumple con algunos requisitos. Por favor revisa la razón a continuación y corrige tu información.
-                                                </p>
-
-                                                {profile?.driver_profile?.rejection_reason && (
-                                                    <div className="bg-white p-3 rounded-lg border border-orange-200 mb-2">
-                                                        <p className="text-[10px] font-bold text-orange-600 uppercase mb-1 tracking-wider">Motivo del staff:</p>
-                                                        <p className="text-sm text-gray-700 italic">"{profile.driver_profile.rejection_reason}"</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            onClick={handleRequestReview}
-                                            disabled={purchasing}
-                                            className="w-full bg-[#0F2137] text-white font-bold py-3 px-6 rounded-xl hover:bg-[#0F2137]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-[#0F2137]/20"
-                                        >
-                                            {purchasing ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <Shield className="h-4 w-4" />
-                                            )}
-                                            Solicitar Nueva Revisión
-                                        </button>
-                                    </div>
-                                ) : driverStatus === 'suspended' ? (
-                                    <div className="bg-red-50 border border-red-100 rounded-2xl p-4 space-y-4">
-                                        <div className="flex items-start gap-3">
-                                            <div className="h-10 w-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 shrink-0">
-                                                <AlertTriangle className="h-6 w-6" />
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-red-700">Cuenta Suspendida</p>
-                                                <p className="text-xs text-red-600/80 mt-1 mb-3">
-                                                    Tu cuenta ha sido suspendida. Por favor revisa el motivo a continuación y contacta a soporte o solicita una revisión.
-                                                </p>
-
-                                                {profile?.driver_profile?.rejection_reason && (
-                                                    <div className="bg-white p-3 rounded-lg border border-red-200 mb-2">
-                                                        <p className="text-[10px] font-bold text-red-600 uppercase mb-1 tracking-wider">Motivo de suspensión:</p>
-                                                        <p className="text-sm text-gray-700 italic">"{profile.driver_profile.rejection_reason}"</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            onClick={handleRequestReview}
-                                            disabled={purchasing}
-                                            className="w-full bg-[#0F2137] text-white font-bold py-3 px-6 rounded-xl hover:bg-[#0F2137]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-[#0F2137]/20"
-                                        >
-                                            {purchasing ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <Shield className="h-4 w-4" />
-                                            )}
-                                            Solicitar Revisión para Reactivación
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-                                        <p className="text-gray-500 text-sm mb-4">
-                                            Para comenzar a operar, debes solicitar una revisión de tu perfil. Asegúrate de haber completado todos tus datos.
-                                        </p>
-                                        <button
-                                            onClick={handleRequestReview}
-                                            disabled={purchasing}
-                                            className="w-full bg-[#0F2137] text-white font-bold py-3 px-6 rounded-xl hover:bg-[#0F2137]/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg shadow-[#0F2137]/20"
-                                        >
-                                            {purchasing ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <Shield className="h-4 w-4" />
-                                            )}
-                                            Solicitar Revisión
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                        <VerificationStatusPanel
+                            driverStatus={driverStatus}
+                            profile={profile}
+                            handleRequestReview={handleRequestReviewWrapper}
+                            submittingAppeal={submittingAppeal} // Use appeal specific loading state for the panel actions
+                        />
                     </div>
                 ) : (
-                    <div className="backdrop-blur-xl bg-white border border-gray-100 rounded-[3rem] p-8 md:p-12 text-center max-w-3xl mx-auto shadow-2xl relative overflow-hidden">
-                        {/* Decorative Background */}
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
-
-                        <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-8 ring-8 ring-indigo-50 transition-transform hover:scale-110 duration-500">
-                            <CreditCard className="h-10 w-10 text-indigo-600" />
-                        </div>
-
-                        <h3 className="text-3xl md:text-4xl font-black mb-4 tracking-tight text-[#0F2137]">Activa tu Membresía Driver</h3>
-                        <p className="text-gray-500 text-lg mb-12 leading-relaxed max-w-2xl mx-auto">
-                            Únete a la red de conductores profesionales de AvivaGo. Sigue estos simples pasos para comenzar a recibir solicitudes directas de pasajeros.
-                        </p>
-
-                        {pendingPayment && (
-                            <div className="mb-12 p-6 bg-amber-50 border border-amber-200 rounded-3xl text-left flex items-start gap-4 animate-in slide-in-from-top-4 duration-500">
-                                <div className="p-3 bg-amber-100 rounded-2xl text-amber-600 shrink-0">
-                                    <Clock className="h-6 w-6" />
-                                </div>
-                                <div className="space-y-3">
-                                    <div>
-                                        <h4 className="font-bold text-amber-700">Tienes un pago pendiente</h4>
-                                        <p className="text-sm text-amber-700/60">Detectamos un intento de pago por transferencia (SPEI) o efectivo que aún no se ha completado.</p>
-                                    </div>
-                                    <button
-                                        onClick={() => openStripeCheckout(pendingPayment.checkout_url)}
-                                        className="inline-flex items-center gap-2 bg-amber-500 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/20"
-                                    >
-                                        Ver Instrucciones de Pago
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Process Steps */}
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 text-left relative">
-
-                            {/* Step 1 */}
-                            <div className="bg-white border border-indigo-100 p-6 rounded-3xl relative shadow-lg shadow-indigo-500/10 overflow-hidden group hover:bg-gray-50 transition-colors">
-                                <div className="absolute top-0 left-0 bg-indigo-600 text-white px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 01</div>
-                                <div className="mt-6 flex flex-col items-center">
-                                    <div className="h-12 w-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4 text-indigo-600 group-hover:scale-110 transition-transform">
-                                        <CreditCard className="h-6 w-6" />
-                                    </div>
-                                    <h4 className="font-bold text-[#0F2137] text-center mb-2">Activa Membresía</h4>
-                                    <p className="text-xs text-gray-500 text-center leading-relaxed">Realiza tu pago anual seguro para desbloquear las funciones de tu perfil.</p>
-                                </div>
-                            </div>
-
-                            {/* Step 2 */}
-                            <div className="bg-gray-50 border border-gray-100 p-6 rounded-3xl relative overflow-hidden group hover:bg-white transition-colors">
-                                <div className="absolute top-0 left-0 bg-gray-200 text-gray-600 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 02</div>
-                                <div className="mt-6 flex flex-col items-center">
-                                    <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center mb-4 text-gray-400 group-hover:text-gray-600 transition-colors shadow-sm">
-                                        <Car className="h-6 w-6" />
-                                    </div>
-                                    <h4 className="font-bold text-gray-600 text-center mb-2">Configura Datos</h4>
-                                    <p className="text-xs text-gray-400 text-center leading-relaxed">Registra al menos un vehículo y tus zonas de cobertura.</p>
-                                </div>
-                            </div>
-
-                            {/* Step 3 */}
-                            <div className="bg-gray-50 border border-gray-100 p-6 rounded-3xl relative overflow-hidden group hover:bg-white transition-colors">
-                                <div className="absolute top-0 left-0 bg-gray-200 text-gray-600 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 03</div>
-                                <div className="mt-6 flex flex-col items-center">
-                                    <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center mb-4 text-gray-400 group-hover:text-gray-600 transition-colors shadow-sm">
-                                        <Shield className="h-6 w-6" />
-                                    </div>
-                                    <h4 className="font-bold text-gray-600 text-center mb-2">Solicita Revisión</h4>
-                                    <p className="text-xs text-gray-400 text-center leading-relaxed">Envía tu perfil a validación de identidad para mayor seguridad.</p>
-                                </div>
-                            </div>
-
-                            {/* Step 4 */}
-                            <div className="bg-gray-50 border border-gray-100 p-6 rounded-3xl relative overflow-hidden group hover:bg-white transition-colors">
-                                <div className="absolute top-0 left-0 bg-green-100/50 text-green-600 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 04</div>
-                                <div className="mt-6 flex flex-col items-center">
-                                    <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center mb-4 text-gray-400 group-hover:text-green-500 transition-colors shadow-sm">
-                                        <CheckCircle className="h-6 w-6" />
-                                    </div>
-                                    <h4 className="font-bold text-gray-600 text-center mb-2">¡Recibe Clientes!</h4>
-                                    <p className="text-xs text-gray-400 text-center leading-relaxed">Tu perfil se vuelve público y aceptas solicitudes directas.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-8 mb-10 inline-block px-12 transform hover:scale-[1.02] transition-transform shadow-inner">
-                            <div className="text-[10px] text-indigo-500 uppercase tracking-[0.2em] font-black mb-2">Costo Anual de Activación</div>
-                            <div className="text-5xl font-black text-[#0F2137]">$524 <span className="text-sm font-medium text-gray-500 tracking-normal">MXN</span></div>
-                        </div>
-
-                        <div className="space-y-6 max-w-md mx-auto">
-                            <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 text-left hover:bg-white hover:shadow-sm transition-all cursor-pointer" onClick={() => setPaymentConsent(!paymentConsent)}>
-                                <div className="relative flex items-center pt-0.5">
-                                    <input
-                                        type="checkbox"
-                                        id="payment-consent"
-                                        checked={paymentConsent}
-                                        onChange={(e) => setPaymentConsent(e.target.checked)}
-                                        className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 transition-all checked:border-indigo-600 checked:bg-indigo-600 hover:border-indigo-400"
-                                    />
-                                    <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100">
-                                        <CheckCircle className="h-3.5 w-3.5" />
-                                    </div>
-                                </div>
-                                <label htmlFor="payment-consent" className="text-sm text-gray-600 cursor-pointer select-none leading-tight">
-                                    Autorizo a que se me dirija a Stripe para realizar el pago correspondiente.
-                                </label>
-                            </div>
-
-                            <button
-                                onClick={handlePurchase}
-                                disabled={purchasing || !paymentConsent}
-                                className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 px-16 rounded-[2rem] transition-all shadow-[0_20px_40px_-15px_rgba(79,70,229,0.3)] flex items-center justify-center gap-3 mx-auto disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] group"
-                            >
-                                {purchasing ? (
-                                    <>
-                                        <Loader2 className="h-5 w-5 animate-spin" />
-                                        Validando Pago...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CreditCard className="h-6 w-6 group-hover:rotate-12 transition-transform" />
-                                        Pagar Membresía Ahora
-                                    </>
-                                )}
-                            </button>
-
-                            <div className="flex flex-col items-center justify-center gap-2 text-center pt-2">
-                                <div className="flex items-center gap-1.5 text-gray-400 opacity-80">
-                                    <Shield className="h-3.5 w-3.5" />
-                                    <span className="text-[10px] font-bold uppercase tracking-wider">Pago Seguro</span>
-                                </div>
-                                <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
-                                    El pago se procesará de forma segura a través de Stripe. AvivaGo no almacena información financiera sensible.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                    <MembershipPurchaseFlow
+                        pendingPayment={pendingPayment}
+                        openStripeCheckout={openStripeCheckout}
+                        handlePurchase={handlePurchase}
+                        purchasing={purchasing}
+                        paymentConsent={paymentConsent}
+                        setPaymentConsent={setPaymentConsent}
+                    />
                 )
             ) : (
                 <div className="bg-blue-50 border border-blue-100 rounded-3xl p-6 flex items-start gap-4 shadow-soft">
@@ -583,116 +133,21 @@ export default function PaymentsSection({ isDriver, hasMembership, driverStatus,
             {(!isDriver || hasMembership) && (
                 <div className="space-y-4 animate-in fade-in duration-700">
                     <h3 className="font-bold text-lg text-[#0F2137]">{isDriver ? 'Historial de Membresía' : 'Historial de Desbloqueos'}</h3>
-                    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-soft">
-                        <table className="w-full text-left text-sm">
-                            <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold tracking-wider">
-                                <tr>
-                                    <th className="px-6 py-4">{isDriver ? 'Concepto' : 'Conductor'}</th>
-                                    <th className="px-6 py-4">Fecha de Pago</th>
-                                    {isDriver && <th className="px-6 py-4">Expira el</th>}
-                                    <th className="px-6 py-4 text-right">Monto</th>
-                                    {!isDriver && (
-                                        <>
-                                            <th className="px-6 py-4 text-center">Tu Calif.</th>
-                                            <th className="px-6 py-4 text-center">Calif. Conductor</th>
-                                            <th className="px-6 py-4 text-right">Acción</th>
-                                        </>
-                                    )}
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {unlocks.length > 0 ? (
-                                    unlocks.map((item) => (
-                                        <tr key={item.id} className="hover:bg-white/5 transition-colors">
-                                            <td className="px-6 py-4 font-medium">
-                                                {isDriver ? (
-                                                    item.amount_paid === 524
-                                                        ? 'Membresía Anual Driver Premium'
-                                                        : 'Pago de Servicio'
-                                                ) : (
-                                                    item.driver_profiles?.users?.full_name || 'Conductor Desconocido'
-                                                )}
-                                            </td>
-                                            <td className="px-6 py-4 text-zinc-500">
-                                                {new Date(item.created_at).toLocaleDateString('es-MX', {
-                                                    day: '2-digit',
-                                                    month: '2-digit',
-                                                    year: 'numeric'
-                                                })}
-                                            </td>
-                                            {isDriver && (
-                                                <td className="px-6 py-4 text-indigo-400/70 font-medium">
-                                                    {new Date(new Date(item.created_at).setFullYear(new Date(item.created_at).getFullYear() + 1)).toLocaleDateString('es-MX', {
-                                                        day: '2-digit',
-                                                        month: '2-digit',
-                                                        year: 'numeric'
-                                                    })}
-                                                </td>
-                                            )}
-                                            <td className="px-6 py-4 text-right font-bold text-emerald-400">
-                                                ${item.amount_paid === 524 || isDriver ? 524 : item.amount_paid} MXN
-                                            </td>
-                                            {!isDriver && (
-                                                <>
-                                                    <td className="px-6 py-4 text-center">
-                                                        {item.reviews && item.reviews.length > 0 ? (
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold border border-emerald-500/20">
-                                                                <Star className="h-3 w-3 fill-current" />
-                                                                {item.reviews[0].rating}.0
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter">SIN CALIFICAR</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        {item.reviews && item.reviews.length > 0 && item.reviews[0].passenger_rating ? (
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-bold border border-blue-500/20">
-                                                                <Star className="h-3 w-3 fill-current" />
-                                                                {item.reviews[0].passenger_rating}.0
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter italic">PENDIENTE</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right">
-                                                        {item.reviews && item.reviews.length > 0 ? (
-                                                            <div className="flex items-center justify-end gap-1.5 text-zinc-500 opacity-50">
-                                                                <CheckCircle className="h-4 w-4" />
-                                                                <span className="text-[10px] font-black uppercase">Completado</span>
-                                                            </div>
-                                                        ) : (
-                                                            <button
-                                                                onClick={() => setReviewModal({
-                                                                    open: true,
-                                                                    driverId: item.driver_profile_id,
-                                                                    driverName: item.driver_profiles?.users?.full_name || 'Conductor'
-                                                                })}
-                                                                className="text-[10px] font-black bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 uppercase tracking-widest active:scale-95"
-                                                            >
-                                                                Calificar
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </>
-                                            )}
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={isDriver ? 3 : 6} className="px-6 py-12 text-center text-zinc-500 italic">
-                                            No se encontraron transacciones recientes.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <PaymentHistoryTable
+                        isDriver={isDriver}
+                        unlocks={unlocks}
+                        onRate={handleRateDriver}
+                    />
                 </div>
             )}
+
             {reviewModal && (
                 <ReviewModal
                     isOpen={reviewModal.open}
-                    onClose={() => setReviewModal(null)}
+                    onClose={() => {
+                        setReviewModal(null)
+                        refreshHistory() // Ensure history is refreshed after review
+                    }}
                     driverId={reviewModal.driverId}
                     driverName={reviewModal.driverName}
                 />
