@@ -16,6 +16,9 @@ export const metadata: Metadata = {
     metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://avivago.mx'),
     title: "AvivaGo",
     description: "Directorio de Conductores Privados",
+    other: {
+        "facebook-domain-verification": "qmho2t2vko6y48v3jpi6fjmrnj81l3",
+    },
 };
 
 import { createClient } from '@/lib/supabase/server'
