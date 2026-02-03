@@ -21,6 +21,8 @@ export const metadata: Metadata = {
 import { createClient } from '@/lib/supabase/server'
 import BanGuard from '@/app/components/BanGuard'
 import { GoogleAnalytics } from '@next/third-parties/google'
+import FacebookPixel from '@/app/components/FacebookPixel'
+import { Suspense } from 'react'
 
 export default async function RootLayout({
     children,
@@ -47,6 +49,9 @@ export default async function RootLayout({
         <html lang="es" className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning>
             <body className="font-sans antialiased" suppressHydrationWarning>
                 {gaId && <GoogleAnalytics gaId={gaId} />}
+                <Suspense fallback={null}>
+                    <FacebookPixel />
+                </Suspense>
                 <BanGuard isBanned={isBanned} />
                 {children}
             </body>
