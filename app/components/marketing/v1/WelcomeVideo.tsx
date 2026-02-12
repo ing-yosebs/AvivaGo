@@ -13,7 +13,7 @@ export default function WelcomeVideo() {
                 <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-aviva-secondary/10 rounded-full blur-[100px]"></div>
             </div>
 
-            <div className="container mx-auto px-4 pt-24 md:pt-32 pb-8 relative z-10">
+            <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-8 pt-24 md:pt-32 pb-8 relative z-10">
                 <div className="max-w-4xl mx-auto text-center space-y-8">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -23,7 +23,6 @@ export default function WelcomeVideo() {
                     >
                         <div className="flex flex-col items-center gap-6">
                             <h2 className="text-4xl md:text-5xl font-display font-bold text-white leading-tight flex flex-wrap items-center justify-center gap-4">
-                                <AvivaLogo className="h-10 md:h-12 w-auto" />
                                 Descubre cómo <span className="text-aviva-primary">AvivaGo</span> transformará tu carrera
                             </h2>
                         </div>

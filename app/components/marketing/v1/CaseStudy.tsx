@@ -10,7 +10,7 @@ export default function CaseStudy() {
             {/* Background Texture */}
             <div className="absolute inset-0 opacity-10 pattern-dots"></div>
 
-            <div className="container mx-auto px-4 md:px-6 relative z-10">
+            <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-8 relative z-10">
                 <div className="max-w-4xl mx-auto">
                     <motion.div
                         initial={{ scale: 0.95, opacity: 0 }}

@@ -29,7 +29,7 @@ export default function PassengerCTA() {
                                 Para Pasajeros
                             </div>
 
-                            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-aviva-navy loading-tight">
+                            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-display text-aviva-navy leading-tight">
                                 Viaja mejor, <br />
                                 <span className="text-blue-600">viaja con confianza</span>
                             </h2>

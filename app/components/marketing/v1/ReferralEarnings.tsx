@@ -6,8 +6,8 @@ import { Users, DollarSign, Wallet, Star, ArrowUpRight, Gift, Car } from 'lucide
 
 export default function ReferralEarnings() {
     return (
-        <section className="py-20 bg-gradient-to-b from-white to-blue-50/30 overflow-hidden">
-            <div className="container mx-auto px-4 md:px-6">
+        <section className="pt-8 pb-20 bg-gradient-to-b from-white to-blue-50/30 overflow-hidden">
+            <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
 
                     {/* Left side: Information */}
@@ -17,9 +17,18 @@ export default function ReferralEarnings() {
                         viewport={{ once: true }}
                         className="w-full lg:w-1/2 space-y-8"
                     >
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-bold border border-green-200">
-                            <DollarSign size={16} />
-                            PROGRAMA DE AFILIADOS
+                        <div className="inline-flex items-center gap-4">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-bold border border-green-200">
+                                <DollarSign size={16} />
+                                PROGRAMA DE AFILIADOS (bono por lanzamiento)
+                            </div>
+                            <motion.div
+                                animate={{ scale: [1, 1.05, 1] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                                className="px-3 py-1 rounded-full bg-aviva-secondary text-white text-xs font-black uppercase tracking-wider shadow-sm"
+                            >
+                                Por tiempo limitado
+                            </motion.div>
                         </div>
 
                         <h2 className="text-3xl md:text-5xl font-bold text-aviva-navy leading-tight">
@@ -103,7 +112,7 @@ export default function ReferralEarnings() {
                                 </div>
 
                                 <div className="mt-10 pt-8 border-t border-white/10 text-center">
-                                    <p className="text-blue-200 text-sm mb-4">Haz crecer tu red y genera ingresos pasivos mes con mes.</p>
+                                    <p className="text-blue-200 text-sm mb-4">Aprovecha esta oportunidad de lanzamiento y haz crecer tu red y genera ingresos pasivos mes con mes.</p>
                                     <Link
                                         href="/register?role=driver"
                                         onClick={() => {
@@ -116,7 +125,7 @@ export default function ReferralEarnings() {
                                         }}
                                         className="inline-block bg-aviva-secondary hover:bg-aviva-secondary/90 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg w-full"
                                     >
-                                        ¡Quiero mi página ahora!
+                                        ¡Quiero mi Perfil Digital ahora!
                                     </Link>
                                 </div>
                             </div>
@@ -127,6 +136,11 @@ export default function ReferralEarnings() {
                         </div>
                     </motion.div>
 
+                </div>
+                <div className="mt-16 text-center">
+                    <p className="text-xs text-gray-400 max-w-2xl mx-auto italic">
+                        *El programa de afiliados es temporal y está sujeto al cumplimiento de la meta de registro y la disponibilidad de cada ciudad.
+                    </p>
                 </div>
             </div>
         </section>

@@ -9,7 +9,7 @@ import AvivaLogo from '@/app/components/AvivaLogo';
 export default function Hero() {
     return (
         <section className="relative py-12 md:py-16 overflow-hidden bg-gradient-to-br from-aviva-bg to-white text-aviva-text">
-            <div className="container mx-auto px-4 md:px-6">
+            <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row items-center gap-12 lg:gap-20">
 
                     {/* Left: Value Proposition */}
@@ -21,7 +21,7 @@ export default function Hero() {
                     >
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-aviva-secondary/10 text-aviva-secondary text-sm font-bold border border-aviva-secondary/20 shadow-sm">
                             <Award size={16} className="text-aviva-secondary" />
-                            RECLUTANDO A LOS 50 MEJORES CONDUCTORES DE MÉXICO
+                            RECLUTANDO A LOS 50 MEJORES CONDUCTORES DE CADA CIUDAD
                         </div>
 
                         <div className="space-y-4">
@@ -61,7 +61,7 @@ export default function Hero() {
                                     className="inline-flex items-center justify-center gap-2 bg-aviva-secondary hover:bg-aviva-secondary/90 text-white text-lg font-bold px-10 py-5 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 w-full sm:w-max group"
                                 >
                                     <Car size={24} />
-                                    ¡Quiero mi página ahora!
+                                    ¡Quiero mi Perfil Digital ahora!
                                     <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                                 </Link>
                             </div>
@@ -100,7 +100,7 @@ export default function Hero() {
                                 </div>
                                 <span className="font-bold text-aviva-navy">Cupos Limitados</span>
                             </div>
-                            <p className="text-sm text-gray-600">Sólo <span className="font-bold text-aviva-primary">50 lugares</span> para el beneficio de bonos de afiliados</p>
+                            <p className="text-sm text-gray-600">Por lanzamiento, sólo <span className="font-bold text-aviva-primary">50 lugares</span> para el beneficio de bonos de afiliados</p>
                         </motion.div>
                     </motion.div>
 

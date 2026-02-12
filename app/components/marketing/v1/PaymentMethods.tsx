@@ -5,8 +5,8 @@ import { CreditCard, Smartphone, Banknote, ShieldCheck, Zap, Globe, ArrowRight }
 
 export default function PaymentMethods() {
     return (
-        <section className="py-24 bg-gradient-to-br from-white to-blue-50/50 overflow-hidden">
-            <div className="container mx-auto px-4 md:px-6">
+        <section className="pt-12 pb-24 bg-gradient-to-br from-white to-blue-50/50 overflow-hidden">
+            <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-8">
                 <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
 
                     {/* Visual Illustration Side */}
@@ -121,7 +121,7 @@ export default function PaymentMethods() {
                                 desc="El dinero va de tu cliente a TU cuenta. No tenemos acceso ni intervenimos en tus cobros."
                             />
                             <FeatureItem
-                                title="Cómisión 0% AvivaGo"
+                                title="Comisión 0% AvivaGo"
                                 desc="Nuestra plataforma es una herramienta para ti; no nos quedamos con nada de tus servicios."
                             />
                         </div>

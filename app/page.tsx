@@ -4,8 +4,10 @@ import Hero from '@/app/components/marketing/v1/Hero';
 import HowItWorks from '@/app/components/marketing/v1/HowItWorks';
 import PaymentMethods from '@/app/components/marketing/v1/PaymentMethods';
 import ReferralEarnings from '@/app/components/marketing/v1/ReferralEarnings';
+import EarningsCalculator from '@/app/components/marketing/v1/EarningsCalculator';
 import Comparison from '@/app/components/marketing/v1/Comparison';
 import BookingDemo from '@/app/components/marketing/v1/BookingDemo';
+import MarketingKitPromo from '@/app/components/marketing/v1/MarketingKitPromo';
 import CaseStudy from '@/app/components/marketing/v1/CaseStudy';
 import Pricing from '@/app/components/marketing/v1/Pricing';
 import TrustFooter from '@/app/components/marketing/v1/TrustFooter';
@@ -19,8 +21,10 @@ export default function LandingPage() {
             <HowItWorks />
             <PaymentMethods />
             <ReferralEarnings />
+            <EarningsCalculator />
             <Comparison />
             <BookingDemo />
+            <MarketingKitPromo />
             <CaseStudy />
             <Pricing />
             <TrustFooter />

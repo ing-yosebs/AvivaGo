@@ -7,7 +7,7 @@ import AvivaLogo from '@/app/components/AvivaLogo';
 export default function Pricing() {
     return (
         <section className="py-12 bg-gray-50" id="pricing">
-            <div className="container mx-auto px-4 md:px-6">
+            <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-bold font-display mb-4">
                         Invierte en <span className="text-aviva-primary">Tu Futuro</span>
@@ -95,7 +95,7 @@ export default function Pricing() {
                                 Regístrate Gratis
                             </Link>
                             <p className="text-blue-200 text-sm font-medium">
-                                * Para hacer público tu perfil como conductor y recibir los bonos y solicitudes de pasajeros es necesario tener una membresía activa
+                                * Para hacer público tu perfil como conductor y recibir los bonos y solicitudes de pasajeros es necesario tener una membresía activa.
                             </p>
 
                             <div className="flex flex-col items-center gap-3">
