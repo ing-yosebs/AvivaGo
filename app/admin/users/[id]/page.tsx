@@ -7,6 +7,7 @@ import { ArrowLeft, User, Car, MapPin, Calendar, CheckCircle, Shield, FileText, 
 import StatusHistory from '@/app/components/admin/StatusHistory'
 import DriverActions from '@/app/components/admin/DriverActions'
 import PassengerActions from '@/app/components/admin/PassengerActions'
+import MembershipManager from '@/app/components/admin/MembershipManager'
 
 async function getSignedUrl(supabase: any, publicUrl: string | null, bucket: string) {
     if (!publicUrl) return null;
@@ -70,6 +71,11 @@ export default async function UserDetailPage({
                     social_commitment,
                     payment_methods,
                     payment_link
+                ),
+                driver_memberships (
+                    status,
+                    expires_at,
+                    origin
                 )
             )
         `)
@@ -83,6 +89,7 @@ export default async function UserDetailPage({
 
     const driverProfile = Array.isArray(user.driver_profiles) ? user.driver_profiles[0] : user.driver_profiles
     const vehicle = driverProfile?.vehicles?.[0]
+    const membership = driverProfile?.driver_memberships?.[0] || driverProfile?.driver_memberships
 
     const isDriver = !!driverProfile
 
@@ -427,6 +434,16 @@ export default async function UserDetailPage({
                                 isVisible={driverProfile.is_visible}
                             />
                         </div>
+                    )}
+
+                    {/* Membership Manager */}
+                    {isDriver && (
+                        <MembershipManager
+                            driverProfileId={driverProfile.id}
+                            membershipStatus={membership?.status || 'inactive'}
+                            expiresAt={membership?.expires_at}
+                            origin={membership?.origin || 'unknown'}
+                        />
                     )}
 
                     {/* Passenger Verification Status */}

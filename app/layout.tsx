@@ -23,6 +23,7 @@ export const metadata: Metadata = {
 
 import { createClient } from '@/lib/supabase/server'
 import BanGuard from '@/app/components/BanGuard'
+import CookieConsent from '@/app/components/CookieConsent'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import FacebookPixel from '@/app/components/FacebookPixel'
 import { Suspense } from 'react'
@@ -56,6 +57,7 @@ export default async function RootLayout({
                     <FacebookPixel />
                 </Suspense>
                 <BanGuard isBanned={isBanned} />
+                <CookieConsent />
                 {children}
             </body>
         </html>

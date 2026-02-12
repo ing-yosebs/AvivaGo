@@ -213,3 +213,85 @@ export async function toggleUserBan(userId: string, isBanned: boolean) {
         message: isBanned ? 'Usuario suspendido correctamente.' : 'Usuario reactivado correctamente.'
     }
 }
+
+export async function extendDriverMembership(driverProfileId: string, days: number, notes?: string) {
+    const supabase = await createClient()
+
+    // 1. Verify Authentication
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'No autenticado' }
+
+    // 2. Verify Admin Role
+    const { data: userData } = await supabase
+        .from('users')
+        .select('roles')
+        .eq('id', user.id)
+        .single()
+
+    const isAdmin = Array.isArray(userData?.roles)
+        ? userData.roles.includes('admin')
+        : userData?.roles === 'admin'
+
+    if (!isAdmin) return { success: false, error: 'No tienes permisos de administrador.' }
+
+    // 3. Calculate New Expiry
+    // We need to fetch current expiry first to add days to it, OR (simpler for now) just add to NOW() if expired?
+    // The policy says: "extend". Usually means from current expiry if active, or from now if expired.
+    // Let's look at the SQL function `admin_extend_membership` again. It takes `new_expiry`.
+
+    // Fetch current membership to know base date
+    const { data: membership } = await supabase
+        .from('driver_memberships')
+        .select('expires_at, status')
+        .eq('driver_profile_id', driverProfileId)
+        .single()
+
+    const now = new Date();
+    let baseDate = now;
+
+    if (membership?.expires_at) {
+        const currentExpiry = new Date(membership.expires_at);
+        // If currently valid, extend from that date. If expired, extend from now.
+        if (currentExpiry > now) {
+            baseDate = currentExpiry;
+        }
+    }
+
+    const newExpiry = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000);
+
+    // 4. Call RPC
+    // We use the standard client because the RPC is SECURITY DEFINER (runs as admin)
+    // but relies on auth.uid() to verify the caller is an admin and to record who granted it.
+    // Using service_role key would result in a different/null auth.uid(), failing the check.
+
+    let updateError = null;
+    const { error } = await supabase.rpc('admin_extend_membership', {
+        target_profile_id: driverProfileId,
+        new_expiry: newExpiry.toISOString(),
+        admin_notes: notes || `Extensión manual por administrador (${days} días)`
+    })
+    updateError = error
+
+    if (updateError) {
+        console.error('Error extending membership:', updateError)
+        return { success: false, error: 'No se pudo extender la membresía: ' + updateError.message }
+    }
+
+    // 5. Log Action
+    await logDriverAction(
+        { id: user.id },
+        'admin_extend_membership',
+        {
+            driverId: driverProfileId,
+            daysAdded: days,
+            newExpiry: newExpiry.toISOString()
+        }
+    );
+
+    revalidatePath('/admin/users')
+    try {
+        revalidatePath(`/admin/users/${driverProfileId}`)
+    } catch (e) { }
+
+    return { success: true, message: `Membresía extendida correctamente hasta ${newExpiry.toLocaleDateString()}.` }
+}

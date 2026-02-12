@@ -107,7 +107,18 @@ export default function Header() {
                                 </>
                             ) : (
                                 <>
-                                    <Link href="/register" className="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors px-4">
+                                    <Link
+                                        href="/register"
+                                        onClick={() => {
+                                            if (typeof window.fbq !== 'undefined') {
+                                                window.fbq('track', 'Lead', {
+                                                    content_name: 'Header CTA - Registration',
+                                                    content_category: 'Drivers'
+                                                });
+                                            }
+                                        }}
+                                        className="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors px-4"
+                                    >
                                         Registrarme
                                     </Link>
                                     <Link href="/auth/login" className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 hover:-translate-y-0.5">
@@ -166,7 +177,15 @@ export default function Header() {
                                 <>
                                     <Link
                                         href="/register"
-                                        onClick={() => setIsMenuOpen(false)}
+                                        onClick={() => {
+                                            setIsMenuOpen(false);
+                                            if (typeof window.fbq !== 'undefined') {
+                                                window.fbq('track', 'Lead', {
+                                                    content_name: 'Mobile Header CTA - Registration',
+                                                    content_category: 'Drivers'
+                                                });
+                                            }
+                                        }}
                                         className="flex items-center justify-center p-4 rounded-2xl bg-gray-50 text-gray-900 font-bold border border-gray-200 mb-2"
                                     >
                                         Registrarme
