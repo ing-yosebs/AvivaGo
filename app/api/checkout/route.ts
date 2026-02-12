@@ -75,6 +75,11 @@ export async function POST(req: Request) {
                 customer: stripeCustomerId,
                 payment_method_types: ['card', 'oxxo', 'customer_balance'],
                 payment_method_options: {
+                    card: {
+                        installments: {
+                            enabled: true,
+                        },
+                    },
                     customer_balance: {
                         funding_type: 'bank_transfer',
                         bank_transfer: {
