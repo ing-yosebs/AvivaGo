@@ -41,6 +41,9 @@ export default function Pricing() {
                                     <span className="text-xl font-bold text-blue-300">MXN</span>
                                 </div>
                                 <p className="text-blue-200 text-sm mt-1">Pago único anual</p>
+                                <p className="text-aviva-secondary text-sm font-bold mt-1">
+                                    3 meses sin intereses con tarjetas de crédito
+                                </p>
                             </div>
                         </div>
 

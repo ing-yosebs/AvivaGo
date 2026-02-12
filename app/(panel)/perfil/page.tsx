@@ -189,6 +189,10 @@ function ProfileContent() {
         setMessage(null)
         try {
             const userFormData = { ...formData }
+            // Extract driver_profile specific fields
+            const countryCode = userFormData.country_code
+            delete userFormData.country_code // Remove from users table update
+
             if (userFormData.birthday === '') userFormData.birthday = null
             if (userFormData.education_level === '') userFormData.education_level = null
 
@@ -196,6 +200,26 @@ function ProfileContent() {
                 .from('users')
                 .update(userFormData)
                 .eq('id', user.id)
+
+            if (userError) throw userError
+
+            // Update detailed driver profile info if exists (country_code)
+            if (countryCode && profile?.driver_profile?.id) {
+                const { error: driverError } = await supabase
+                    .from('driver_profiles')
+                    .update({ country_code: countryCode })
+                    .eq('id', profile.driver_profile.id)
+
+                if (driverError) throw driverError
+            } else if (countryCode && isDriver) {
+                // Try to find driver profile if we didn't have it in state but user is driver? 
+                // Usually profile.driver_profile should be populated if isDriver.
+                const { error: driverError } = await supabase
+                    .from('driver_profiles')
+                    .update({ country_code: countryCode })
+                    .eq('user_id', user.id)
+                if (driverError) console.error("Error updating driver country", driverError)
+            }
 
             if (userError) throw userError
 
@@ -317,15 +341,11 @@ function ProfileContent() {
                     )}
 
                     {isDriver && activeTab === 'services' && (
-                        hasMembership ? (
-                            <ServicesSection
-                                services={driverServices}
-                                onSave={handleSaveServices}
-                                saving={saving}
-                            />
-                        ) : (
-                            <MembershipRequiredView onTabChange={(tab) => setActiveTab(tab)} />
-                        )
+                        <ServicesSection
+                            services={driverServices}
+                            onSave={handleSaveServices}
+                            saving={saving}
+                        />
                     )}
 
                     {isDriver && activeTab === 'vehicles' && (
@@ -373,11 +393,15 @@ function ProfileContent() {
                     )}
 
                     {isDriver && activeTab === 'visibility' && (
-                        <VisibilitySection
-                            driverProfileId={profile?.driver_profile?.id}
-                            initialIsVisible={profile?.driver_profile?.is_visible}
-                            profile={profile}
-                        />
+                        hasMembership ? (
+                            <VisibilitySection
+                                driverProfileId={profile?.driver_profile?.id}
+                                initialIsVisible={profile?.driver_profile?.is_visible}
+                                profile={profile}
+                            />
+                        ) : (
+                            <MembershipRequiredView onTabChange={(tab) => setActiveTab(tab)} />
+                        )
                     )}
                 </div>
             </div>

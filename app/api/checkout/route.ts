@@ -58,16 +58,52 @@ export async function POST(req: Request) {
         if (type === 'membership') {
             const { data: driverProfile } = await supabase
                 .from('driver_profiles')
-                .select('id')
+                .select('id, country_code, zone_id')
                 .eq('user_id', user.id)
                 .single();
 
             if (!driverProfile) return new NextResponse('Driver Profile Not Found', { status: 404 });
 
-            const priceId = process.env.STRIPE_PRICE_ID;
-            if (!priceId) return new NextResponse('Stripe Price ID not configured', { status: 500 });
+            // Fetch Dynamic Price
+            let zonePrice = null;
 
-            console.log("Creating Membership Session for", user.email);
+            // 1. Try Specific Zone
+            if (driverProfile.zone_id) {
+                const { data } = await supabase.from('zone_prices')
+                    .select('*')
+                    .eq('zone_id', driverProfile.zone_id)
+                    .eq('type', 'membership')
+                    .single();
+                if (data) zonePrice = data;
+            }
+
+            // 2. Fallback to Country Default (Generic Zone)
+            if (!zonePrice) {
+                const countryCode = driverProfile.country_code || 'MX';
+                // Find a zone for this country that has a membership price (Logic might need refinement if multiple zones exist)
+                // For now, we assume one "General" zone per country or pick the first available.
+                // Ideally we query zones by country, then prices.
+                const { data: countriesZones } = await supabase
+                    .from('zones')
+                    .select('id, zone_prices!inner(*)')
+                    .eq('country_code', countryCode)
+                    .eq('zone_prices.type', 'membership')
+                    .limit(1)
+
+                if (countriesZones && countriesZones.length > 0) {
+                    const prices = countriesZones[0].zone_prices;
+                    zonePrice = Array.isArray(prices) ? prices[0] : prices;
+                }
+            }
+
+            if (!zonePrice) {
+                console.error("No pricing configuration found for driver", driverProfile.id, driverProfile.country_code);
+                return new NextResponse('Pricing configuration missing for your region.', { status: 500 });
+            }
+
+            const { amount: unitAmount, currency } = zonePrice;
+
+            console.log(`Creating Membership Session for ${user.email}. Price: ${unitAmount} ${currency}`);
 
             const session = await stripe.checkout.sessions.create({
                 success_url: `${baseUrl}/checkout/callback?status=success&type=membership&session_id={CHECKOUT_SESSION_ID}`,
@@ -88,15 +124,14 @@ export async function POST(req: Request) {
                     },
                 },
                 mode: 'payment',
-                // customer_email: user.email, // Cannot specify both customer and customer_email
                 line_items: [{
                     price_data: {
-                        currency: 'mxn',
+                        currency: currency,
                         product_data: {
                             name: 'Membresía Anual Driver Premium',
-                            description: 'Acceso por 1 año a la plataforma AvivaGo',
+                            description: `Acceso por 1 año a la plataforma AvivaGo (${currency.toUpperCase()})`,
                         },
-                        unit_amount: 52400, // $524.00 MXN in cents
+                        unit_amount: unitAmount,
                     },
                     quantity: 1
                 }],
@@ -108,6 +143,7 @@ export async function POST(req: Request) {
                     type: 'membership',
                     user_id: user.id,
                     driver_profile_id: driverProfile.id,
+                    country_code: driverProfile.country_code,
                 },
             });
 

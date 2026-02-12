@@ -7,9 +7,11 @@ interface MembershipPurchaseFlowProps {
     purchasing: boolean
     paymentConsent: boolean
     setPaymentConsent: (val: boolean) => void
+    price: number
+    currency: string
 }
 
-export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheckout, handlePurchase, purchasing, paymentConsent, setPaymentConsent }: MembershipPurchaseFlowProps) {
+export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheckout, handlePurchase, purchasing, paymentConsent, setPaymentConsent, price, currency }: MembershipPurchaseFlowProps) {
     return (
         <div className="backdrop-blur-xl bg-white border border-gray-100 rounded-[3rem] p-8 md:p-12 text-center max-w-3xl mx-auto shadow-2xl relative overflow-hidden">
             {/* Decorative Background */}
@@ -98,7 +100,7 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
 
             <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-8 mb-10 inline-block px-12 transform hover:scale-[1.02] transition-transform shadow-inner">
                 <div className="text-[10px] text-indigo-500 uppercase tracking-[0.2em] font-black mb-2">Costo Anual de Activación</div>
-                <div className="text-5xl font-black text-[#0F2137]">$524 <span className="text-sm font-medium text-gray-500 tracking-normal">MXN</span></div>
+                <div className="text-5xl font-black text-[#0F2137]">${price.toLocaleString('es-MX', { minimumFractionDigits: 2 })} <span className="text-sm font-medium text-gray-500 tracking-normal">{currency}</span></div>
             </div>
 
             <div className="space-y-6 max-w-md mx-auto">

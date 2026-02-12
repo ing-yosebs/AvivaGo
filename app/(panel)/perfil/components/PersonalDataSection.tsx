@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { User, Camera, Loader2, Plus, CheckCircle2, FileText, AlertCircle, MapPin, Search, Save } from 'lucide-react'
+import { User, Camera, Loader2, Plus, CheckCircle2, FileText, AlertCircle, MapPin, Search, Save, ChevronDown } from 'lucide-react'
 import { GoogleMap, useJsApiLoader, Autocomplete, MarkerF } from '@react-google-maps/api'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
@@ -33,6 +33,10 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
     const [phoneCode, setPhoneCode] = useState('52')
     const [emergencyPhoneCode, setEmergencyPhoneCode] = useState('52')
 
+    // Internationalization State
+    const [countries, setCountries] = useState<any[]>([])
+    const [selectedCountry, setSelectedCountry] = useState<any>(null)
+
     const [formData, setFormData] = useState({
         full_name: profile?.full_name || '',
         phone_number: profile?.phone_number || '',
@@ -58,7 +62,39 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
         avatar_url: profile?.avatar_url || '',
         id_document_url: profile?.id_document_url || '',
         address_proof_url: profile?.address_proof_url || '',
+        country_code: profile?.driver_profile?.country_code || '', // No default country
     })
+
+    // Fetch Countries
+    useEffect(() => {
+        const fetchCountries = async () => {
+            const { data } = await supabase
+                .from('countries')
+                .select('*')
+                .eq('is_active', true)
+                .order('name')
+
+            if (data) {
+                setCountries(data)
+                // Set initial selected country
+                const initialCode = profile?.driver_profile?.country_code || ''
+                const current = data.find(c => c.code === initialCode)
+                if (current) {
+                    setSelectedCountry(current)
+                    // Update phone codes if not set? No, keep existing logic for now/manual override
+                }
+            }
+        }
+        fetchCountries()
+    }, [supabase, profile])
+
+    // Update selected country when formData changes
+    useEffect(() => {
+        if (countries.length > 0) {
+            const current = countries.find(c => c.code === formData.country_code)
+            if (current) setSelectedCountry(current)
+        }
+    }, [formData.country_code, countries])
 
     useEffect(() => {
         if (profile) {
@@ -303,13 +339,13 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                 </div>
                 <div>
                     <h3 className="font-bold text-lg text-[#0F2137]">{formData.full_name || 'Nuevo Usuario'}</h3>
-                    <p className="text-gray-500 text-sm">{profile?.email}</p>
-                    <div className="flex gap-2 mt-2">
-                        {profile?.roles?.map((role: string) => (
-                            <span key={role} className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-wider border border-blue-500/20">
-                                {role}
-                            </span>
-                        ))}
+                    <div className="flex gap-2 mt-1">
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest border border-emerald-100 shadow-sm">
+                            Pasajero
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest border border-indigo-100 shadow-sm">
+                            Conductor
+                        </span>
                     </div>
                 </div>
             </div>
@@ -320,9 +356,43 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                     <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
                         <User className="h-3 w-3" /> Información Básica
                     </h4>
+
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase text-gray-500">Nombre Completo *</label>
                         <input name="full_name" value={formData.full_name} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                    </div>
+
+                    {/* Country Selector */}
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase text-gray-500">País de Operación *</label>
+                        <div className="relative">
+                            <select
+                                name="country_code"
+                                value={formData.country_code}
+                                onChange={(e) => {
+                                    handleChange(e)
+                                    if (e.target.value === '') {
+                                        setSelectedCountry(null)
+                                        return
+                                    }
+                                    // Optional: Update phone code automatically
+                                    const c = countries.find(x => x.code === e.target.value)
+                                    if (c) {
+                                        setPhoneCode(c.phone_code)
+                                        setEmergencyPhoneCode(c.phone_code)
+                                    }
+                                }}
+                                className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 appearance-none relative z-10"
+                            >
+                                <option value="">Selecciona tu país</option>
+                                {countries.map(c => (
+                                    <option key={c.code} value={c.code}>{c.name}</option>
+                                ))}
+                            </select>
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none z-20">
+                                <ChevronDown className="h-4 w-4 text-gray-400" />
+                            </div>
+                        </div>
                     </div>
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase text-gray-500">Teléfono de contacto (WhatsApp) *</label>
@@ -361,10 +431,6 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                             />
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase text-gray-500">Correo Electrónico *</label>
-                        <input name="email" value={formData.email} disabled className="w-full bg-gray-50 border border-gray-200 text-gray-500 rounded-xl px-4 py-2.5 opacity-70 cursor-not-allowed" />
-                    </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -384,8 +450,16 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                         <FileText className="h-3 w-3" /> Documentación
                     </h4>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase text-gray-500">CURP *</label>
-                        <input name="curp" value={formData.curp} onChange={handleChange} className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500" />
+                        <label className="text-[10px] font-bold uppercase text-gray-500">
+                            {selectedCountry?.id_label || 'ID Nacional / CURP'} *
+                        </label>
+                        <input
+                            name="curp"
+                            value={formData.curp}
+                            onChange={handleChange}
+                            placeholder={selectedCountry?.code === 'MX' ? 'AAAA000000HMM...' : 'Número de identificación'}
+                            className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500"
+                        />
                     </div>
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase text-gray-500">Último Grado de Estudios</label>
@@ -650,11 +724,20 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
 
             <div className="flex justify-end pt-4">
                 <button
-                    onClick={() => onSave({
-                        ...formData,
-                        phone_number: `+${phoneCode}${formData.phone_number}`,
-                        emergency_contact_phone: `+${emergencyPhoneCode}${formData.emergency_contact_phone}`
-                    })}
+                    onClick={() => {
+                        // Separate Profile update vs Driver Profile update
+                        // Currently onSave handles 'users' update. We need to handle 'driver_profiles' update for country_code
+                        // But wait, the parent handleSaveProfile only updates 'users' table in page.tsx line 197.
+                        // We need to update page.tsx to handle driver_profile updates too or do it here.
+                        // Actually, page.tsx handleSaveProfile only updates 'users'. 
+                        // I need to modify page.tsx to update driver_profiles country_code as well.
+
+                        onSave({
+                            ...formData,
+                            phone_number: `+${phoneCode}${formData.phone_number}`,
+                            emergency_contact_phone: `+${emergencyPhoneCode}${formData.emergency_contact_phone}`
+                        })
+                    }}
                     disabled={saving}
                     className="flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all disabled:opacity-50 shadow-xl shadow-blue-600/20"
                 >

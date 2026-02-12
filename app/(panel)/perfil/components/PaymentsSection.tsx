@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Info } from 'lucide-react'
 import ReviewModal from '../../../components/ReviewModal'
 
@@ -29,6 +29,10 @@ interface PaymentsSectionProps {
     pendingPayment?: any
 }
 
+import { createClient } from '@/lib/supabase/client'
+
+// ... imports
+
 export default function PaymentsSection({
     isDriver,
     hasMembership,
@@ -41,6 +45,62 @@ export default function PaymentsSection({
     pendingPayment
 }: PaymentsSectionProps) {
     const [reviewModal, setReviewModal] = useState<{ open: boolean, driverId: string, driverName: string } | null>(null)
+    const [price, setPrice] = useState(524)
+    const [currency, setCurrency] = useState('MXN')
+    const supabase = createClient()
+
+    useEffect(() => {
+        const fetchPrice = async () => {
+            if (!isDriver || !profile?.driver_profile) return
+
+            // 1. Try to find price by zone_id if exists
+            if (profile.driver_profile.zone_id) {
+                const { data } = await supabase.from('zone_prices')
+                    .select('amount, currency')
+                    .eq('zone_id', profile.driver_profile.zone_id)
+                    .eq('type', 'membership')
+                    .single()
+                if (data) {
+                    setPrice(data.amount / 100) // Cents to Unit
+                    setCurrency(data.currency)
+                    return
+                }
+            }
+
+            // 2. Fallback: Find price by country_code (using "General" zone for that country)
+            const countryCode = profile.driver_profile.country_code || 'MX'
+
+            // Find the "General%" zone for this country
+            // Alternatively, we can just find ANY zone for this country if we don't have specific logic yet,
+            // or we assume a naming convention like 'General {CountryName}'
+            // To be safe, let's look for a zone that belongs to the country and has a membership price.
+            // Ideally we should have a 'is_default' flag on zones, but for now let's query:
+
+            const { data: countriesZones } = await supabase
+                .from('zones')
+                .select('id, zone_prices!inner(amount, currency, type)')
+                .eq('country_code', countryCode)
+                .eq('zone_prices.type', 'membership')
+                .limit(1)
+
+            if (countriesZones && countriesZones.length > 0) {
+                const p = countriesZones[0].zone_prices[0] // It's an array because of inner join? actually fetching logic might vary
+                // zone_prices is an array in the response usually if it's 1:M, but here we filter.
+                // Let's be careful with the shape.
+                // Correct interaction: select('id, zone_prices(...)') returns { id, zone_prices: [...] }
+
+                const priceData = Array.isArray(countriesZones[0].zone_prices)
+                    ? countriesZones[0].zone_prices[0]
+                    : countriesZones[0].zone_prices
+
+                if (priceData) {
+                    setPrice(priceData.amount / 100)
+                    setCurrency(priceData.currency)
+                }
+            }
+        }
+        fetchPrice()
+    }, [isDriver, profile, supabase])
 
     // Data Hooks
     const { unlocks, loading: historyLoading, refreshHistory } = usePaymentHistory({
@@ -68,7 +128,7 @@ export default function PaymentsSection({
         setPaymentConsent,
         handlePurchase,
         openStripeCheckout
-    } = useMembershipPurchase(onPurchaseSuccess)
+    } = useMembershipPurchase(onPurchaseSuccess, price, currency)
 
     // Handlers
     const handleRequestReviewWrapper = () => {
@@ -116,6 +176,8 @@ export default function PaymentsSection({
                         purchasing={purchasing}
                         paymentConsent={paymentConsent}
                         setPaymentConsent={setPaymentConsent}
+                        price={price}
+                        currency={currency}
                     />
                 )
             ) : (

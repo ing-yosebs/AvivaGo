@@ -1,11 +1,12 @@
 import { useState, useCallback, useEffect } from 'react'
 import { recordPaymentConsent } from '@/app/driver/actions'
 
-export const useMembershipPurchase = (onPurchaseSuccess: () => void) => {
+export const useMembershipPurchase = (onPurchaseSuccess: () => void, price: number = 524, currency: string = 'MXN') => {
     const [purchasing, setPurchasing] = useState(false)
     const [paymentConsent, setPaymentConsent] = useState(false)
 
     const openStripeCheckout = useCallback((url: string) => {
+        // ... (existing code)
         const width = 500;
         const height = 700;
         const left = window.screenX + (window.outerWidth - width) / 2;
@@ -52,6 +53,10 @@ export const useMembershipPurchase = (onPurchaseSuccess: () => void) => {
 
             const response = await fetch('/api/checkout', {
                 method: 'POST',
+                // We could pass price/currency here if we wanted to trust the client, 
+                // but better to let backend recalculate/verify.
+                // However, for simplicity and since we just updated the schema, 
+                // let's ensure backend logic is robust.
             })
 
             if (!response.ok) {
@@ -66,8 +71,8 @@ export const useMembershipPurchase = (onPurchaseSuccess: () => void) => {
                 window.fbq('track', 'InitiateCheckout', {
                     content_name: 'Membresía Driver AvivaGo',
                     content_category: 'Membership',
-                    value: 524,
-                    currency: 'MXN'
+                    value: price,
+                    currency: currency
                 });
             }
 
