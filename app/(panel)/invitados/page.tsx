@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import { Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, Award, Copy, Check, Info, Users, Share2, DollarSign } from 'lucide-react'
-import DriverMarketingKit from '@/app/components/marketing/DriverMarketingKit'
+
 
 import { useRouter } from 'next/navigation'
 import MembershipRequiredView from '../perfil/components/MembershipRequiredView'
@@ -201,7 +201,7 @@ export default function WalletPage() {
                 <div>
                     <h1 className="text-3xl font-black flex items-center gap-3 text-[#0F2137]">
                         <Wallet className="h-10 w-10 text-emerald-500" />
-                        Mi Billetera
+                        Invitados
                     </h1>
                     <p className="text-gray-500 mt-2">Gestiona tus ingresos del Programa de Afiliados AvivaGo.</p>
                 </div>
@@ -521,8 +521,7 @@ export default function WalletPage() {
                 </div>
             </div>
 
-            {/* Marketing Kit Section */}
-            {profile && <DriverMarketingKit profile={profile} referralLink={referralLink} />}
+
 
             {/* Transactions History */}
             <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-soft">

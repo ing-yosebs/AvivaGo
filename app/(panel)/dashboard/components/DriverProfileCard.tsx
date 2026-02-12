@@ -35,16 +35,15 @@ export function DriverProfileCard({ driverProfileId }: DriverProfileCardProps) {
             {/* Background decoration */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32 transition-transform group-hover:scale-110 duration-700" />
 
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-3">
-                    <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-3 text-white">
-                        <Share2 className="h-7 w-7 text-white" />
-                        Tu Perfil Público como conductor
-                    </h2>
-                    <p className="text-blue-50 text-sm md:text-base max-w-lg leading-relaxed">
-                        Aquí puedes ver cómo tus pasajeros verán tu perfil, tu reputación y tus servicios antes de solicitar un viaje contigo. ¡Asegúrate de tenerlo siempre actualizado!
-                    </p>
-                </div>
+            <div className="relative z-10 flex flex-col gap-6">
+                <h2 className="text-2xl md:text-3xl font-bold flex items-center gap-3 text-white">
+                    <Share2 className="h-7 w-7 text-white" />
+                    Tu Perfil Público como conductor
+                </h2>
+
+                <p className="text-blue-50 text-sm md:text-base max-w-2xl leading-relaxed">
+                    Aquí puedes ver cómo tus pasajeros verán tu perfil, tu reputación y tus servicios antes de solicitar un viaje contigo. ¡Asegúrate de tenerlo siempre actualizado!
+                </p>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
                     <Link

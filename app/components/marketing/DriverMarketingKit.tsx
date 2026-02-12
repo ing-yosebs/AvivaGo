@@ -12,9 +12,10 @@ interface DriverMarketingKitProps {
         referral_code: string
     }
     referralLink: string
+    embedded?: boolean
 }
 
-export default function DriverMarketingKit({ profile, referralLink }: DriverMarketingKitProps) {
+export default function DriverMarketingKit({ profile, referralLink, embedded = false }: DriverMarketingKitProps) {
     const [downloading, setDownloading] = useState(false)
     const [activeTab, setActiveTab] = useState<'flyer' | 'sticker' | 'profile' | 'card'>('flyer')
     const flyerRef = useRef<HTMLDivElement>(null)
@@ -63,8 +64,8 @@ export default function DriverMarketingKit({ profile, referralLink }: DriverMark
     const profileQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(profileLink)}`
 
     return (
-        <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-soft">
-            <div className="p-8 border-b border-gray-100">
+        <div className={embedded ? "w-full" : "bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-soft"}>
+            <div className={`${embedded ? "py-6" : "p-8"} border-b border-gray-100`}>
                 <div className="flex flex-col gap-8">
                     <div>
                         <h3 className="text-3xl font-black text-[#0F2137] flex items-center gap-4">
@@ -93,7 +94,7 @@ export default function DriverMarketingKit({ profile, referralLink }: DriverMark
                 </div>
             </div>
 
-            <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className={`${embedded ? "py-8" : "p-8"} grid grid-cols-1 xl:grid-cols-2 gap-12 items-center`}>
                 {/* Preview Area */}
                 <div className="flex justify-center items-center bg-gray-50 rounded-[2rem] p-8 border border-gray-100 min-h-[550px] relative">
                     <div className="absolute top-4 left-4">
@@ -282,22 +283,22 @@ export default function DriverMarketingKit({ profile, referralLink }: DriverMark
                     <div className="space-y-6">
                         <h4 className="text-xl font-bold text-[#0F2137] flex items-center gap-2">
                             <CreditCard className="h-5 w-5 text-gray-400" />
-                            Finalización del Diseño
+                            Cómo usar tu Kit de Marketing
                         </h4>
 
                         <div className="space-y-4">
                             <div className="flex gap-4 items-start">
-                                <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 text-xs font-black">!</div>
+                                <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 text-xs font-black">1</div>
                                 <div>
-                                    <p className="text-[#0F2137] font-bold text-sm">Identidad Reforzada</p>
-                                    <p className="text-gray-500 text-xs mt-1">Cambiamos el subtítulo a "Conductor AvivaGo" para darte más autoridad y relación directa con la marca.</p>
+                                    <p className="text-[#0F2137] font-bold text-sm">Imprime y Coloca</p>
+                                    <p className="text-gray-500 text-xs mt-1">Coloca el sticker en tu vehículo y entrega tarjetas a tus pasajeros. Un material profesional genera confianza inmediata y facilita el registro.</p>
                                 </div>
                             </div>
                             <div className="flex gap-4 items-start">
-                                <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 text-xs font-black">!</div>
+                                <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 text-xs font-black">2</div>
                                 <div>
-                                    <p className="text-[#0F2137] font-bold text-sm">Enfoque en Servicios</p>
-                                    <p className="text-gray-500 text-xs mt-1">El nuevo texto invita a los clientes a conocer tu valor diferencial, no solo a ahorrar, generando conexiones de mayor calidad.</p>
+                                    <p className="text-[#0F2137] font-bold text-sm">Comparte Digitalmente</p>
+                                    <p className="text-gray-500 text-xs mt-1">Descarga las imágenes y compártelas en tus estados de WhatsApp o grupos de vecinos. ¡Tu código QR funciona igual en pantalla!</p>
                                 </div>
                             </div>
                         </div>
@@ -306,10 +307,10 @@ export default function DriverMarketingKit({ profile, referralLink }: DriverMark
                     <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100">
                         <div className="flex items-center gap-3 mb-3">
                             <Shield className="h-5 w-5 text-emerald-600" />
-                            <p className="text-sm font-black text-[#0F2137]">Soporte de Marketing</p>
+                            <p className="text-sm font-black text-[#0F2137]">Tip Profesional</p>
                         </div>
                         <p className="text-xs text-emerald-800/70 leading-relaxed font-medium italic">
-                            Este diseño está listo para ser entregado a cualquier imprenta profesional para su producción en serie.
+                            Los conductores que utilizan su Kit de Marketing aumentan sus referidos en un 40%. La confianza visual es clave para convertir pasajeros ocasionales en clientes recurrentes.
                         </p>
                     </div>
 
@@ -330,7 +331,7 @@ export default function DriverMarketingKit({ profile, referralLink }: DriverMark
                             </>
                         )}
                     </button>
-                    <p className="text-center text-[10px] text-gray-400 font-black uppercase tracking-widest">V 2.1 &bull; SECCIÓN DE SERVICIOS</p>
+                    <p className="text-center text-[10px] text-gray-400 font-black uppercase tracking-widest">HERRAMIENTAS OFICIALES AVIVAGO</p>
                 </div>
             </div>
         </div>

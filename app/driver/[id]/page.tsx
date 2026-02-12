@@ -182,7 +182,11 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         social_commitment: services?.social_commitment || false,
         payment_methods: services?.payment_methods || [],
         payment_link: services?.payment_link || "",
-        hasAcceptedQuote: hasAcceptedQuote
+        hasAcceptedQuote: hasAcceptedQuote,
+        vehicleSidePhoto: driver.vehicles?.[0]?.photos?.[2] || null,
+        vehiclePhotos: driver.vehicles?.[0]?.photos || [],
+        passenger_capacity: driver.vehicles?.[0]?.passenger_capacity || 4,
+        trunk_capacity: driver.vehicles?.[0]?.trunk_capacity || ""
     };
 
     return <ProfileView driver={formattedDriver} />;

@@ -253,7 +253,7 @@ function ProfileContent() {
             { id: 'vehicles', label: 'Mis Vehículos', icon: Car },
 
             { id: 'solicitudes', label: 'Mis Solicitudes', icon: Briefcase },
-            { id: 'visibility', label: 'Mi Visibilidad', icon: Eye }
+            { id: 'visibility', label: 'Visibilidad y Marketing', icon: Eye }
         ] : []),
         { id: 'payments', label: isDriver ? 'Pagos y Membresía' : 'Mis Pagos', icon: CreditCard },
         { id: 'security', label: 'Seguridad', icon: Lock },
@@ -275,7 +275,7 @@ function ProfileContent() {
                                 : activeTab === 'solicitudes'
                                     ? 'Administra las cotizaciones recibidas de pasajeros interesados.'
                                     : activeTab === 'visibility'
-                                        ? 'Controla quién puede ver tu perfil y contactarte.'
+                                        ? 'Gestiona tu presencia pública y descarga herramientas profesionales para promocionar tus servicios.'
                                         : 'Gestiona tu información personal y preferencias de la cuenta.'}
                 </p>
 
@@ -376,6 +376,7 @@ function ProfileContent() {
                         <VisibilitySection
                             driverProfileId={profile?.driver_profile?.id}
                             initialIsVisible={profile?.driver_profile?.is_visible}
+                            profile={profile}
                         />
                     )}
                 </div>

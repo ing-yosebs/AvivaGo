@@ -1,4 +1,4 @@
-import { Zap, Stethoscope, Users, Map, Globe, CreditCard, Clock, CheckCircle, ShieldCheck, Award, Car, MapPin } from 'lucide-react';
+import { Languages, Zap, Stethoscope, Users, Map, Globe, CreditCard, Clock, CheckCircle, ShieldCheck, Award, Car, MapPin } from 'lucide-react';
 import { DriverProfile } from './types';
 
 interface ProfileDetailsProps {
@@ -12,21 +12,22 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
             {/* Social Commitment */}
             {driver.social_commitment && (
                 <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="bg-violet-50 p-2 rounded-xl">
+                            <Users className="h-5 w-5 text-violet-600" />
+                        </div>
+                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Compromiso de Trato Igualitario</h3>
+                    </div>
+
                     <div className="p-8 bg-violet-50 border border-violet-100 rounded-[2.5rem] relative overflow-hidden group shadow-soft">
                         <Users className="absolute -right-4 -bottom-4 h-32 w-32 text-violet-500/5 group-hover:scale-110 transition-transform duration-700" />
-                        <div className="flex items-start gap-6 relative z-10">
-                            <div className="bg-white p-4 rounded-2xl shadow-sm">
-                                <Users className="h-8 w-8 text-violet-600 fill-violet-600/10" />
-                            </div>
-                            <div className="space-y-2">
-                                <h3 className="text-xl font-bold text-violet-700 font-display">Compromiso de Trato Igualitario</h3>
-                                <p className="text-violet-900/80 text-lg leading-relaxed font-medium italic">
-                                    "Me comprometo a brindar un trato cordial, respetuoso y equitativo a hombres, mujeres y a la comunidad LGBTQ+, sin distinción por ideologías o creencias religiosas de mis pasajeros."
-                                </p>
-                                <div className="flex items-center gap-2 pt-2">
-                                    <ShieldCheck className="h-4 w-4 text-violet-600" />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-violet-600/70">Conductor Comprometido con la Inclusión</span>
-                                </div>
+                        <div className="relative z-10 pl-0">
+                            <p className="text-violet-900/80 text-lg leading-relaxed font-medium">
+                                "Me comprometo a brindar un trato cordial, respetuoso y equitativo a hombres, mujeres y a la comunidad LGBTQ+, sin distinción por ideologías o creencias religiosas de mis pasajeros."
+                            </p>
+                            <div className="flex items-center gap-2 pt-6">
+                                <ShieldCheck className="h-4 w-4 text-violet-600" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-violet-600/70">Conductor Comprometido con la Inclusión</span>
                             </div>
                         </div>
                     </div>
@@ -38,14 +39,11 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
                 <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="bg-blue-50 p-2 rounded-xl">
-                            <Zap className="h-5 w-5 text-aviva-primary" />
+                            <Languages className="h-5 w-5 text-aviva-primary" />
                         </div>
                         <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Comunicación Inclusiva</h3>
                     </div>
-                    <div className="p-6 bg-blue-50 border border-blue-100 rounded-3xl flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                            <CheckCircle className="h-6 w-6 text-aviva-primary" />
-                        </div>
+                    <div className="p-6 bg-blue-50 border border-blue-100 rounded-3xl">
                         <div>
                             <p className="text-aviva-navy font-bold text-lg">Intérprete de Lenguaje de Señas (LSM)</p>
                             <p className="text-aviva-subtext text-sm">Este conductor está capacitado para comunicarse con personas con discapacidad auditiva.</p>
@@ -209,27 +207,37 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
             </section>
 
             {/* Languages & Platforms */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Languages */}
-                <section>
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="bg-blue-50 p-2 rounded-xl">
-                            <Globe className="h-5 w-5 text-aviva-primary" />
+            <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Languages */}
+                    <section>
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="bg-blue-50 p-2 rounded-xl">
+                                <Globe className="h-5 w-5 text-aviva-primary" />
+                            </div>
+                            <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Idiomas</h3>
                         </div>
-                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Idiomas</h3>
-                    </div>
-                    <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl h-full">
-                        <div className="flex flex-wrap gap-2">
-                            {(driver.languages || []).length > 0 ? (
-                                (driver.languages || []).map(lang => (
-                                    <span key={lang} className="px-3 py-1 bg-white border border-blue-100 text-aviva-primary rounded-lg text-sm font-bold shadow-sm">{lang}</span>
-                                ))
-                            ) : <span className="text-aviva-subtext italic">Español</span>}
+                        <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl h-full">
+                            <div className="flex flex-wrap gap-2">
+                                {(driver.languages || []).length > 0 ? (
+                                    (driver.languages || []).map(lang => (
+                                        <span key={lang} className="px-3 py-1 bg-white border border-blue-100 text-aviva-primary rounded-lg text-sm font-bold shadow-sm">{lang}</span>
+                                    ))
+                                ) : <span className="text-aviva-subtext italic">Español</span>}
+                            </div>
                         </div>
+                    </section>
 
-                        {(driver.indigenous || []).length > 0 && (
-                            <div className="mt-4 pt-4 border-t border-gray-200">
-                                <p className="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Lenguas Indígenas</p>
+                    {/* Indigenous Languages */}
+                    {(driver.indigenous || []).length > 0 && (
+                        <section>
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="bg-purple-50 p-2 rounded-xl">
+                                    <Globe className="h-5 w-5 text-purple-600" />
+                                </div>
+                                <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Lenguas Indígenas</h3>
+                            </div>
+                            <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl h-full">
                                 <div className="flex flex-wrap gap-2">
                                     {driver.indigenous?.map((lang: string) => (
                                         <span key={lang} className="px-3 py-1 bg-white border border-purple-100 text-purple-600 rounded-lg text-sm font-bold shadow-sm">
@@ -238,20 +246,20 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
                                     ))}
                                 </div>
                             </div>
-                        )}
-                    </div>
-                </section>
+                        </section>
+                    )}
+                </div>
 
-                {/* Transport Platforms */}
+                {/* Transport Platforms - Full Width Below */}
                 {driver.transport_platforms && driver.transport_platforms.length > 0 && (
                     <section>
                         <div className="flex items-center gap-3 mb-6">
                             <div className="bg-gray-100 p-2 rounded-xl">
                                 <Car className="h-5 w-5 text-gray-700" />
                             </div>
-                            <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Plataformas</h3>
+                            <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Experiencia en Plataformas de Movilidad</h3>
                         </div>
-                        <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl h-full">
+                        <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl">
                             <div className="flex flex-wrap gap-3">
                                 {driver.transport_platforms.map(platform => (
                                     <div key={platform} className="px-4 py-2 bg-gray-700 border border-gray-700 rounded-xl text-sm font-bold text-white shadow-sm">

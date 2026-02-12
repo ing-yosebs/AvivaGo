@@ -54,7 +54,9 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
         insurance_policy_url: '',
         plate_photo_url: '',
         circulation_card_url: '',
-        photos: [] // Array of 6 photo URLs
+        photos: [], // Array of 6 photo URLs
+        passenger_capacity: 4,
+        trunk_capacity: ''
     })
 
     const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null)
@@ -166,7 +168,9 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
             insurance_policy_url: '',
             plate_photo_url: '',
             circulation_card_url: '',
-            photos: []
+            photos: [],
+            passenger_capacity: 4,
+            trunk_capacity: ''
         })
         setSelectedVehicleId(null)
         setIsAdding(false)
@@ -187,8 +191,23 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
     }
 
     const handleRegister = async () => {
-        if (!form.brand || !form.model || !form.plate_number) {
-            alert('Por favor completa los campos obligatorios.')
+        // Validation: Required Text Fields
+        if (!form.brand || !form.model || !form.color || !form.year || !form.plate_number ||
+            !form.passenger_capacity || !form.trunk_capacity || !form.registration_state || !form.vin_number) {
+            alert('Por favor completa todos los campos de texto obligatorios (marcados con *).')
+            return
+        }
+
+        // Validation: Required Documents
+        if (!form.plate_photo_url || !form.circulation_card_url || !form.verification_url || !form.vin_photo_url) {
+            alert('Por favor sube todas las fotos de documentos obligatorias (Placa, Tarjeta Circulación, Verificación, Foto NIV).')
+            return
+        }
+
+        // Validation: Required Vehicle Photos (All 6)
+        const uploadedPhotos = form.photos.filter((p: string) => p && p.length > 0)
+        if (uploadedPhotos.length < 6) {
+            alert('Por favor sube las 6 fotos obligatorias del vehículo.')
             return
         }
 
@@ -343,7 +362,18 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-gray-500">Entidad de Registro</label>
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Capacidad Pasajeros *</label>
+                                <input type="number" min="1" value={form.passenger_capacity || 4} onChange={e => setForm({ ...form, passenger_capacity: parseInt(e.target.value) })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Capacidad Cajuela *</label>
+                                <input value={form.trunk_capacity || ''} onChange={e => setForm({ ...form, trunk_capacity: e.target.value })} placeholder="Ej: 2 maletas grandes" className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Entidad de Registro *</label>
                                 <input value={form.registration_state} onChange={e => setForm({ ...form, registration_state: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
                             </div>
                             <div className="space-y-2">
@@ -356,12 +386,12 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                             <h4 className="text-[10px] font-bold uppercase text-gray-500 tracking-widest">Documentación del Auto</h4>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {[
-                                    { id: 'plate_photo_url', label: 'Foto Placa', ref: platePhotoRef },
-                                    { id: 'circulation_card_url', label: 'Tarjeta Circulación', ref: circulationCardRef },
-                                    { id: 'invoice_url', label: 'Factura', ref: invoiceRef },
-                                    { id: 'verification_url', label: 'Verificación', ref: verificationRef },
-                                    { id: 'insurance_policy_url', label: 'Póliza Seguro', ref: insuranceRef },
-                                    { id: 'vin_photo_url', label: 'Foto NIV', ref: vinPhotoRef }
+                                    { id: 'plate_photo_url', label: 'Foto Placa *', ref: platePhotoRef },
+                                    { id: 'circulation_card_url', label: 'Tarjeta Circulación *', ref: circulationCardRef },
+                                    { id: 'verification_url', label: 'Verificación *', ref: verificationRef },
+                                    { id: 'vin_photo_url', label: 'Foto NIV *', ref: vinPhotoRef },
+                                    { id: 'invoice_url', label: 'Factura (Opcional)', ref: invoiceRef },
+                                    { id: 'insurance_policy_url', label: 'Póliza Seguro (Opcional)', ref: insuranceRef },
                                 ].map(doc => (
                                     <div key={doc.id} className="space-y-2">
                                         <input
@@ -419,7 +449,7 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                     <div className="space-y-6">
                         <h4 className="text-[10px] font-bold uppercase text-gray-500 tracking-widest">Fotos del Vehículo (6)</h4>
                         <div className="grid grid-cols-2 gap-4">
-                            {['Frente', 'Trasera', 'Lateral', 'Interior 1', 'Interior 2', 'Interior 3'].map((label, idx) => (
+                            {['Frente *', 'Trasera *', 'Lateral *', 'Interior 1 *', 'Interior 2 *', 'Interior 3 *'].map((label, idx) => (
                                 <div key={label}>
                                     <input
                                         type="file"
@@ -483,30 +513,36 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
             </div>
 
             {vehicles?.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="space-y-4">
                     {vehicles?.map((v: any) => (
                         <div
                             key={v.id}
                             onClick={() => handleEdit(v)}
-                            className="bg-white border border-gray-100 rounded-3xl p-6 relative group hover:border-blue-300 hover:shadow-soft transition-all cursor-pointer"
+                            className="bg-white border border-gray-100 rounded-3xl p-6 relative group hover:border-blue-300 hover:shadow-soft transition-all cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
                         >
-                            <div className="flex items-center gap-4 mb-4">
-                                <div className="p-3 bg-blue-50 rounded-xl text-blue-600">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-blue-50 rounded-xl text-blue-600 shrink-0">
                                     <Car className="h-6 w-6" />
                                 </div>
                                 <div className="overflow-hidden">
-                                    <h4 className="font-bold truncate text-[#0F2137]">{v.brand} {v.model}</h4>
-                                    <p className="text-gray-500 text-sm">{v.year} • {v.color}</p>
+                                    <h4 className="font-bold truncate text-[#0F2137] text-lg">{v.brand} {v.model}</h4>
+                                    <p className="text-gray-500 text-sm">
+                                        {v.year} • {v.color} • {v.passenger_capacity || 4} Pasajeros
+                                    </p>
+                                    {v.trunk_capacity && (
+                                        <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                                            <span className="font-semibold">Cajuela:</span> {v.trunk_capacity}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between">
+
+                            <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end mt-4 md:mt-0 pl-[4.5rem] md:pl-0">
                                 <span className="px-3 py-1 bg-gray-100 rounded-lg text-xs font-mono text-gray-500 font-bold border border-gray-200">
                                     {v.plate_number}
                                 </span>
-                                <div className="flex gap-2">
-                                    <button className="p-2 text-zinc-500 hover:text-white transition-colors">
-                                        <ChevronRight className="h-4 w-4" />
-                                    </button>
+                                <div className="p-2 bg-gray-50 rounded-full text-zinc-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                    <ChevronRight className="h-5 w-5" />
                                 </div>
                             </div>
                             <button
@@ -514,9 +550,9 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
                                     e.stopPropagation(); // Prevent card click
                                     handleDelete(v.id);
                                 }}
-                                className="absolute top-6 right-6 p-2 text-zinc-500 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                className="absolute top-4 right-4 md:static p-2 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all opacity-100 md:opacity-0 group-hover:opacity-100"
                             >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                             </button>
                         </div>
                     ))}
