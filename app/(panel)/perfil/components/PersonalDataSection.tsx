@@ -184,6 +184,7 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                 avatar_url: profile.avatar_url || '',
                 id_document_url: profile.id_document_url || '',
                 address_proof_url: profile.address_proof_url || '',
+                country_code: profile.driver_profile?.country_code || '',
             })
         }
     }, [profile])
