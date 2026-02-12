@@ -26,6 +26,7 @@ import BanGuard from '@/app/components/BanGuard'
 import CookieConsent from '@/app/components/CookieConsent'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import FacebookPixel from '@/app/components/FacebookPixel'
+import TikTokPixel from '@/app/components/TikTokPixel'
 import { Suspense } from 'react'
 
 export default async function RootLayout({
@@ -55,6 +56,7 @@ export default async function RootLayout({
                 {gaId && <GoogleAnalytics gaId={gaId} />}
                 <Suspense fallback={null}>
                     <FacebookPixel />
+                    <TikTokPixel />
                 </Suspense>
                 <BanGuard isBanned={isBanned} />
                 <CookieConsent />

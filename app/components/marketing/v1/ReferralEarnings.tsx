@@ -122,6 +122,12 @@ export default function ReferralEarnings() {
                                                     content_category: 'Drivers'
                                                 });
                                             }
+                                            if (typeof window.ttq !== 'undefined') {
+                                                window.ttq.track('Lead', {
+                                                    content_name: 'Referral Earnings CTA - Claim Page',
+                                                    content_category: 'Drivers'
+                                                });
+                                            }
                                         }}
                                         className="inline-block bg-aviva-secondary hover:bg-aviva-secondary/90 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg w-full"
                                     >

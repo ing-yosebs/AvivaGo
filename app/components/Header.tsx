@@ -116,6 +116,12 @@ export default function Header() {
                                                     content_category: 'Drivers'
                                                 });
                                             }
+                                            if (typeof window.ttq !== 'undefined') {
+                                                window.ttq.track('Lead', {
+                                                    content_name: 'Header CTA - Registration',
+                                                    content_category: 'Drivers'
+                                                });
+                                            }
                                         }}
                                         className="text-sm font-semibold text-gray-600 hover:text-blue-600 transition-colors px-4"
                                     >
@@ -181,6 +187,12 @@ export default function Header() {
                                             setIsMenuOpen(false);
                                             if (typeof window.fbq !== 'undefined') {
                                                 window.fbq('track', 'Lead', {
+                                                    content_name: 'Mobile Header CTA - Registration',
+                                                    content_category: 'Drivers'
+                                                });
+                                            }
+                                            if (typeof window.ttq !== 'undefined') {
+                                                window.ttq.track('Lead', {
                                                     content_name: 'Mobile Header CTA - Registration',
                                                     content_category: 'Drivers'
                                                 });

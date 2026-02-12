@@ -57,6 +57,12 @@ export default function Hero() {
                                                 content_category: 'Drivers'
                                             });
                                         }
+                                        if (typeof window.ttq !== 'undefined') {
+                                            window.ttq.track('Lead', {
+                                                content_name: 'Hero CTA - Driver Registration',
+                                                content_category: 'Drivers'
+                                            });
+                                        }
                                     }}
                                     className="inline-flex items-center justify-center gap-2 bg-aviva-secondary hover:bg-aviva-secondary/90 text-white text-lg font-bold px-10 py-5 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 w-full sm:w-max group"
                                 >

@@ -91,6 +91,12 @@ export default function Pricing() {
                                             content_category: 'Drivers'
                                         });
                                     }
+                                    if (typeof window.ttq !== 'undefined') {
+                                        window.ttq.track('Lead', {
+                                            content_name: 'Pricing CTA - Register',
+                                            content_category: 'Drivers'
+                                        });
+                                    }
                                 }}
                                 className="w-full bg-aviva-secondary hover:bg-aviva-secondary/90 text-white font-bold text-xl py-5 rounded-2xl transition-all shadow-lg hover:shadow-aviva-secondary/40 text-center flex items-center justify-center gap-3"
                             >

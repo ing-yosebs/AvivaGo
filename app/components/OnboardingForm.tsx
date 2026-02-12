@@ -28,6 +28,13 @@ export default function OnboardingForm() {
                         status: 'Success'
                     });
                 }
+                // Track TikTok Pixel 'CompleteRegistration'
+                if (typeof window.ttq !== 'undefined') {
+                    window.ttq.track('CompleteRegistration', {
+                        content_name: 'Driver Registration',
+                        status: 'Success'
+                    });
+                }
 
                 setTimeout(() => {
                     router.push('/driver/dashboard');
