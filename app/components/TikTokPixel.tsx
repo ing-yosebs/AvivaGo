@@ -4,7 +4,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 import Script from 'next/script';
 
-const TIKTOK_PIXEL_ID = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID || 'D673U6BC77U5LKV8LL00';
+const TIKTOK_PIXEL_ID = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID || 'D6760ARC77U1CE9DAKN0';
 
 export default function TikTokPixel() {
     const pathname = usePathname();
