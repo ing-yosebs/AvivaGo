@@ -109,3 +109,54 @@ export async function resendOtp(email: string) {
 
     return { success: true, message: 'Código reenviado correctamente.' }
 }
+
+export async function forgotPassword(formData: FormData) {
+    const origin = (await headers()).get('origin')
+    const email = formData.get('email') as string
+    const supabase = await createClient()
+
+    if (!email) {
+        return { error: 'El correo electrónico es requerido' }
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${origin}/auth/callback?next=/auth/update-password`,
+    })
+
+    if (error) {
+        return { error: 'No se pudo enviar el correo de recuperación. Inténtalo de nuevo.' }
+    }
+
+    return {
+        success: true,
+        message: 'Revisa tu correo electrónico para continuar con el proceso.',
+    }
+}
+
+export async function updatePassword(formData: FormData) {
+    const password = formData.get('password') as string
+    const confirmPassword = formData.get('confirmPassword') as string
+    const supabase = await createClient()
+
+    if (!password || !confirmPassword) {
+        return { error: 'Todos los campos son requeridos' }
+    }
+
+    if (password !== confirmPassword) {
+        return { error: 'Las contraseñas no coinciden' }
+    }
+
+    if (password.length < 6) {
+        return { error: 'La contraseña debe tener al menos 6 caracteres' }
+    }
+
+    const { error } = await supabase.auth.updateUser({
+        password: password,
+    })
+
+    if (error) {
+        return { error: 'No se pudo actualizar la contraseña. Inténtalo de nuevo.' }
+    }
+
+    redirect('/auth/login?message=Contraseña actualizada correctamente')
+}

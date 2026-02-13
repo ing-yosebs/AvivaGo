@@ -32,6 +32,8 @@ export default function LoginPage() {
             console.log("Login error:", error.message)
             if (error.message.includes('Email not confirmed')) {
                 setError('Correo no verificado.')
+            } else if (error.message.includes('Invalid login credentials')) {
+                setError('Credenciales inválidas')
             } else {
                 setError(error.message)
             }
@@ -140,9 +142,13 @@ export default function LoginPage() {
                                     <CheckCircle className={`h-4 w-4 ${error === 'Correo no verificado.' ? 'text-yellow-500' : 'rotate-45'}`} />
                                     {error}
                                 </div>
-                                {error === 'Correo no verificado.' && (
+                                {error === 'Correo no verificado.' ? (
                                     <Link href={`/auth/verify-otp?email=${encodeURIComponent(email)}`} className="underline font-semibold hover:text-white">
                                         Verificar ahora
+                                    </Link>
+                                ) : (
+                                    <Link href="/auth/forgot-password" className="underline font-semibold hover:text-white mt-1">
+                                        ¿Olvidaste tu contraseña?
                                     </Link>
                                 )}
                             </div>
