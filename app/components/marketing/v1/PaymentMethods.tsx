@@ -5,8 +5,8 @@ import { CreditCard, Smartphone, Banknote, ShieldCheck, Zap, Globe, ArrowRight }
 
 export default function PaymentMethods() {
     return (
-        <section className="pt-12 pb-24 bg-gradient-to-br from-white to-blue-50/50 overflow-hidden">
-            <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-8">
+        <section className="pt-6 pb-16 bg-gradient-to-br from-white to-blue-50/50 overflow-hidden">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
 
                     {/* Visual Illustration Side */}
@@ -53,15 +53,15 @@ export default function PaymentMethods() {
                                     />
                                 </div>
 
-                                <div className="mt-8 pt-8 border-t border-gray-100">
-                                    <div className="flex items-center justify-between p-4 bg-aviva-navy rounded-2xl text-white">
+                                <div className="mt-6 pt-6 border-t border-gray-100">
+                                    <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-aviva-navy rounded-2xl text-white gap-3">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                                            <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center shrink-0">
                                                 <ShieldCheck size={18} className="text-white" />
                                             </div>
-                                            <span className="font-bold">Sin Intermediarios</span>
+                                            <span className="font-bold text-sm md:text-base">Sin Intermediarios</span>
                                         </div>
-                                        <span className="text-aviva-secondary font-bold">0% COMISIÓN</span>
+                                        <span className="text-aviva-secondary font-black text-sm md:text-base whitespace-nowrap">0% COMISIÓN</span>
                                     </div>
                                 </div>
                             </div>
@@ -70,13 +70,13 @@ export default function PaymentMethods() {
                             <motion.div
                                 animate={{ y: [0, -10, 0] }}
                                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute -top-6 -right-6 bg-white p-4 rounded-2xl shadow-xl border border-blue-50 z-20"
+                                className="absolute -top-4 -right-2 md:-top-6 md:-right-6 bg-white p-3 md:p-4 rounded-2xl shadow-xl border border-blue-50 z-20"
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <div className="flex items-center gap-2 md:gap-3">
+                                    <div className="w-6 h-6 md:w-8 md:h-8 bg-green-100 rounded-full flex items-center justify-center shrink-0">
                                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                                     </div>
-                                    <span className="text-sm font-bold text-gray-800">Dinero Directo al Banco</span>
+                                    <span className="text-[10px] md:text-sm font-bold text-gray-800 whitespace-nowrap">Dinero Directo al Banco</span>
                                 </div>
                             </motion.div>
 

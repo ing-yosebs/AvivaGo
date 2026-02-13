@@ -15,7 +15,23 @@ Este archivo contiene una referencia de todas las imágenes y recursos visuales 
   - *Descripción:* Imagen de perfil utilizada en el simulador de reservas.
 
 ## Kits de Marketing y Mockups
-- **Interior Auto V2 (Actual):** `/images/marketing_kit_car_interior_v2_1770876312999.png`
+- **Interior Auto V2:** `/images/marketing_kit_car_interior_v2_1770876312999.png`
+- **Imágenes con Logo Integrado:**
+  - `/images/marketing_kit_final_logo_1771024162047.png`
+  - `/images/marketing_kit_final_premium_1771024209654.png`
+  - `/images/marketing_kit_car_branded_1771024230388.png`
+  - `/images/marketing_kit_final_v1_1771024357805.png`
+  - `/images/marketing_kit_final_v2_1771024374067.png`
+  - `/images/marketing_kit_final_v3_1771024393720.png`
+- **Pasajeros Escaneando QR:**
+  - `/images/passenger_scanning_qr_avivago_1771026117099.png`
+  - `/images/passenger_scanning_qr_avivago_1771026141661.png`
+  - `/images/passenger_scanning_qr_avivago_1771026194167.png`
+  - `/images/passenger_scanning_qr_avivago_1771026233520.png`
+  - `/images/passenger_scanning_qr_avivago_1771026273492.png`
+  - `/images/passenger_scanning_driver_seat_qr_1771026521469.png`
+  - `/images/passenger_scanning_qr_driver_seat_v1_1771026542412.png`
+  - `/images/passenger_scanning_qr_driver_seat_v2_1771026556235.png`
 - **Mockup de App:** `/images/driver-mockup.jpg`
 - **Captura de Pantalla:** `/images/app-screenshot.jpg`
 - **Alternativas de Interior:**

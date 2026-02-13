@@ -5,18 +5,18 @@ import { Check, X } from 'lucide-react';
 
 export default function Comparison() {
     return (
-        <section className="py-12 bg-white">
-            <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-5xl font-bold mb-4 font-display">
+        <section className="py-8 bg-white" id="comparison">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-10 md:mb-16">
+                    <h2 className="text-3xl md:text-5xl font-bold mb-4 font-display px-2">
                         El Modelo Antiguo vs. <span className="text-aviva-primary">Tu Propio Negocio</span>
                     </h2>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                    <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
                         Deja de ser un número más en una aplicación. Con AvivaGo, tú construyes tu marca y conservas tus ganancias.
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto relative">
+                <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto relative">
                     {/* Background decoration */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-full blur-3xl -z-10"></div>
 
@@ -25,48 +25,16 @@ export default function Comparison() {
                         initial={{ opacity: 0, x: -20 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
-                        className="bg-gray-50 rounded-3xl p-8 border border-gray-200"
+                        className="bg-gray-50 rounded-3xl p-6 md:p-8 border border-gray-200"
                     >
-                        <h3 className="text-2xl font-bold text-gray-500 mb-2">Apps Tradicionales</h3>
-                        <p className="text-gray-400 mb-8 font-medium">Uber, Didi, inDrive, Cabify, Bolt, BlaBlaCar, App Taxi CDMX</p>
+                        <h3 className="text-xl md:text-2xl font-bold text-gray-500 mb-2">Apps Tradicionales</h3>
+                        <p className="text-xs md:text-sm text-gray-400 mb-6 md:mb-8 font-medium italic">Uber, Didi, inDrive, Cabify...</p>
 
-                        <ul className="space-y-6">
-                            <li className="flex items-start gap-4">
-                                <div className="p-1 bg-red-100 rounded-full text-red-500 mt-1">
-                                    <X size={20} />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-gray-700">Comisiones Altas (25-40%)</p>
-                                    <p className="text-sm text-gray-500">Pierdes casi la mitad de tu trabajo.</p>
-                                </div>
-                            </li>
-                            <li className="flex items-start gap-4">
-                                <div className="p-1 bg-red-100 rounded-full text-red-500 mt-1">
-                                    <X size={20} />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-gray-700">Clientes de la App</p>
-                                    <p className="text-sm text-gray-500">No eres dueño de tu cartera de clientes.</p>
-                                </div>
-                            </li>
-                            <li className="flex items-start gap-4">
-                                <div className="p-1 bg-red-100 rounded-full text-red-500 mt-1">
-                                    <X size={20} />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-gray-700">Pagos Retenidos</p>
-                                    <p className="text-sm text-gray-500">Esperas días para recibir tu dinero.</p>
-                                </div>
-                            </li>
-                            <li className="flex items-start gap-4">
-                                <div className="p-1 bg-red-100 rounded-full text-red-500 mt-1">
-                                    <X size={20} />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-gray-700">Sin Marca Personal</p>
-                                    <p className="text-sm text-gray-500">Eres un conductor anónimo más.</p>
-                                </div>
-                            </li>
+                        <ul className="space-y-4 md:space-y-6">
+                            <ComparisonItem icon={<X size={18} />} color="red" title="Comisiones Altas (25-40%)" text="Pierdes casi la mitad de tu trabajo." />
+                            <ComparisonItem icon={<X size={18} />} color="red" title="Clientes de la App" text="No eres dueño de tu cartera." />
+                            <ComparisonItem icon={<X size={18} />} color="red" title="Pagos Retenidos" text="Esperas días para tu dinero." />
+                            <ComparisonItem icon={<X size={18} />} color="red" title="Sin Marca Personal" text="Eres un conductor anónimo más." />
                         </ul>
                     </motion.div>
 
@@ -75,65 +43,39 @@ export default function Comparison() {
                         initial={{ opacity: 0, x: 20 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
-                        className="bg-aviva-navy text-white rounded-3xl p-8 border border-aviva-primary/30 relative overflow-hidden shadow-2xl scale-105 z-10"
+                        className="bg-aviva-navy text-white rounded-3xl p-6 md:p-8 border border-aviva-primary/30 relative overflow-hidden shadow-2xl md:scale-105 z-10"
                     >
-                        <div className="absolute top-0 right-0 p-4">
-                            <span className="bg-aviva-secondary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Recomendado</span>
+                        <div className="absolute top-0 right-0 p-3 md:p-4">
+                            <span className="bg-aviva-secondary text-white text-[10px] md:text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">Recomendado</span>
                         </div>
 
-                        <h3 className="text-2xl font-bold text-white mb-2">Tu Negocio con AvivaGo</h3>
-                        <p className="text-blue-200 mb-8 font-medium">Tu Negocio Completo y Listo para Operar</p>
+                        <h3 className="text-xl md:text-2xl font-bold text-white mb-2">Tu Negocio AvivaGo</h3>
+                        <p className="text-xs md:text-sm text-blue-200 mb-6 md:mb-8 font-medium">Tu Negocio Completo y Listo</p>
 
-                        <ul className="space-y-6">
-                            <li className="flex items-start gap-4">
-                                <div className="p-1 bg-green-500/20 rounded-full text-green-400 mt-1">
-                                    <Check size={20} />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-white">0% Comisiones</p>
-                                    <p className="text-sm text-blue-200">Tú te quedas con el 100% de cada viaje.</p>
-                                </div>
-                            </li>
-                            <li className="flex items-start gap-4">
-                                <div className="p-1 bg-green-500/20 rounded-full text-green-400 mt-1">
-                                    <Check size={20} />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-white">Clientes Propios</p>
-                                    <p className="text-sm text-blue-200">Fideliza pasajeros y crea tu base de datos.</p>
-                                </div>
-                            </li>
-                            <li className="flex items-start gap-4">
-                                <div className="p-1 bg-green-500/20 rounded-full text-green-400 mt-1">
-                                    <Check size={20} />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-white">Pagos Directos</p>
-                                    <p className="text-sm text-blue-200">Usa la plataforma que prefieras (Stripe, Mercado Pago, etc).</p>
-                                </div>
-                            </li>
-                            <li className="flex items-start gap-4">
-                                <div className="p-1 bg-green-500/20 rounded-full text-green-400 mt-1">
-                                    <Check size={20} />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-white">Tu Marca Personal</p>
-                                    <p className="text-sm text-blue-200">Web profesional con tu nombre y foto.</p>
-                                </div>
-                            </li>
-                            <li className="flex items-start gap-4">
-                                <div className="p-1 bg-green-500/20 rounded-full text-green-400 mt-1">
-                                    <Check size={20} />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-white">Bonos de por Vida</p>
-                                    <p className="text-sm text-blue-200">Gana por cada cliente que refieras a ver tus datos.</p>
-                                </div>
-                            </li>
+                        <ul className="space-y-4 md:space-y-6">
+                            <ComparisonItem icon={<Check size={18} />} color="green" title="0% Comisiones" text="Te quedas con el 100% de cada viaje." isAviva />
+                            <ComparisonItem icon={<Check size={18} />} color="green" title="Clientes Propios" text="Fideliza pasajeros y crea tu base." isAviva />
+                            <ComparisonItem icon={<Check size={18} />} color="green" title="Pagos Directos" text="Usa la plataforma que prefieras." isAviva />
+                            <ComparisonItem icon={<Check size={18} />} color="green" title="Tu Marca Personal" text="Web con tu nombre y foto real." isAviva />
+                            <ComparisonItem icon={<Check size={18} />} color="green" title="Bonos recurrentes" text="Gana por cada referido activo." isAviva />
                         </ul>
                     </motion.div>
                 </div>
             </div>
         </section>
+    );
+}
+
+function ComparisonItem({ icon, color, title, text, isAviva = false }: { icon: React.ReactNode, color: string, title: string, text: string, isAviva?: boolean }) {
+    return (
+        <li className="flex items-start gap-3 md:gap-4">
+            <div className={`p-1 rounded-full mt-1 shrink-0 ${color === 'red' ? 'bg-red-100 text-red-500' : 'bg-green-500/20 text-green-400'}`}>
+                {icon}
+            </div>
+            <div>
+                <p className={`font-bold text-sm md:text-base ${isAviva ? 'text-white' : 'text-gray-700'}`}>{title}</p>
+                <p className={`text-xs md:text-sm ${isAviva ? 'text-blue-200' : 'text-gray-500'}`}>{text}</p>
+            </div>
+        </li>
     );
 }

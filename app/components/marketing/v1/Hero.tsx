@@ -46,7 +46,7 @@ export default function Hero() {
                             </p>
                         </div>
 
-                        <div className="flex flex-col gap-4 pt-4">
+                        <div className="flex flex-col gap-4 pt-4 px-4 sm:px-0">
                             <div className="flex flex-col sm:flex-row items-center gap-6">
                                 <Link
                                     href="/register?role=driver"
@@ -64,11 +64,11 @@ export default function Hero() {
                                             });
                                         }
                                     }}
-                                    className="inline-flex items-center justify-center gap-2 bg-aviva-secondary hover:bg-aviva-secondary/90 text-white text-lg font-bold px-10 py-5 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 w-full sm:w-max group"
+                                    className="inline-flex items-center justify-center gap-2 bg-aviva-secondary hover:bg-aviva-secondary/90 text-white text-base md:text-lg font-bold px-6 md:px-10 py-4 md:py-5 rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 w-full sm:w-max group"
                                 >
-                                    <Car size={24} />
+                                    <Car size={20} className="md:w-6 md:h-6" />
                                     ¡Quiero mi Perfil Digital ahora!
-                                    <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                                    <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform h-5 w-5 md:h-6 md:w-6" />
                                 </Link>
                             </div>
                         </div>
@@ -119,10 +119,10 @@ export default function Hero() {
 function BenefitItem({ text }: { text: string }) {
     return (
         <div className="flex items-center gap-2">
-            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle className="text-green-600" size={16} />
+            <div className="flex-shrink-0 w-5 h-5 md:w-6 md:h-6 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle className="text-green-600 w-4 h-4 md:w-4 md:h-4" />
             </div>
-            <span className="text-gray-700 font-semibold">{text}</span>
+            <span className="text-gray-700 font-semibold text-sm md:text-base">{text}</span>
         </div>
     );
 }

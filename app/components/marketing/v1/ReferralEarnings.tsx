@@ -6,9 +6,9 @@ import { Users, DollarSign, Wallet, Star, ArrowUpRight, Gift, Car } from 'lucide
 
 export default function ReferralEarnings() {
     return (
-        <section className="pt-8 pb-20 bg-gradient-to-b from-white to-blue-50/30 overflow-hidden">
-            <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-8">
-                <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+        <section className="pt-4 pb-16 bg-gradient-to-b from-white to-blue-50/30 overflow-hidden">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-20">
 
                     {/* Left side: Information */}
                     <motion.div
@@ -17,15 +17,15 @@ export default function ReferralEarnings() {
                         viewport={{ once: true }}
                         className="w-full lg:w-1/2 space-y-8"
                     >
-                        <div className="inline-flex items-center gap-4">
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-bold border border-green-200">
-                                <DollarSign size={16} />
-                                PROGRAMA DE AFILIADOS (bono por lanzamiento)
+                        <div className="flex flex-wrap items-center gap-2">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-[10px] md:text-sm font-bold border border-green-200 uppercase tracking-tight">
+                                <DollarSign size={14} />
+                                PROGRAMA DE AFILIADOS
                             </div>
                             <motion.div
                                 animate={{ scale: [1, 1.05, 1] }}
                                 transition={{ duration: 2, repeat: Infinity }}
-                                className="px-3 py-1 rounded-full bg-aviva-secondary text-white text-xs font-black uppercase tracking-wider shadow-sm"
+                                className="px-3 py-1 rounded-full bg-aviva-secondary text-white text-[10px] md:text-xs font-black uppercase tracking-wider shadow-sm"
                             >
                                 Por tiempo limitado
                             </motion.div>
