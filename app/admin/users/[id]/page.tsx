@@ -8,6 +8,7 @@ import StatusHistory from '@/app/components/admin/StatusHistory'
 import DriverActions from '@/app/components/admin/DriverActions'
 import PassengerActions from '@/app/components/admin/PassengerActions'
 import MembershipManager from '@/app/components/admin/MembershipManager'
+import { formatDateMX } from '@/lib/dateUtils'
 
 async function getSignedUrl(supabase: any, publicUrl: string | null, bucket: string) {
     if (!publicUrl) return null;
@@ -191,7 +192,7 @@ export default async function UserDetailPage({
                                         <div>
                                             <label className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Fecha de Registro</label>
                                             <p className="text-white font-medium">
-                                                {new Date(user.created_at).toLocaleDateString()}
+                                                {formatDateMX(user.created_at)}
                                             </p>
                                         </div>
                                     </div>

@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Search, Filter, MoreHorizontal, Shield, Car, User, Settings } from 'lucide-react'
+import { formatDateMX } from '@/lib/dateUtils'
 
 // Helper to get status color
 const getStatusColor = (status: string | undefined) => {
@@ -206,7 +207,7 @@ export default async function UsersPage({
                                         <td className="px-4 py-6">
                                             <div className="flex flex-col">
                                                 <span className="text-zinc-300 font-medium text-sm">
-                                                    {new Date(user.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                                    {formatDateMX(user.created_at)}
                                                 </span>
                                             </div>
                                         </td>
