@@ -1,49 +1,23 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Lock, Loader2, ArrowLeft, Rocket } from 'lucide-react'
-import { updatePassword } from '../actions'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
+import { CheckCircle, ShieldCheck, ArrowRight, Rocket } from 'lucide-react'
 
 export default function UpdatePasswordPage() {
-    const [password, setPassword] = useState('')
-    const [confirmPassword, setConfirmPassword] = useState('')
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
-    const router = useRouter()
+    const [userEmail, setUserEmail] = useState<string | null>(null)
+    const supabase = createClient()
 
-    const handleUpdatePassword = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
-        setError(null)
-
-        if (password !== confirmPassword) {
-            setError('Las contraseñas no coinciden')
-            setLoading(false)
-            return
+    useEffect(() => {
+        async function getUser() {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (user?.email) {
+                setUserEmail(user.email)
+            }
         }
-
-        if (password.length < 6) {
-            setError('La contraseña debe tener al menos 6 caracteres')
-            setLoading(false)
-            return
-        }
-
-        const formData = new FormData()
-        formData.append('password', password)
-        formData.append('confirmPassword', confirmPassword)
-
-        const result = await updatePassword(formData)
-
-        if (result?.error) {
-            setError(result.error)
-            setLoading(false)
-        } else {
-            // Redirect handled in server action, but fallback just in case
-            // router.push('/auth/login?message=Contraseña actualizada correctamente')
-        }
-    }
+        getUser()
+    }, [supabase])
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-white relative overflow-hidden">
@@ -62,63 +36,41 @@ export default function UpdatePasswordPage() {
                                 <Rocket className="h-8 w-8 text-white transform -rotate-45" />
                             </div>
                         </div>
-                        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent mb-2">
-                            Nueva Contraseña
+                        <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent mb-2">
+                            ¡Acceso Recuperado!
                         </h1>
-                        <p className="text-zinc-400 text-sm leading-relaxed px-4">
-                            Ingresa tu nueva contraseña para recuperar el acceso a tu cuenta.
-                        </p>
                     </div>
 
-                    <form onSubmit={handleUpdatePassword} className="space-y-4">
-                        <div className="space-y-2">
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-3 h-5 w-5 text-zinc-500" />
-                                <input
-                                    type="password"
-                                    required
-                                    placeholder="Nueva Contraseña"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl px-10 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
-                                />
-                            </div>
+                    <div className="text-center space-y-6">
+                        <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 flex flex-col items-center gap-2">
+                            <CheckCircle className="h-10 w-10 text-green-500" />
+                            <p className="text-green-200 font-medium">
+                                Ya has iniciado sesión correctamente.
+                            </p>
                         </div>
 
-                        <div className="space-y-2">
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-3 h-5 w-5 text-zinc-500" />
-                                <input
-                                    type="password"
-                                    required
-                                    placeholder="Confirmar Nueva Contraseña"
-                                    value={confirmPassword}
-                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl px-10 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
-                                />
-                            </div>
+                        <div className="text-zinc-300 text-sm leading-relaxed space-y-2">
+                            <p>
+                                Estás dentro con tu cuenta:
+                            </p>
+                            <p className="font-mono text-purple-400 bg-purple-500/10 py-1 px-3 rounded inline-block">
+                                {userEmail || 'Cargando...'}
+                            </p>
+                            <p className="pt-4">
+                                Por tu seguridad, ve ahora a tu <strong>Panel de Perfil</strong> en la sección de <strong>Seguridad</strong> para actualizar tu contraseña.
+                            </p>
+                            <p className="text-zinc-500 text-xs italic">
+                                Asegúrate de anotar tu nueva contraseña en un lugar seguro.
+                            </p>
                         </div>
 
-                        {error && (
-                            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm text-center">
-                                {error}
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+                        <Link
+                            href="/perfil?tab=security"
+                            className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 mt-4"
                         >
-                            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                            {loading ? 'Actualizando...' : 'Actualizar Contraseña'}
-                        </button>
-                    </form>
-
-                    <div className="mt-8 text-center text-sm">
-                        <Link href="/auth/login" className="text-zinc-500 hover:text-white flex items-center justify-center gap-2">
-                            <ArrowLeft className="h-4 w-4" />
-                            Volver al Login
+                            <ShieldCheck className="h-5 w-5" />
+                            Ir a Seguridad del Perfil
+                            <ArrowRight className="h-4 w-4" />
                         </Link>
                     </div>
                 </div>

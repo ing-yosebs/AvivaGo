@@ -140,6 +140,10 @@ export async function updateSession(request: NextRequest) {
         }
 
         // NEW: Redirect to "Session Active" warning instead of silent Home redirect
+        if (path === '/auth/session-active' || path === '/auth/update-password') {
+            return response
+        }
+
         const nextUrl = new URL('/auth/session-active', request.url)
         // Pass the originally requested path to return to it after potential logout
         nextUrl.searchParams.set('next', path)

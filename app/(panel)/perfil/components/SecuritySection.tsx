@@ -1,11 +1,53 @@
 'use client'
 
 import { useState } from 'react'
-import { Eye, EyeOff, Lock } from 'lucide-react'
+import { Eye, EyeOff, Lock, Loader2, Check, AlertCircle } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 export default function SecuritySection() {
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+    const [password, setPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [loading, setLoading] = useState(false)
+    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
+    const supabase = createClient()
+
+    const handleUpdatePassword = async () => {
+        setMessage(null)
+
+        if (!password || !confirmPassword) {
+            setMessage({ type: 'error', text: 'Por favor, completa ambos campos.' })
+            return
+        }
+
+        if (password !== confirmPassword) {
+            setMessage({ type: 'error', text: 'Las contraseñas no coinciden.' })
+            return
+        }
+
+        if (password.length < 6) {
+            setMessage({ type: 'error', text: 'La contraseña debe tener al menos 6 caracteres.' })
+            return
+        }
+
+        setLoading(true)
+
+        const { error } = await supabase.auth.updateUser({
+            password: password
+        })
+
+        if (error) {
+            setMessage({ type: 'error', text: error.message })
+        } else {
+            setMessage({ type: 'success', text: 'Contraseña actualizada correctamente.' })
+            setPassword('')
+            setConfirmPassword('')
+        }
+        setLoading(false)
+    }
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
@@ -29,6 +71,8 @@ export default function SecuritySection() {
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                     className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-5 pr-12 py-3.5 text-[#0F2137] placeholder:text-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all font-mono"
                                 />
                                 <button
@@ -48,6 +92,8 @@ export default function SecuritySection() {
                                 <input
                                     type={showConfirmPassword ? "text" : "password"}
                                     placeholder="••••••••"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
                                     className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-5 pr-12 py-3.5 text-[#0F2137] placeholder:text-gray-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 transition-all font-mono"
                                 />
                                 <button
@@ -61,8 +107,20 @@ export default function SecuritySection() {
                         </div>
                     </div>
 
-                    <button className="w-full bg-[#0F2137] text-white px-6 py-4 rounded-2xl font-bold hover:bg-[#0F2137]/90 transition-all active:scale-[0.98] shadow-lg shadow-[#0F2137]/20">
-                        Actualizar Contraseña
+                    {message && (
+                        <div className={`p-4 rounded-xl flex items-center gap-3 ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                            {message.type === 'success' ? <Check className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
+                            <span className="text-sm font-medium">{message.text}</span>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={handleUpdatePassword}
+                        disabled={loading}
+                        className="w-full bg-[#0F2137] text-white px-6 py-4 rounded-2xl font-bold hover:bg-[#0F2137]/90 transition-all active:scale-[0.98] shadow-lg shadow-[#0F2137]/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        {loading && <Loader2 className="h-5 w-5 animate-spin" />}
+                        {loading ? 'Actualizando...' : 'Actualizar Contraseña'}
                     </button>
                 </div>
             </div>
