@@ -9,9 +9,13 @@ import { LEGAL_VERSIONS } from '@/lib/config/legal'
 import { z } from 'zod'
 
 const signUpSchema = z.object({
-    fullName: z.string().min(2, 'Name must be at least 2 characters'),
-    email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    fullName: z.string()
+        .trim()
+        .min(3, 'El nombre debe tener al menos 3 caracteres')
+        .regex(/^[a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s]+$/, 'El nombre solo puede contener letras y espacios')
+        .refine((val) => !/(.)\1{3,}/.test(val), 'El nombre no parece válido (demasiados caracteres repetidos)'),
+    email: z.string().email('Correo electrónico inválido'),
+    password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
     role: z.enum(['client', 'driver']).default('client'),
 })
 

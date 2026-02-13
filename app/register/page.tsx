@@ -46,9 +46,38 @@ function RegisterForm() {
         setError(null)
         setMessage(null)
 
+        const fullName = formData.get('fullName') as string
         const email = formData.get('email') as string
         const confirmEmail = formData.get('confirmEmail') as string
         const terms = formData.get('terms')
+
+        // Validation for Name
+        const trimmedName = fullName.trim()
+        if (trimmedName.length < 3) {
+            setError('El nombre debe tener al menos 3 caracteres.')
+            setPending(false)
+            return
+        }
+
+        const nameRegex = /^[a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s]+$/
+        if (!nameRegex.test(trimmedName)) {
+            setError('El nombre solo puede contener letras y espacios.')
+            setPending(false)
+            return
+        }
+
+        if (/(.)\1{3,}/.test(trimmedName)) {
+            setError('El nombre no parece válido (demasiados caracteres repetidos).')
+            setPending(false)
+            return
+        }
+
+        // Check for specific dummy names or obvious fake data if needed
+        if (/^(test|prueba|usuario|nombre|name)$/i.test(trimmedName)) {
+            setError('Por favor ingresa tu nombre real.')
+            setPending(false)
+            return
+        }
 
         if (email !== confirmEmail) {
             setError('Los correos electrónicos no coinciden')

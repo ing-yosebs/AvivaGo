@@ -27,12 +27,41 @@ function RegisterForm() {
         setLoading(true)
         setError(null)
 
+        // Validation for Name
+        const trimmedName = fullName.trim()
+
+        if (trimmedName.length < 3) {
+            setError('El nombre debe tener al menos 3 caracteres.')
+            setLoading(false)
+            return
+        }
+
+        const nameRegex = /^[a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF\s]+$/
+        if (!nameRegex.test(trimmedName)) {
+            setError('El nombre solo puede contener letras y espacios.')
+            setLoading(false)
+            return
+        }
+
+        if (/(.)\1{3,}/.test(trimmedName)) {
+            setError('El nombre no parece válido (demasiados caracteres repetidos).')
+            setLoading(false)
+            return
+        }
+
+        // Optional: Check if name is generic
+        if (/^(test|prueba|usuario|nombre|name)$/i.test(trimmedName)) {
+            setError('Por favor ingresa tu nombre real.')
+            setLoading(false)
+            return
+        }
+
         const { error } = await supabase.auth.signUp({
             email,
             password,
             options: {
                 data: {
-                    full_name: fullName,
+                    full_name: trimmedName, // Send trimmed name
                     referral_code: referralCode || undefined,
                 },
             },
