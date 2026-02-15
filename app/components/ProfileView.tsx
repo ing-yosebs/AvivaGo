@@ -8,7 +8,8 @@ import ReviewModal from './ReviewModal';
 import QuoteModal from './QuoteModal';
 import AuthRequiredModal from './AuthRequiredModal';
 import { DriverProfile } from './profile/types';
-import ProfileSidebar from './profile/ProfileSidebar';
+import ProfileHeader from './profile/ProfileHeader';
+import ProfileActions from './profile/ProfileActions';
 import ProfileAbout from './profile/ProfileAbout';
 import ProfileFeatures from './profile/ProfileFeatures';
 import ProfileDetails from './profile/ProfileDetails';
@@ -195,11 +196,23 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
 
             <main className="flex-1 pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="max-w-6xl mx-auto">
+                    {/* Mobile Sticky Header - Placed outside grid to ensure sticky works */}
+                    <div className="lg:hidden sticky top-14 z-30 -mx-4 sm:mx-0 mb-6 px-4 sm:px-0 bg-gray-50/95 backdrop-blur-sm pt-2 pb-2 transition-all">
+                        <div className="shadow-xl rounded-[30px] sm:rounded-[40px] overflow-hidden bg-white">
+                            <ProfileHeader driver={driver} className="border-none shadow-none" />
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-                        {/* Left Sidebar */}
+                        {/* Left Sidebar (Desktop & Mobile Actions) */}
                         <div className="lg:col-span-4 space-y-6">
-                            <ProfileSidebar
+                            {/* Desktop Header */}
+                            <div className="hidden lg:block">
+                                <ProfileHeader driver={driver} />
+                            </div>
+
+                            <ProfileActions
                                 driver={driver}
                                 isFavorite={isFavorite}
                                 isLocked={isLocked}
