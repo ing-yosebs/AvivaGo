@@ -9,6 +9,7 @@ import QuoteModal from './QuoteModal';
 import AuthRequiredModal from './AuthRequiredModal';
 import { DriverProfile } from './profile/types';
 import ProfileHeader from './profile/ProfileHeader';
+import ProfileInfo from './profile/ProfileInfo';
 import ProfileActions from './profile/ProfileActions';
 import ProfileAbout from './profile/ProfileAbout';
 import ProfileFeatures from './profile/ProfileFeatures';
@@ -194,22 +195,28 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
 
             <Header />
 
-            <main className="flex-1 pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative z-10">
+            <main className="flex-1 pt-16 sm:pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="max-w-6xl mx-auto">
                     {/* Mobile Sticky Header - Placed outside grid to ensure sticky works */}
-                    <div className="lg:hidden sticky top-14 z-30 -mx-4 sm:mx-0 mb-6 px-4 sm:px-0 bg-gray-50/95 backdrop-blur-sm pt-2 pb-2 transition-all">
-                        <div className="shadow-xl rounded-[30px] sm:rounded-[40px] overflow-hidden bg-white">
-                            <ProfileHeader driver={driver} className="border-none shadow-none" />
+                    <div className="lg:hidden sticky top-[56px] z-40 -mx-4 sm:mx-0 mb-2 px-4 sm:px-0 bg-gray-50/95 backdrop-blur-sm pt-0 pb-2 transition-all">
+                        <div className="shadow-xl rounded-b-[30px] sm:rounded-b-[40px] overflow-hidden bg-white pt-2">
+                            <ProfileHeader driver={driver} className="border-none shadow-none pb-0 mb-0 rounded-none rounded-b-[30px]" />
                         </div>
+                    </div>
+
+                    {/* Mobile Info - Just below sticky header */}
+                    <div className="lg:hidden mb-6">
+                        <ProfileInfo driver={driver} />
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
                         {/* Left Sidebar (Desktop & Mobile Actions) */}
                         <div className="lg:col-span-4 space-y-6">
-                            {/* Desktop Header */}
-                            <div className="hidden lg:block">
-                                <ProfileHeader driver={driver} />
+                            {/* Desktop Header containing both Image+Name and Details */}
+                            <div className="hidden lg:block bg-white border border-gray-100 shadow-soft rounded-[30px] sm:rounded-[40px] overflow-hidden pb-6">
+                                <ProfileHeader driver={driver} className="border-none shadow-none rounded-none mb-0" />
+                                <ProfileInfo driver={driver} />
                             </div>
 
                             <ProfileActions
