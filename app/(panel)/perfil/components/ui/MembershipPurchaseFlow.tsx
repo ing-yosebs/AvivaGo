@@ -57,7 +57,7 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
                             <CreditCard className="h-6 w-6" />
                         </div>
                         <h4 className="font-bold text-[#0F2137] text-center mb-2">Activa Membresía</h4>
-                        <p className="text-xs text-gray-500 text-center leading-relaxed">Realiza tu pago anual seguro para desbloquear las funciones de tu perfil.</p>
+                        <p className="text-xs text-gray-500 text-center leading-relaxed">Realiza tu pago anual para desbloquear las funciones premium de tu perfil.</p>
                     </div>
                 </div>
 
@@ -69,7 +69,7 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
                             <Car className="h-6 w-6" />
                         </div>
                         <h4 className="font-bold text-gray-600 text-center mb-2">Configura Datos</h4>
-                        <p className="text-xs text-gray-400 text-center leading-relaxed">Registra al menos un vehículo y tus zonas de cobertura.</p>
+                        <p className="text-xs text-gray-400 text-center leading-relaxed">Completa los datos de tus servicios y vehículos.</p>
                     </div>
                 </div>
 
@@ -81,7 +81,7 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
                             <Shield className="h-6 w-6" />
                         </div>
                         <h4 className="font-bold text-gray-600 text-center mb-2">Solicita Revisión</h4>
-                        <p className="text-xs text-gray-400 text-center leading-relaxed">Envía tu perfil a validación de identidad para mayor seguridad.</p>
+                        <p className="text-xs text-gray-400 text-center leading-relaxed">Envía tu perfil a validación de identidad para obtener la insignia de perfil verificado.</p>
                     </div>
                 </div>
 
@@ -93,7 +93,7 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
                             <CheckCircle className="h-6 w-6" />
                         </div>
                         <h4 className="font-bold text-gray-600 text-center mb-2">¡Recibe Clientes!</h4>
-                        <p className="text-xs text-gray-400 text-center leading-relaxed">Tu perfil se vuelve público y aceptas solicitudes directas.</p>
+                        <p className="text-xs text-gray-400 text-center leading-relaxed">Tu perfil se vuelve público y aceptas solicitudes de más pasajeros.</p>
                     </div>
                 </div>
             </div>

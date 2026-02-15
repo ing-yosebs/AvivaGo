@@ -51,10 +51,8 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
     const profileQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(profileLink)}`
 
     useEffect(() => {
-        if (hasMembership) {
-            loadRequestStatus()
-        }
-    }, [hasMembership, profile.id])
+        loadRequestStatus()
+    }, [profile.id])
 
     const loadRequestStatus = async () => {
         setRequestLoading(true)
@@ -150,7 +148,7 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
                         </div>
 
                         {/* Status / Request Button Area */}
-                        {hasMembership && !requestLoading && (
+                        {!requestLoading && (
                             <div className="flex flex-col items-end gap-2">
                                 {currentRequest ? (
                                     <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 max-w-sm">

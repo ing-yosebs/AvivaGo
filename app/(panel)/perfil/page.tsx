@@ -13,7 +13,8 @@ import {
     Briefcase,
     LayoutDashboard,
     FileText,
-    Eye
+    Eye,
+    Tag
 } from 'lucide-react'
 
 // Sub-components
@@ -26,7 +27,7 @@ import SecuritySection from './components/SecuritySection'
 import MembershipRequiredView from './components/MembershipRequiredView'
 import BecomeDriverButton from './components/BecomeDriverButton'
 import QuoteRequestsSection from './components/QuoteRequestsSection'
-import VisibilitySection from './components/VisibilitySection'
+import MarketingSection from './components/MarketingSection'
 import DriverDashboardSection from './components/DriverDashboardSection'
 
 export default function ProfilePage() {
@@ -294,7 +295,7 @@ function ProfileContent() {
             { id: 'vehicles', label: 'Mis Vehículos', icon: Car },
 
             { id: 'solicitudes', label: 'Mis Solicitudes', icon: Briefcase },
-            { id: 'visibility', label: 'Visibilidad y Marketing', icon: Eye }
+            { id: 'marketing', label: 'Marketing', icon: Tag }
         ] : []),
         { id: 'payments', label: isDriver ? 'Pagos y Membresía' : 'Mis Pagos', icon: CreditCard },
         { id: 'security', label: 'Seguridad', icon: Lock },
@@ -315,8 +316,8 @@ function ProfileContent() {
                                 ? 'Resumen de tu actividad y métricas como conductor.'
                                 : activeTab === 'solicitudes'
                                     ? 'Administra las cotizaciones recibidas de pasajeros interesados.'
-                                    : activeTab === 'visibility'
-                                        ? 'Gestiona tu presencia pública y descarga herramientas profesionales para promocionar tus servicios.'
+                                    : activeTab === 'marketing'
+                                        ? 'Descarga herramientas profesionales para promocionar tus servicios.'
                                         : 'Gestiona tu información personal y preferencias de la cuenta.'}
                 </p>
 
@@ -363,6 +364,8 @@ function ProfileContent() {
                             onSave={handleSaveServices}
                             saving={saving}
                             hasMembership={hasMembership}
+                            driverProfileId={profile?.driver_profile?.id}
+                            initialIsVisible={profile?.driver_profile?.is_visible}
                         />
                     )}
 
@@ -403,10 +406,8 @@ function ProfileContent() {
                         <DriverDashboardSection userId={profile?.id} />
                     )}
 
-                    {isDriver && activeTab === 'visibility' && (
-                        <VisibilitySection
-                            driverProfileId={profile?.driver_profile?.id}
-                            initialIsVisible={profile?.driver_profile?.is_visible}
+                    {isDriver && activeTab === 'marketing' && (
+                        <MarketingSection
                             profile={profile}
                             hasMembership={hasMembership}
                             isPlataOrHigher={isPlataOrHigher}

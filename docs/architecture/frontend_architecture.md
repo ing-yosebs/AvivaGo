@@ -1,125 +1,77 @@
 # Arquitectura Frontend: AvivaGo (Next.js App Router)
 
-Esta arquitectura está diseñada para **Next.js 14+** con un enfoque pragmático: "Server First" para datos, "Client" para interacción.
+Arquitectura basada en **Next.js 14+** (App Router) y **Supabase**.
 
 ## 1. Estructura de Directorios (`/app`)
 
-Usaremos **Route Groups** `(...)` para organizar layouts lógica sin afectar la URL, y Carpetas Privadas `_components` para colocalizar componentes específicos de funcionalidad.
-
 ```
 /app
-├── (public)                   # Layout público (Navbar simple, Footer)
-│   ├── page.tsx               # HOME: Landing + Listado Conductores (ISR/SSR)
-│   ├── driver/[id]/page.tsx   # PERFIL PÚBLICO: Vista estática (ISR) con contacto bloqueado
-│   └── auth/                  # Login/Register (Client Components con Supabase Auth UI)
+├── (public)
+│   ├── page.tsx               # LANDING: Buscador + Listado (Visible para todos)
+│   ├── conductor/[id]/        # PERFIL PÚBLICO: (SEO Friendly, Manejo robusto de errores 404/Soft 404)
+│   ├── auth/                  # Login/Register
+│   └── legales/               # Términos, Privacidad
 │
-├── (app)                      # Layout de Aplicación (Auth Required)
-│   ├── layout.tsx             # Verifica sesión. Navbar con Avatar de usuario.
+├── (panel)                    # DASHBOARD (Layout Protegido)
+│   ├── layout.tsx             # Sidebar + Header
+│   ├── dashboard/             # Vista Principal
 │   │
-│   ├── dashboard/             # RUTA CLIENTE
-│   │   └── page.tsx           # "Mis Desbloqueos" (Lista de contactos pagados)
+│   ├── perfil/                # GESTIÓN DE PERFIL (Página Única con Tabs)
+│   │   ├── page.tsx           # Orquestador de Tabs
+│   │   └── components/
+│   │       ├── PersonalDataSection.tsx
+│   │       ├── ServicesSection.tsx   # Configuración de servicios/visibilidad
+│   │       ├── MarketingSection.tsx  # (Antes Visibility) Kit de Marketing
+│   │       ├── VehiclesSection.tsx
+│   │       └── PaymentsSection.tsx   # Gestión de Membresía
 │   │
-│   └── driver-panel/          # RUTA CONDUCTOR (Protegida por Rol)
-│       ├── layout.tsx         # Verifica rol 'driver'. Sidebar de gestión.
-│       ├── page.tsx           # Stats y Toggle Visibilidad
-│       └── profile/           # Edición de Perfil
+│   ├── solicitudes/           # GESTIÓN DE COTIZACIONES
+│   │   └── page.tsx           # Inox de solicitudes recibidas/enviadas
+│   │
+│   └── invitados/             # SISTEMA DE REFERIDOS
 │
-├── api/                       # API Routes (Backend-for-Frontend)
-│   ├── webhooks/stripe/       # Manejo de eventos de pago
-│   └── revalidate/            # On-demand revalidation para actualizar perfiles
+├── admin/                     # PANEL ADMINISTRADOR
+│   ├── users/
+│   └── memberships/
 │
-└── layout.tsx                 # Root Layout (Providers: Toaster, Analytics)
+└── api/                       # Webhooks (Stripe)
 ```
 
----
+## 2. Componentes Clave
 
-## 2. Server Components vs. Client Components
+### Perfil y Configuración (`/perfil`)
+Usa un patrón de **Tabs** controlado por URL (`?tab=marketing`) para gestionar la complejidad:
+*   **`MarketingSection`:** Muestra el `DriverMarketingKit` (QR, Flyers) y controla la visibilidad pública.
+*   **`ServicesSection`:** Configura zonas, horarios y cuestionarios profesionales.
+*   **`PaymentsSection`:** Muestra estado de suscripción y flujo de compra (Stripe/OXXO).
 
-### Server Components (Default)
-**Objetivo:** Fetching de datos directo a Supabase, SEO, Carga inicial rápida.
-*   **Home (`/page.tsx`):** `await supabase.from('driver_profiles').select(...)`. Renderiza la lista inicial.
-*   **Perfil (`/driver/[id]/page.tsx`):** Carga los datos públicos del conductor. Verifica en el servidor si el usuario actual YA desbloqueó este perfil para decidir qué mostrar (Server-side Toggle).
+### Marketing Kit (`DriverMarketingKit`)
+Componente complejo que genera imágenes dinámicas:
+*   Usa `html2canvas` para renderizar flyers con la foto y QR del conductor.
+*   Permite descargar recursos para compartir en redes sociales (TikTok/Facebook Ads).
 
-### Client Components (`'use client'`)
-**Objetivo:** Interacción, Estado (useState), Browser APIs.
-*   `DriverFilterBar`: Maneja el estado de los filtros (Ciudad, Tags) y actualiza la URL (`useRouter`, `useSearchParams`).
-*   `UnlockButton`: Maneja el click -> Abre Modal Stripe -> Procesa pago -> Llama callback de éxito.
-*   `ReviewForm`: Formulario interactivo con estrellas y validación.
-*   `VisibilityToggle`: Switch en el panel de conductor que llama a `supabase.update()`.
+### Sidebar (`DashboardSidebar`)
+Navegación dinámica según rol (Conductor vs Pasajero).
+*   Enlace directo a **"Marketing"** (antes visibilidad).
+*   Gestión de "Mis Solicitudes".
 
----
+## 3. Estado y Datos
 
-## 3. Estrategia de Autenticación y Roles
+*   **Autenticación:** Supabase Auth + Middleware.
+*   **Persistencia:** Hooks como `useProfileData` centralizan el fetching de `users` y `driver_profiles`.
+*   **Gamification:** El frontend calcula y muestra el nivel del conductor (Bronce, Plata, Oro) basado en datos de referidos.
 
-### Middleware (`middleware.ts`)
-El guardián global. Se ejecuta antes de cada request.
-1.  **Actualiza Sesión:** `supabase.auth.getSession()`.
-2.  **Protección de Rutas:**
-    *   Si intenta entrar a `/(app)/*` sin sesión -> Redirect a `/auth/login`.
-    *   Si intenta entrar a `/driver-panel/*` y `user.role !== 'driver'` -> Redirect a `/dashboard` (o 403).
+## 4. Flujos Críticos
 
-### Contexto de Usuario
-Aunque Supabase Auth funciona bien, crearemos un `UserProvider` (Client Context) ligero para tener acceso global a:
-*   `user`: Objeto auth de Supabase.
-*   `profile`: Datos de nuestro perfil (incluyendo rol y avatar).
-*   `isLoading`: Para spinners globales.
+### Flujo de Suscripción
+1.  Conductor entra a `PaymentsSection`.
+2.  Selecciona Plan.
+3.  Procesa pago (Stripe Element o Referencia OXXO).
+4.  Webhook actualiza `driver_memberships`.
+5.  Frontend actualiza estado -> Habilita toggle `is_visible` en `ServicesSection`.
 
----
-
-## 4. Componentes Reutilizables (Design System)
-
-Ubicados en `/components/ui` (genéricos) y `/components/avivago` (negocio).
-
-### UI Base (Shadcn/UI + Tailwind)
-*   `Button` (Primary, Ghost, Destructive)
-*   `Card` (Contenedor estándar)
-*   `Dialog` (Modales de pago)
-*   `Badge` (Para Tags: "Mascotas", "WiFi")
-*   `Avatar`
-
-### Componentes de Negocio
-*   `DriverCard`:
-    *   Props: `driver: DriverProfile`.
-    *   Muestra foto, nombre, estrellas, tags y botón "Ver Perfil".
-*   `ContactReveal`:
-    *   Props: `locked: boolean`, `price: number`, `contactInfo: ContactData`.
-    *   Lógica: Si `locked`, muestra el botón "Desbloquear" y blur sobre el texto. Si `!locked`, muestra el teléfono real y botón WhatsApp.
-*   `StarRating`:
-    *   Props: `rating: number`, `readOnly: boolean`.
-    *   Visualiza estrellas llenas/vacías.
-
----
-
-## 5. Manejo de Datos (Supabase)
-
-### Server-Side Fetching
-En Server Components, instanciamos un cliente Supabase configurado para cookies.
-```typescript
-// app/page.tsx
-const supabase = createClient();
-const { data: drivers } = await supabase.from('driver_profiles').select('*, service_tags(*)');
-```
-
-### Server Actions (Mutaciones)
-Para formularios (ej. Editar Perfil, Crear Reseña), usaremos **Server Actions**:
-*   Progresiva mejora (funcionan sin JS a veces).
-*   Revalidación automática de caché (`revalidatePath`).
-*   Validación de datos con Zod en el servidor.
-
-**Ejemplo:** `updateDriverProfile(formData: FormData)` -> Valida -> `supabase.update()` -> `revalidatePath('/driver-panel')`.
-
----
-
-## 6. Resumen de Flujo Crítico (Desbloqueo)
-
-1.  Usuario en `/driver/123` (Server Component).
-2.  SC verifica en BD `unlocks` si existe relación `user <-> driver`.
-3.  Pasa prop `isUnlocked={false}` al Client Component `ContactReveal`.
-4.  Usuario click "Desbloquear". `ContactReveal` abre Stripe.
-5.  Pago OK. Stripe Webhook actualiza BD.
-6.  Usuario es redirigido o la página se refresca.
-7.  SC vuelve a ejecutar, ahora ve el unlock en BD.
-8.  Pasa prop `isUnlocked={true}`.
-9.  Renderiza teléfono real.
-
-Esta arquitectura separa claramente preocupaciones, aprovecha el SEO de Next.js para la vitrina pública y asegura la protección de datos sensibles en el servidor.
+### Flujo de Visibilidad/Marketing
+1.  Conductor va a tab **Marketing**.
+2.  Si tiene membresía -> Ve su QR y herramientas.
+3.  Descarga Flyer.
+4.  Comparte en Redes Sociales para atraer tráfico a su perfil público.

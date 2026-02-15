@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
             )
         `)
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
     const memberships = Array.isArray(driver?.driver_memberships)
         ? driver.driver_memberships
@@ -68,10 +68,13 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
             )
         `)
         .eq('id', id)
-        .single();
+        .maybeSingle();
+
+    if (error) {
+        console.error('Error fetching driver:', JSON.stringify(error, null, 2));
+    }
 
     if (error || !driver) {
-        console.error('Error fetching driver:', JSON.stringify(error, null, 2));
         return (
             <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
                 <Header />

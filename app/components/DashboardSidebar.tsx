@@ -73,7 +73,7 @@ export default function DashboardSidebar() {
                     { label: 'Mis Servicios', href: '/perfil?tab=services' },
                     { label: 'Mis Vehículos', href: '/perfil?tab=vehicles' },
 
-                    { label: 'Visibilidad y Marketing', href: '/perfil?tab=visibility' },
+                    { label: 'Marketing', href: '/perfil?tab=marketing' },
                     { label: 'Mis cotizaciones', href: '/perfil?tab=solicitudes' },
                     { label: 'Mis Invitados', href: '/invitados' },
                     { label: 'Membresía', href: '/perfil?tab=payments' }

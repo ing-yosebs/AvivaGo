@@ -4,11 +4,19 @@ import { useState, useEffect } from 'react'
 import { FileText, User, Car, MapPin, Languages, CheckCircle2, Clock, BadgeCheck, ChevronRight, CreditCard, Globe, Save, Lock } from 'lucide-react'
 import Link from 'next/link'
 import PremiumUpsellModal from '@/app/components/PremiumUpsellModal'
+import { createClient } from '@/lib/supabase/client'
+import { DriverProfileCard } from '@/app/(panel)/dashboard/components/DriverProfileCard'
+import { ProfileVisibilityCard } from '@/app/(panel)/dashboard/components/ProfileVisibilityCard'
 
-export default function ServicesSection({ services, onSave, saving, hasMembership }: any) {
+export default function ServicesSection({ services, onSave, saving, hasMembership, driverProfileId, initialIsVisible }: any) {
     const zones = ['Zona Oriente', 'Zona Poniente', 'Zona Norte', 'Zona Sur', 'Zona Centro']
     const languagesList = ['Español', 'Inglés', 'Alemán', 'Francés', 'Japonés', 'Chino']
     const indigenousLanguagesList = ['Náhuatl', 'Maya', 'Tseltal', 'Tsotsil', 'Mixteco', 'Zapoteco', 'Otomí']
+
+    // Visibility State
+    const [isVisible, setIsVisible] = useState(initialIsVisible)
+    const [updatingVisibility, setUpdatingVisibility] = useState(false)
+    const supabase = createClient()
 
     const [formData, setFormData] = useState({
         preferred_zones: services?.preferred_zones || [],
@@ -30,6 +38,27 @@ export default function ServicesSection({ services, onSave, saving, hasMembershi
     const triggerPremiumModal = (feature: string, message: string) => {
         setModalConfig({ feature, message })
         setIsPremiumModalOpen(true)
+    }
+
+    const handleToggleVisibility = async (visible: boolean) => {
+        if (!hasMembership && visible) {
+            triggerPremiumModal("Visibilidad en Catálogo", "Para aparecer en el catálogo público de conductores y que los pasajeros te encuentren directamente, activa tu Membresía Premium.")
+            return;
+        }
+        setUpdatingVisibility(true)
+        try {
+            const { error } = await supabase
+                .from('driver_profiles')
+                .update({ is_visible: visible })
+                .eq('id', driverProfileId)
+
+            if (error) throw error
+            setIsVisible(visible)
+        } catch (error) {
+            console.error('Error al actualizar la visibilidad', error)
+        } finally {
+            setUpdatingVisibility(false)
+        }
     }
 
     useEffect(() => {
@@ -75,6 +104,44 @@ export default function ServicesSection({ services, onSave, saving, hasMembershi
 
     return (
         <div className="space-y-12 max-w-5xl">
+            {/* Visibility & Profile Link Section */}
+            <div className="space-y-8 w-full">
+                <div className="space-y-4">
+                    <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                        Tu Enlace Público
+                    </h4>
+                    <DriverProfileCard driverProfileId={driverProfileId} />
+                </div>
+
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest">Visibilidad del Perfil</h4>
+                        {!hasMembership && <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-full uppercase tracking-wider flex items-center gap-1"><BadgeCheck className="h-3 w-3" /> Premium</span>}
+                    </div>
+
+                    <div
+                        className={`relative rounded-3xl overflow-hidden ${!hasMembership ? 'opacity-50 cursor-pointer select-none grayscale' : ''}`}
+                        onClick={() => !hasMembership && triggerPremiumModal("Visibilidad en Catálogo", "Para aparecer en el catálogo público de conductores y que los pasajeros te encuentren directamente, activa tu Membresía Premium.")}
+                    >
+                        {!hasMembership && (
+                            <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/10 backdrop-blur-[1px]">
+                                <Lock className="h-8 w-8 text-gray-400" />
+                            </div>
+                        )}
+                        <div className={!hasMembership ? 'pointer-events-none' : ''}>
+                            <ProfileVisibilityCard
+                                isVisible={isVisible}
+                                onToggleVisibility={handleToggleVisibility}
+                                updating={updatingVisibility}
+                            />
+                        </div>
+                    </div>
+                    {!hasMembership && <p className="text-xs text-amber-600 font-medium">Actualiza a Premium para controlar tu visibilidad.</p>}
+                </div>
+            </div>
+
+            <div className="w-full h-px bg-gray-100" />
+
             {/* Reseñas */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* Professional Bio */}

@@ -12,6 +12,7 @@ La aplicación está construida sobre un stack moderno y escalable:
 *   **Frontend**: [Next.js 16](https://nextjs.org/) (App Router, Server Components).
 *   **Lenguaje**: TypeScript.
 *   **Estilos**: Tailwind CSS + Radix UI (para componentes de UI accesibles).
+*   **Generación de Assets**: `html2canvas` (para crear flyers/tarjetas en el navegador).
 *   **Base de Datos**: PostgreSQL (alojado en [Supabase](https://supabase.com/)).
 *   **Autenticación**: Supabase Auth (Integrado con tabla `public.users`).
 *   **Pagos**: Stripe (Suscripciones para conductores).
@@ -61,17 +62,24 @@ El esquema de base de datos (`supabase_schema.sql`) está diseñado alrededor de
 *   Integración con **Stripe** para cobros recurrentes.
 *   Webhooks manejan la renovación y expiración de membresías en tiempo real.
 
-### 5.3 Marketplace y "Unlocks"
+### 5.3 Sistema de Kit de Marketing (Conductores)
+*   **Generación de Assets**: Los conductores pueden descargar Flyers, Tarjetas y Stickers personalizados con su QR y código de referido.
+*   **Solicitud de Kit Físico**:
+    *   Formulario para pedir el envío de materiales impresos.
+    *   Flujo de aprobación manual: Admin recibe solicitud -> Cotiza envío -> Conductor Paga (Off-platform por ahora) -> Admin envía.
+    *   Requiere membresía activa (Nivel Plata o superior).
+
+### 5.4 Marketplace y "Unlocks"
 *   Los pasajeros buscan conductores por ciudad o geolocalización.
 *   Para contactar, el pasajero realiza un **"Unlock"** (Desbloqueo).
 *   Esto revela el WhatsApp y teléfono del conductor.
 
-### 5.4 Sistema de Cotizaciones (Solicitudes)
+### 5.5 Sistema de Cotizaciones (Solicitudes)
 *   Implementado en `app/(panel)/solicitudes`.
 *   Permite a los pasajeros solicitar viajes específicos.
 *   Los conductores reciben y pueden aceptar/rechazar estas solicitudes.
 
-### 5.5 Sistema de Afiliados y Billetera (Wallet)
+### 5.6 Sistema de Afiliados y Billetera (Wallet)
 *   **Códigos de Referido**: Se generan automáticamente para cada usuario al registrarse.
 *   **Niveles de Afiliado**: Los conductores tienen niveles (`Bronze`, `Silver`, `Gold`) que determinan sus comisiones.
 *   **Billetera (`wallets`)**: Gestión financiera interna para conductores.
@@ -81,5 +89,6 @@ El esquema de base de datos (`supabase_schema.sql`) está diseñado alrededor de
 
 ## 6. Seguridad (RLS)
 El sistema utiliza **Row Level Security (RLS)** de Postgres de forma intensiva:
-*   Los perfiles de conductores solo son visibles si tienen estatus `active` y membresía vigente (`is_driver_active` function).
+*   Los perfiles de conductores son visibles públicamente si `is_visible` es true y su estatus es `active`, `draft` o `pending_approval`.
+*   Solo perfiles `active` con membresía vigente son indexables por motores de búsqueda.
 *   La información de contacto es privada hasta que existe una relación de negocio.
