@@ -1,4 +1,5 @@
 import { ShieldCheck, Users, MapPin, Star, FileText, Heart, Check, Share2 } from 'lucide-react';
+import Link from 'next/link';
 import { DriverProfile } from './types';
 
 interface ProfileSidebarProps {
@@ -103,6 +104,17 @@ export default function ProfileSidebar({
                         </p>
                     </div>
                 </div>
+
+                {/* Referral Button */}
+                {driver.referral_code && (
+                    <Link
+                        href={`/register?ref=${driver.referral_code}&redirect=/driver/${driver.id}`}
+                        className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold py-4 rounded-2xl hover:brightness-110 transition-all shadow-lg shadow-indigo-500/25 group active:scale-[0.98]"
+                    >
+                        <Users className="h-5 w-5 fill-current" />
+                        Regístrate con {driver.name.split(' ')[0]}
+                    </Link>
+                )}
 
 
                 <button

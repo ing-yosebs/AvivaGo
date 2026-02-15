@@ -58,7 +58,15 @@ export default async function UserDetailPage({
                     year,
                     color,
                     plate_number,
-                    status
+                    status,
+                    vin_number,
+                    plate_photo_url,
+                    circulation_card_url,
+                    verification_url,
+                    vin_photo_url,
+                    invoice_url,
+                    insurance_policy_url,
+                    photos
                 ),
                 driver_services (
                     preferred_zones,
@@ -96,6 +104,17 @@ export default async function UserDetailPage({
 
     const idDocumentSignedUrl = await getSignedUrl(supabase, user.id_document_url, 'documents');
     const addressProofSignedUrl = await getSignedUrl(supabase, user.address_proof_url, 'documents');
+
+    // Vehicle Documents Signed URLs
+    const vehicleDocs = vehicle ? {
+        plate: await getSignedUrl(supabase, vehicle.plate_photo_url, 'vehicles'),
+        circulation: await getSignedUrl(supabase, vehicle.circulation_card_url, 'vehicles'),
+        verification: await getSignedUrl(supabase, vehicle.verification_url, 'vehicles'),
+        vin: await getSignedUrl(supabase, vehicle.vin_photo_url, 'vehicles'),
+        invoice: await getSignedUrl(supabase, vehicle.invoice_url, 'vehicles'),
+        insurance: await getSignedUrl(supabase, vehicle.insurance_policy_url, 'vehicles'),
+        photos: await Promise.all((vehicle.photos || []).map((p: string) => getSignedUrl(supabase, p, 'vehicles')))
+    } : null;
 
     // Fetch Logs if driver
     let logs: any[] = []
@@ -528,6 +547,45 @@ export default async function UserDetailPage({
                                     <p className="text-white font-mono bg-black/20 px-2 py-1 rounded border border-white/5 inline-block">
                                         {vehicle.plate_number || 'N/A'}
                                     </p>
+                                </div>
+                                {vehicle.vin_number && (
+                                    <div>
+                                        <label className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Número NIV (VIN)</label>
+                                        <p className="text-white font-mono bg-black/20 px-2 py-1 rounded border border-white/5 inline-block w-full truncate">
+                                            {vehicle.vin_number}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Vehicle Documents for Admin Verification */}
+                                <div className="pt-4 border-t border-white/10 space-y-4">
+                                    <h4 className="text-xs font-bold text-zinc-500 uppercase">Documentación y Fotos</h4>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {[
+                                            { label: 'Placa', url: vehicleDocs?.plate },
+                                            { label: 'Circulación', url: vehicleDocs?.circulation },
+                                            { label: 'Verificación', url: vehicleDocs?.verification },
+                                            { label: 'NIV (VIN)', url: vehicleDocs?.vin },
+                                            { label: 'Factura', url: vehicleDocs?.invoice },
+                                            { label: 'Seguro', url: vehicleDocs?.insurance },
+                                        ].map((doc, i) => doc.url ? (
+                                            <Link key={i} href={doc.url} target="_blank" className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 transition-colors flex flex-col items-center justify-center gap-1">
+                                                <FileText className="h-4 w-4 text-zinc-400" />
+                                                <span className="text-[10px] text-zinc-300 font-medium">{doc.label}</span>
+                                            </Link>
+                                        ) : null)}
+                                    </div>
+
+                                    {/* Vehicle Photos */}
+                                    {vehicleDocs?.photos && vehicleDocs.photos.length > 0 && (
+                                        <div className="grid grid-cols-3 gap-2 mt-2">
+                                            {vehicleDocs.photos.map((url: string, i: number) => (
+                                                <Link key={i} href={url} target="_blank" className="relative aspect-video rounded-lg overflow-hidden border border-white/10 hover:border-blue-500/50 transition-colors">
+                                                    <Image src={url} alt={`Foto ${i + 1}`} fill className="object-cover" />
+                                                </Link>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

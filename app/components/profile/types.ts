@@ -33,4 +33,7 @@ export interface DriverProfile {
     vehiclePhotos?: string[];
     passenger_capacity?: number;
     trunk_capacity?: string;
+    is_verified?: boolean;
+    is_premium?: boolean;
+    referral_code?: string;
 }

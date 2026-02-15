@@ -2,10 +2,11 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
-import { Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, Award, Copy, Check, Info, Users, Share2, DollarSign } from 'lucide-react'
+import { Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, Award, Copy, Check, Info, Users, Share2, DollarSign, Car } from 'lucide-react'
 
 
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import MembershipRequiredView from '../perfil/components/MembershipRequiredView'
 
 export default function WalletPage() {
@@ -19,6 +20,7 @@ export default function WalletPage() {
     const [copiedLink, setCopiedLink] = useState(false)
     const [referralLink, setReferralLink] = useState('')
     const [hasMembership, setHasMembership] = useState(false)
+    const [membershipDate, setMembershipDate] = useState<Date | null>(null)
     const supabase = createClient()
 
     useEffect(() => {
@@ -109,7 +111,7 @@ export default function WalletPage() {
             if (driverData) {
                 const { data: membershipData } = await supabase
                     .from('driver_memberships')
-                    .select('status, expires_at')
+                    .select('status, expires_at, created_at')
                     .eq('driver_profile_id', driverData.id)
                     .eq('status', 'active')
                     .gt('expires_at', new Date().toISOString())
@@ -117,6 +119,7 @@ export default function WalletPage() {
 
                 if (membershipData) {
                     setHasMembership(true)
+                    setMembershipDate(new Date(membershipData.created_at)) // Assuming created_at is available or use start_date logic
                 }
             }
 
@@ -148,10 +151,6 @@ export default function WalletPage() {
     }
 
     if (loading) return <div className="p-8"><div className="w-8 h-8 border-4 border-blue-600 rounded-full animate-spin border-t-transparent" /></div>
-
-    if (!hasMembership) {
-        return <MembershipRequiredView onTabChange={(tab) => router.push(`/perfil?tab=${tab}`)} />
-    }
 
     // Calculate level thresholds
     const getLevelData = (count = 0, currentLevel = 'bronze') => {
@@ -188,10 +187,27 @@ export default function WalletPage() {
         }
     }
 
-    const levelData = getLevelData(profile?.referral_count, profile?.affiliate_level)
+
+    // Calculate Eligible Referrals based on Membership Date
+    const eligibleReferrals = referrals.filter(r => {
+        if (!hasMembership || !membershipDate) return false;
+        return new Date(r.created_at) > membershipDate;
+    });
+
+    const eligibleReferralCount = eligibleReferrals.filter(r => r.isDriver).length;
+    // Note: B2C referrals are usually counted from profile.b2c_referral_count. 
+    // If we want to strictly filter B2C, we'd need the list of B2C referrals or apply a ratio if we don't have the list.
+    // For now, assuming b2c_referral_count needs to be filtered similarly, but we might not have the full list of passengers here depending on 'referrals' content.
+    // However, the `referrals` state seems to hold ALL users (drivers and passengers) based on the fetch query earlier?
+    // Let's check query: .select('..., isDriver:roles.cs("driver"), ...')
+    // Yes, it fetches all users referred.
+    const eligibleB2CCount = eligibleReferrals.filter(r => !r.isDriver).length;
+
+
+    const levelData = getLevelData(hasMembership ? eligibleReferralCount : 0, profile?.affiliate_level)
 
     // B2C Progress
-    const b2cCount = profile?.b2c_referral_count || 0
+    const b2cCount = hasMembership ? eligibleB2CCount : 0
     const b2cNextGoal = 20 - (b2cCount % 20)
     const b2cProgress = (b2cCount % 20) / 20 * 100
 
@@ -205,12 +221,16 @@ export default function WalletPage() {
                     </h1>
                     <p className="text-gray-500 mt-2">Gestiona tus ingresos del Programa de Afiliados AvivaGo.</p>
                 </div>
-                <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
-                    <div className="px-4 py-2">
-                        <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Nivel</p>
-                        <p className={`font-black ${levelData.color}`}>{levelData.label}</p>
-                    </div>
-                    <div className="h-8 w-[1px] bg-gray-100" />
+                <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm transition-all duration-300">
+                    {hasMembership && (
+                        <>
+                            <div className="px-4 py-2">
+                                <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Nivel</p>
+                                <p className={`font-black ${levelData.color}`}>{levelData.label}</p>
+                            </div>
+                            <div className="h-8 w-[1px] bg-gray-100" />
+                        </>
+                    )}
                     <div className="px-4 py-2">
                         <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Resumen Red</p>
                         <p className="font-black text-[#0F2137] flex items-center gap-2">
@@ -226,12 +246,12 @@ export default function WalletPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {/* Balance Card */}
-                <div className="lg:col-span-1 bg-[#0F2137] border border-blue-900/30 rounded-[2.5rem] p-8 relative overflow-hidden group shadow-xl">
+                <div className="lg:col-span-1 bg-[#0F2137] border border-blue-900/30 rounded-[2.5rem] p-8 relative overflow-hidden group shadow-xl transition-all duration-500">
                     <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                         <TrendingUp className="h-32 w-32 text-white" />
                     </div>
 
-                    <div className="relative z-10">
+                    <div className={`relative z-10 transition-all duration-700 ${!hasMembership ? 'blur-[2px] opacity-50 pointer-events-none select-none' : ''}`}>
                         <h3 className="text-sm font-bold text-blue-200 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
                             <DollarSign className="h-4 w-4 text-emerald-400" />
                             Saldo Disponible
@@ -265,6 +285,21 @@ export default function WalletPage() {
                             )}
                         </div>
                     </div>
+
+                    {!hasMembership && (
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center p-8 bg-blue-900/5">
+                            <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-md border border-white/10 shadow-xl">
+                                <Award className="h-8 w-8 text-white animate-bounce" />
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-2 text-center uppercase tracking-wider">¡Activa tu Potencial!</h3>
+                            <p className="text-blue-200 text-[11px] opacity-90 mb-6 text-center max-w-[220px] font-medium leading-relaxed">
+                                Los miembros Premium pueden retirar sus ganancias generadas por su red.
+                            </p>
+                            <Link href="/perfil?tab=payments" className="w-full py-3 bg-white text-blue-600 rounded-xl font-black text-xs hover:bg-blue-50 transition-all shadow-lg hover:scale-[1.02] active:scale-[0.98] text-center uppercase tracking-widest">
+                                Ver Membresía Premium
+                            </Link>
+                        </div>
+                    )}
                 </div>
 
                 {/* Referral & Growth Section */}
@@ -272,35 +307,41 @@ export default function WalletPage() {
                     {/* B2B Referrals (Conductores) */}
                     <div className={`${levelData.bg} ${levelData.border} border rounded-[2.5rem] p-8 flex flex-col justify-between relative overflow-hidden group`}>
                         <div className="absolute -top-4 -right-4 opacity-5 group-hover:opacity-10 transition-all duration-700">
-                            <Award className="h-48 w-48 rotate-12" />
+                            <Car className="h-48 w-48 rotate-12" />
                         </div>
 
                         <div className="relative z-10">
                             <div className="flex items-center justify-between mb-8">
                                 <div className="p-3 bg-white rounded-2xl shadow-sm">
-                                    <Award className={`h-8 w-8 ${levelData.color}`} />
+                                    <Car className={`h-8 w-8 ${levelData.color}`} />
                                 </div>
-                                <span className="px-4 py-1.5 rounded-full bg-white border border-gray-100 text-xs font-bold text-gray-500 uppercase tracking-widest shadow-sm">
-                                    Modelo B2B
-                                </span>
+                                {!hasMembership ? (
+                                    <span className="px-4 py-1.5 rounded-full bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-600/20 animate-pulse">
+                                        Premium Requerido
+                                    </span>
+                                ) : (
+                                    <span className="px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-100 text-[10px] font-black text-emerald-600 uppercase tracking-widest shadow-sm">
+                                        Comisiones Activas
+                                    </span>
+                                )}
                             </div>
 
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <h3 className={`text-2xl font-black ${levelData.color} mb-1`}>Nivel {levelData.label}</h3>
-                                    <p className="text-gray-500 text-sm font-medium">Bono: <span className="text-[#0F2137]">${levelData.commission} MXN</span></p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-3xl font-black text-[#0F2137]">{profile?.referral_count || 0}</p>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Activos</p>
+                                    <h3 className="text-2xl font-black text-[#0F2137] mb-1">Conductores Recomendados</h3>
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <p className="text-gray-500 text-sm font-medium">
+                                            Bono por cada conductor: <span className="text-[#0F2137] font-bold">${levelData.commission} MXN</span>
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="mt-8 space-y-3">
                                 <div className="flex justify-between items-end">
-                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Progreso Siguiente Nivel</span>
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Meta de Crecimiento</span>
                                     {levelData.nextLevel ? (
-                                        <span className="text-xs font-black text-[#0F2137]">{profile?.referral_count || 0} / {levelData.target}</span>
+                                        <span className="text-xs font-black text-[#0F2137]">{eligibleReferralCount} / {levelData.target}</span>
                                     ) : (
                                         <span className="text-xs font-black text-yellow-500 uppercase">Máximo Nivel</span>
                                     )}
@@ -308,45 +349,62 @@ export default function WalletPage() {
                                 <div className="h-3 bg-white rounded-full overflow-hidden border border-gray-100 p-0.5">
                                     <div
                                         className={`h-full rounded-full transition-all duration-1000 ${levelData.color.replace('text', 'bg')}`}
-                                        style={{ width: `${levelData.nextLevel ? Math.min(((profile?.referral_count || 0) / levelData.target) * 100, 100) : 100}%` }}
+                                        style={{ width: `${levelData.nextLevel ? Math.min(((eligibleReferralCount) / levelData.target) * 100, 100) : 100}%` }}
                                     />
                                 </div>
                             </div>
                         </div>
 
                         <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center">
-                            <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl shadow-sm border border-amber-100 hover:border-amber-300 transition-colors group/p">
-                                <div className="p-2 bg-amber-50 rounded-lg group-hover/p:scale-110 transition-transform">
-                                    <Clock className="h-4 w-4 text-amber-500" />
+                            <div className="flex items-center gap-8 bg-white px-8 py-4 rounded-[1.5rem] shadow-sm border border-gray-100 transition-all hover:shadow-md">
+                                <div className="flex flex-col items-center">
+                                    <span className="text-xl font-black text-emerald-500 leading-none">
+                                        {profile?.referral_count || 0}
+                                    </span>
+                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1.5">
+                                        Activos
+                                    </span>
                                 </div>
-                                <div className="flex flex-col">
-                                    <span className="text-xl font-black text-[#0F2137] leading-none">
+                                <div className="w-[1px] h-8 bg-gray-100" />
+                                <div className="flex flex-col items-center">
+                                    <span className="text-xl font-black text-amber-500 leading-none">
                                         {profile?.referral_count_pending || 0}
                                     </span>
-                                    <span className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em]">
-                                        Pendientes de Pago
+                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1.5">
+                                        Pendientes
                                     </span>
                                 </div>
                             </div>
 
-                            <p className="mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-relaxed text-center">
-                                {levelData.nextLevel
-                                    ? `Te faltan ${levelData.target - (profile?.referral_count || 0)} activos para nivel ${levelData.nextLevel}`
-                                    : '¡Embajador Oro! Máxima comisión activa.'}
-                            </p>
+                            <div className="mt-4 text-center">
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-relaxed">
+                                    {levelData.nextLevel
+                                        ? `Estás en nivel ${levelData.label}, te faltan ${levelData.target - eligibleReferralCount} para nivel ${levelData.nextLevel}`
+                                        : '¡Embajador Oro! Máxima comisión activa.'}
+                                </p>
+                            </div>
                         </div>
                     </div>
 
                     {/* B2C Referrals (Pasajeros) */}
-                    <div className="bg-indigo-50 border border-indigo-100 rounded-[2.5rem] p-8 flex flex-col justify-between group shadow-soft">
+                    <div className="bg-indigo-50 border border-indigo-100 rounded-[2.5rem] p-8 flex flex-col justify-between group shadow-soft relative overflow-hidden">
+                        <div className="absolute -top-4 -right-4 opacity-5 group-hover:opacity-10 transition-all duration-700">
+                            <Users className="h-48 w-48 rotate-12" />
+                        </div>
                         <div className="relative z-10">
                             <div className="flex items-center justify-between mb-8">
                                 <div className="p-3 bg-white rounded-2xl text-indigo-500 shadow-sm">
                                     <Users className="h-8 w-8 text-indigo-500" />
                                 </div>
-                                <span className="px-4 py-1.5 rounded-full bg-white border border-indigo-100 text-xs font-bold text-indigo-500 uppercase tracking-widest shadow-sm">
-                                    Modelo B2C
-                                </span>
+                                {!hasMembership ? (
+                                    <span className="px-4 py-1.5 rounded-full bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-600/20 animate-pulse">
+                                        Premium Requerido
+                                    </span>
+                                ) : (
+                                    <span className="px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-[10px] font-black text-indigo-600 uppercase tracking-widest shadow-sm">
+                                        Comisiones Activas
+                                    </span>
+                                )}
                             </div>
 
                             <h3 className="text-2xl font-black text-[#0F2137] mb-1">Pasajeros Recomendados</h3>
@@ -356,6 +414,7 @@ export default function WalletPage() {
 
                             <div className="mt-8 space-y-3">
                                 <div className="flex justify-between items-end">
+                                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Progreso hacia el Bono</span>
                                     <span className="text-xs font-black text-[#0F2137]">{b2cCount % 20} / 20</span>
                                 </div>
                                 <div className="h-3 bg-white rounded-full overflow-hidden border border-indigo-100 p-0.5">
@@ -377,7 +436,7 @@ export default function WalletPage() {
                                         {b2cCount}
                                     </span>
                                     <span className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.15em]">
-                                        Pasajeros Registrados
+                                        Pasajeros Registrados (Eligibles)
                                     </span>
                                 </div>
                             </div>

@@ -169,7 +169,7 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
                                 ))}
                             </div>
 
-                            {driver.hasAcceptedQuote && driver.payment_link && driver.payment_methods?.includes('Pago en Línea') && (
+                            {driver.is_premium && driver.hasAcceptedQuote && driver.payment_link && driver.payment_methods?.includes('Pago en Línea') && (
                                 <a
                                     href={driver.payment_link.startsWith('http') ? driver.payment_link : `https://${driver.payment_link}`}
                                     target="_blank"
@@ -187,24 +187,26 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
                 </div>
             </section>
 
-            {/* Zones */}
-            <section>
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="bg-amber-50 p-2 rounded-xl">
-                        <MapPin className="h-5 w-5 text-amber-800" />
+            {/* Zones - Premium Only */}
+            {driver.is_premium && (
+                <section>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="bg-amber-50 p-2 rounded-xl">
+                            <MapPin className="h-5 w-5 text-amber-800" />
+                        </div>
+                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Zonas de Cobertura</h3>
                     </div>
-                    <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Zonas de Cobertura</h3>
-                </div>
-                <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl text-sm">
-                    <div className="flex flex-wrap gap-2">
-                        {(driver.zones || []).length > 0 ? (
-                            (driver.zones || []).map(zone => (
-                                <span key={zone} className="px-3 py-1 bg-white border border-amber-200 text-amber-900 rounded-lg font-bold shadow-sm">{zone}</span>
-                            ))
-                        ) : <span className="text-aviva-subtext italic">No especificado</span>}
+                    <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl text-sm">
+                        <div className="flex flex-wrap gap-2">
+                            {(driver.zones || []).length > 0 ? (
+                                (driver.zones || []).map(zone => (
+                                    <span key={zone} className="px-3 py-1 bg-white border border-amber-200 text-amber-900 rounded-lg font-bold shadow-sm">{zone}</span>
+                                ))
+                            ) : <span className="text-aviva-subtext italic">No especificado</span>}
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            )}
 
             {/* Languages & Platforms */}
             <div className="space-y-8">
@@ -272,30 +274,32 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
                 )}
             </div>
 
-            {/* Schedule */}
-            <section>
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="bg-blue-50 p-2 rounded-xl">
-                        <Clock className="h-5 w-5 text-aviva-primary" />
+            {/* Schedule - Premium Only */}
+            {driver.is_premium && (
+                <section>
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="bg-blue-50 p-2 rounded-xl">
+                            <Clock className="h-5 w-5 text-aviva-primary" />
+                        </div>
+                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Horario y Disponibilidad</h3>
                     </div>
-                    <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Horario y Disponibilidad</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(day => {
-                        const time = driver.schedule?.[day];
-                        const isActive = time && time.start !== '00:00' && time.end !== '00:00';
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(day => {
+                            const time = driver.schedule?.[day];
+                            const isActive = time && time.start !== '00:00' && time.end !== '00:00';
 
-                        return (
-                            <div key={day} className={`p-4 rounded-2xl border transition-all ${isActive ? 'bg-blue-50 border-blue-100' : 'bg-gray-50 border-gray-100 opacity-50'}`}>
-                                <div className="text-[10px] font-bold uppercase tracking-widest text-aviva-subtext mb-1">{day}</div>
-                                <div className={`text-sm font-bold ${isActive ? 'text-aviva-navy' : 'text-gray-300'}`}>
-                                    {isActive ? `${time.start} - ${time.end}` : 'No disponible'}
+                            return (
+                                <div key={day} className={`p-4 rounded-2xl border transition-all ${isActive ? 'bg-blue-50 border-blue-100' : 'bg-gray-50 border-gray-100 opacity-50'}`}>
+                                    <div className="text-[10px] font-bold uppercase tracking-widest text-aviva-subtext mb-1">{day}</div>
+                                    <div className={`text-sm font-bold ${isActive ? 'text-aviva-navy' : 'text-gray-300'}`}>
+                                        {isActive ? `${time.start} - ${time.end}` : 'No disponible'}
+                                    </div>
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            </section>
+                            );
+                        })}
+                    </div>
+                </section>
+            )}
         </div>
     );
 }

@@ -54,6 +54,7 @@ function ProfileContent() {
     const [driverServices, setDriverServices] = useState<any>(null)
     const [saving, setSaving] = useState(false)
     const [hasMembership, setHasMembership] = useState(false)
+    const [isPlataOrHigher, setIsPlataOrHigher] = useState(false)
     const [pendingPayment, setPendingPayment] = useState<any>(null)
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
 
@@ -141,7 +142,7 @@ function ProfileContent() {
                 // Check membership
                 const { data: membershipData } = await supabase
                     .from('driver_memberships')
-                    .select('status, expires_at')
+                    .select('status, expires_at, created_at')
                     .eq('driver_profile_id', userData.driver_profile?.id)
                     .eq('status', 'active')
                     .gt('expires_at', new Date().toISOString())
@@ -149,6 +150,22 @@ function ProfileContent() {
 
                 if (membershipData) {
                     setHasMembership(true)
+
+                    // Calculate Level for restrictions (Marketing Kit)
+                    const mDate = membershipData.created_at
+                    const { count } = await supabase
+                        .from('users')
+                        .select('id', { count: 'exact', head: true })
+                        .eq('referred_by', userData.referral_code)
+                        .gt('created_at', mDate)
+                        .filter('roles', 'cs', '{"driver"}')
+
+                    const referralCount = count || 0
+                    const dbLevel = userData.driver_profile?.affiliate_level
+
+                    if (referralCount >= 11 || dbLevel === 'silver' || dbLevel === 'gold' || referralCount >= 51) {
+                        setIsPlataOrHigher(true)
+                    }
                 } else {
                     // Check for pending payments (SPEI/OXXO instructions)
                     const { data: pending } = await supabase
@@ -345,18 +362,16 @@ function ProfileContent() {
                             services={driverServices}
                             onSave={handleSaveServices}
                             saving={saving}
+                            hasMembership={hasMembership}
                         />
                     )}
 
                     {isDriver && activeTab === 'vehicles' && (
-                        hasMembership ? (
-                            <VehiclesSection
-                                vehicles={vehicles}
-                                onAdd={() => loadVehicles(user.id)}
-                            />
-                        ) : (
-                            <MembershipRequiredView onTabChange={(tab) => setActiveTab(tab)} />
-                        )
+                        <VehiclesSection
+                            vehicles={vehicles}
+                            onAdd={() => loadVehicles(user.id)}
+                            hasMembership={hasMembership}
+                        />
                     )}
 
 
@@ -381,11 +396,7 @@ function ProfileContent() {
                     )}
 
                     {isDriver && activeTab === 'solicitudes' && (
-                        hasMembership ? (
-                            <QuoteRequestsSection driverProfileId={profile?.driver_profile?.id} />
-                        ) : (
-                            <MembershipRequiredView onTabChange={(tab) => setActiveTab(tab)} />
-                        )
+                        <QuoteRequestsSection driverProfileId={profile?.driver_profile?.id} />
                     )}
 
                     {isDriver && activeTab === 'driver_dashboard' && (
@@ -393,15 +404,13 @@ function ProfileContent() {
                     )}
 
                     {isDriver && activeTab === 'visibility' && (
-                        hasMembership ? (
-                            <VisibilitySection
-                                driverProfileId={profile?.driver_profile?.id}
-                                initialIsVisible={profile?.driver_profile?.is_visible}
-                                profile={profile}
-                            />
-                        ) : (
-                            <MembershipRequiredView onTabChange={(tab) => setActiveTab(tab)} />
-                        )
+                        <VisibilitySection
+                            driverProfileId={profile?.driver_profile?.id}
+                            initialIsVisible={profile?.driver_profile?.is_visible}
+                            profile={profile}
+                            hasMembership={hasMembership}
+                            isPlataOrHigher={isPlataOrHigher}
+                        />
                     )}
                 </div>
             </div>

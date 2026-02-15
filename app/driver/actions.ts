@@ -102,18 +102,8 @@ export async function requestReview(driverProfileId: string, reason?: string) {
 
     try {
         // Double check requirements
-        // 1. Check Membership
-        const { data: membership } = await supabase
-            .from('driver_memberships')
-            .select('status, expires_at')
-            .eq('driver_profile_id', driverProfileId)
-            .eq('status', 'active')
-            .gt('expires_at', new Date().toISOString())
-            .single()
-
-        if (!membership) {
-            return { error: 'Debes tener una membresía activa para solicitar revisión.' }
-        }
+        // Membership check specific to Premium features is removed for general profile updates,
+        // allowing Free drivers to update their information and trigger re-verification if needed.
 
         // 1.5 Get Previous Status
         const { data: currentProfile } = await supabase

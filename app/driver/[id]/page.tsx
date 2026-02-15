@@ -1,6 +1,47 @@
 import { createClient } from '@/lib/supabase/server';
+import { Metadata } from 'next';
 import ProfileView from '../../components/ProfileView';
 import Header from '../../components/Header';
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+    const { id } = await params;
+    const supabase = await createClient();
+
+    const { data: driver } = await supabase
+        .from('driver_profiles')
+        .select(`
+            driver_memberships (
+                status,
+                expires_at
+            )
+        `)
+        .eq('id', id)
+        .single();
+
+    const memberships = Array.isArray(driver?.driver_memberships)
+        ? driver.driver_memberships
+        : (driver?.driver_memberships ? [driver.driver_memberships] : []);
+
+    const isPremium = memberships.some(
+        (m: any) => m.status === 'active' && new Date(m.expires_at) > new Date()
+    );
+
+    if (!isPremium) {
+        return {
+            robots: {
+                index: false,
+                follow: false,
+            }
+        };
+    }
+
+    return {
+        robots: {
+            index: true,
+            follow: true,
+        }
+    };
+}
 
 export default async function DriverPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
@@ -16,10 +57,15 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
                 email,
                 avatar_url,
                 address_state,
-                phone_number
+                phone_number,
+                referral_code
             ),
             vehicles (*),
-            driver_services (*)
+            driver_services (*),
+            driver_memberships (
+                status,
+                expires_at
+            )
         `)
         .eq('id', id)
         .single();
@@ -41,6 +87,15 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
             </div>
         );
     }
+
+    // Determine Premium status
+    const memberships = Array.isArray(driver.driver_memberships)
+        ? driver.driver_memberships
+        : (driver.driver_memberships ? [driver.driver_memberships] : []);
+
+    const hasActiveMembership = memberships.some(
+        (m: any) => m.status === 'active' && new Date(m.expires_at) > new Date()
+    );
 
     // Map tags from questionnaire to friendly labels
     const tagLabels: Record<string, string> = {
@@ -153,6 +208,8 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
 
     // Convert Supabase driver data to the format expected by ProfileView
     const formattedDriver = {
+        is_verified: driver.is_verified,
+        is_premium: hasActiveMembership,
         id: driver.id,
         name: driver.users?.full_name || 'Conductor AvivaGo',
         city: driver.users?.address_state || driver.city,
@@ -184,9 +241,10 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         payment_link: services?.payment_link || "",
         hasAcceptedQuote: hasAcceptedQuote,
         vehicleSidePhoto: driver.vehicles?.[0]?.photos?.[2] || null,
-        vehiclePhotos: driver.vehicles?.[0]?.photos || [],
+        vehiclePhotos: (hasActiveMembership ? driver.vehicles?.[0]?.photos : driver.vehicles?.[0]?.photos?.slice(0, 2)) || [],
         passenger_capacity: driver.vehicles?.[0]?.passenger_capacity || 4,
-        trunk_capacity: driver.vehicles?.[0]?.trunk_capacity || ""
+        trunk_capacity: driver.vehicles?.[0]?.trunk_capacity || "",
+        referral_code: driver.users?.referral_code
     };
 
     return <ProfileView driver={formattedDriver} />;

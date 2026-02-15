@@ -4,14 +4,17 @@ import { useState, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { uploadFile } from '@/lib/supabase/storage'
 
-import { ChevronRight, Loader2, Plus, Check, Camera, Info, Car, Trash2, FileText, CheckCircle2 } from 'lucide-react'
+import { ChevronRight, Loader2, Plus, Check, Camera, Info, Car, Trash2, FileText, CheckCircle2, BadgeCheck, Lock } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
+import Link from 'next/link'
+import PremiumUpsellModal from '@/app/components/PremiumUpsellModal'
 
-export default function VehiclesSection({ vehicles, onAdd }: any) {
+export default function VehiclesSection({ vehicles, onAdd, hasMembership }: any) {
     const supabase = createClient()
     const [isAdding, setIsAdding] = useState(false)
     const [saving, setSaving] = useState(false)
     const [uploading, setUploading] = useState<string | null>(null)
+    const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false)
 
     // Hidden refs for all vehicle document and photo uploads
     const vinPhotoRef = useRef<HTMLInputElement>(null)
@@ -192,22 +195,28 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
 
     const handleRegister = async () => {
         // Validation: Required Text Fields
-        if (!form.brand || !form.model || !form.color || !form.year || !form.plate_number ||
-            !form.passenger_capacity || !form.trunk_capacity || !form.registration_state || !form.vin_number) {
+        const requiredTextFields = [
+            form.brand, form.model, form.color, form.year, form.plate_number,
+            form.passenger_capacity, form.trunk_capacity, form.registration_state
+        ]
+        if (hasMembership) requiredTextFields.push(form.vin_number)
+
+        if (requiredTextFields.some(field => !field)) {
             alert('Por favor completa todos los campos de texto obligatorios (marcados con *).')
             return
         }
 
-        // Validation: Required Documents
-        if (!form.plate_photo_url || !form.circulation_card_url || !form.verification_url || !form.vin_photo_url) {
+        // Validation: Required Documents (Premium only)
+        if (hasMembership && (!form.plate_photo_url || !form.circulation_card_url || !form.verification_url || !form.vin_photo_url)) {
             alert('Por favor sube todas las fotos de documentos obligatorias (Placa, Tarjeta Circulación, Verificación, Foto NIV).')
             return
         }
 
-        // Validation: Required Vehicle Photos (All 6)
+        // Validation: Required Vehicle Photos
         const uploadedPhotos = form.photos.filter((p: string) => p && p.length > 0)
-        if (uploadedPhotos.length < 6) {
-            alert('Por favor sube las 6 fotos obligatorias del vehículo.')
+        const requiredPhotosCount = hasMembership ? 6 : 2
+        if (uploadedPhotos.length < requiredPhotosCount) {
+            alert(`Por favor sube las ${requiredPhotosCount} fotos obligatorias del vehículo.`)
             return
         }
 
@@ -260,309 +269,374 @@ export default function VehiclesSection({ vehicles, onAdd }: any) {
         }
     }
 
-    if (isAdding) {
-        return (
-            <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
-                <div className="flex items-center gap-4 mb-4">
-                    <button onClick={resetForm} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 transition-colors">
-                        <ChevronRight className="h-6 w-6 rotate-180" />
-                    </button>
-                    <h3 className="text-xl font-bold text-[#0F2137]">{selectedVehicleId ? 'Editar Vehículo' : 'Registrar Nuevo Vehículo'}</h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="md:col-span-2 space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-gray-500">Marca *</label>
-                                <select
-                                    value={form.brand === 'Otra' ? 'Otra' : (carBrands[form.brand] ? form.brand : (form.brand ? 'Otra' : ''))}
-                                    onChange={e => {
-                                        const val = e.target.value;
-                                        if (val === 'Otra') {
-                                            setForm({ ...form, brand: '', model: '', isCustomBrand: true });
-                                        } else {
-                                            setForm({ ...form, brand: val, model: '', isCustomBrand: false });
-                                        }
-                                    }}
-                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137] appearance-none cursor-pointer"
-                                >
-                                    <option value="" disabled>Selecciona una marca</option>
-                                    {Object.keys(carBrands).sort().map(brand => (
-                                        <option key={brand} value={brand}>{brand}</option>
-                                    ))}
-                                    <option value="Otra">Otra marca...</option>
-                                </select>
-                                {form.isCustomBrand && (
-                                    <input
-                                        value={form.brand}
-                                        onChange={e => setForm({ ...form, brand: e.target.value })}
-                                        placeholder="Especifica la marca"
-                                        className="w-full mt-2 bg-white border border-blue-500/30 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 animate-in slide-in-from-top-2 duration-300 text-[#0F2137]"
-                                    />
-                                )}
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-gray-500">Modelo *</label>
-                                {!form.isCustomBrand && carBrands[form.brand] ? (
-                                    <>
-                                        <select
-                                            value={form.isCustomModel ? 'Otro' : form.model}
-                                            onChange={e => {
-                                                const val = e.target.value;
-                                                if (val === 'Otro') {
-                                                    setForm({ ...form, model: '', isCustomModel: true });
-                                                } else {
-                                                    setForm({ ...form, model: val, isCustomModel: false });
-                                                }
-                                            }}
-                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137] appearance-none cursor-pointer"
-                                        >
-                                            <option value="" disabled>Selecciona un modelo</option>
-                                            {carBrands[form.brand]?.sort().map(model => (
-                                                <option key={model} value={model}>{model}</option>
-                                            ))}
-                                            <option value="Otro">Otro modelo...</option>
-                                        </select>
-                                        {form.isCustomModel && (
-                                            <input
-                                                value={form.model}
-                                                onChange={e => setForm({ ...form, model: e.target.value })}
-                                                placeholder="Especifica el modelo"
-                                                className="w-full mt-2 bg-white border border-blue-500/30 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 animate-in slide-in-from-top-2 duration-300 text-[#0F2137]"
-                                            />
-                                        )}
-                                    </>
-                                ) : (
-                                    <input
-                                        value={form.model}
-                                        onChange={e => setForm({ ...form, model: e.target.value })}
-                                        placeholder={form.isCustomBrand ? "Escribe el modelo" : "Selecciona una marca primero"}
-                                        disabled={!form.brand && !form.isCustomBrand}
-                                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 disabled:opacity-50 text-[#0F2137]"
-                                    />
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-gray-500">Color *</label>
-                                <input value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-gray-500">Año *</label>
-                                <input type="number" value={form.year} onChange={e => setForm({ ...form, year: parseInt(e.target.value) })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-gray-500">Placas *</label>
-                                <input value={form.plate_number} onChange={e => setForm({ ...form, plate_number: e.target.value })} placeholder="ABC-1234" className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 font-mono text-[#0F2137]" />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-gray-500">Capacidad Pasajeros *</label>
-                                <input type="number" min="1" value={form.passenger_capacity || 4} onChange={e => setForm({ ...form, passenger_capacity: parseInt(e.target.value) })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-gray-500">Capacidad Cajuela *</label>
-                                <input value={form.trunk_capacity || ''} onChange={e => setForm({ ...form, trunk_capacity: e.target.value })} placeholder="Ej: 2 maletas grandes" className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-gray-500">Entidad de Registro *</label>
-                                <input value={form.registration_state} onChange={e => setForm({ ...form, registration_state: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-bold uppercase text-gray-500">Número NIV (VIN) *</label>
-                                <input value={form.vin_number} onChange={e => setForm({ ...form, vin_number: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 font-mono text-[#0F2137]" />
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <h4 className="text-[10px] font-bold uppercase text-gray-500 tracking-widest">Documentación del Auto</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {[
-                                    { id: 'plate_photo_url', label: 'Foto Placa *', ref: platePhotoRef },
-                                    { id: 'circulation_card_url', label: 'Tarjeta Circulación *', ref: circulationCardRef },
-                                    { id: 'verification_url', label: 'Verificación *', ref: verificationRef },
-                                    { id: 'vin_photo_url', label: 'Foto NIV *', ref: vinPhotoRef },
-                                    { id: 'invoice_url', label: 'Factura (Opcional)', ref: invoiceRef },
-                                    { id: 'insurance_policy_url', label: 'Póliza Seguro (Opcional)', ref: insuranceRef },
-                                ].map(doc => (
-                                    <div key={doc.id} className="space-y-2">
-                                        <input
-                                            type="file"
-                                            ref={doc.ref}
-                                            className="hidden"
-                                            accept="image/*,application/pdf"
-                                            onChange={(e) => handleFile(e, doc.id)}
-                                        />
-                                        <div
-                                            onClick={() => doc.ref.current?.click()}
-                                            className={`cursor-pointer group relative aspect-video w-full rounded-xl overflow-hidden border border-dashed transition-all bg-gray-50 flex flex-col items-center justify-center ${form[doc.id] ? 'border-emerald-500/30' : 'border-gray-200 hover:border-blue-500'}`}
-                                        >
-                                            {uploading === doc.id ? (
-                                                <div className="flex flex-col items-center justify-center text-zinc-500">
-                                                    <Loader2 className="h-6 w-6 animate-spin mb-2 text-blue-500" />
-                                                    <span className="text-[10px]">Subiendo...</span>
-                                                </div>
-                                            ) : signedUrls[doc.id] ? (
-                                                <>
-                                                    {signedUrls[doc.id]?.toLowerCase().includes('.pdf') ? (
-                                                        <div className="flex flex-col items-center justify-center text-zinc-400 group-hover:text-blue-400 transition-colors">
-                                                            <FileText className="h-10 w-10 mb-2" />
-                                                            <span className="text-[10px] font-medium">Documento PDF</span>
-                                                        </div>
-                                                    ) : (
-                                                        <img src={signedUrls[doc.id] || ''} alt={doc.label} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" />
-                                                    )}
-
-                                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <span className="text-white text-xs font-bold flex items-center gap-2">
-                                                            <Camera className="h-4 w-4" /> Cambiar
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="absolute top-2 right-2 bg-emerald-500/90 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                                                        <CheckCircle2 className="h-3 w-3" /> Listo
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <div className="flex flex-col items-center justify-center text-gray-500 group-hover:text-blue-600 transition-colors">
-                                                    <Plus className="h-6 w-6 mb-2" />
-                                                    <span className="text-[10px]">{doc.label}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        {/* Label below the card for clarity */}
-                                        <p className="text-[10px] font-bold uppercase text-gray-500 text-center">{doc.label}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="space-y-6">
-                        <h4 className="text-[10px] font-bold uppercase text-gray-500 tracking-widest">Fotos del Vehículo (6)</h4>
-                        <div className="grid grid-cols-2 gap-4">
-                            {['Frente *', 'Trasera *', 'Lateral *', 'Interior 1 *', 'Interior 2 *', 'Interior 3 *'].map((label, idx) => (
-                                <div key={label}>
-                                    <input
-                                        type="file"
-                                        ref={el => { photoRefs.current[idx] = el }}
-                                        className="hidden"
-                                        onChange={(e) => handleFile(e, 'photos', true, idx)}
-                                    />
-                                    <button
-                                        onClick={() => photoRefs.current[idx]?.click()}
-                                        className="relative w-full aspect-video bg-gray-50 border border-gray-200 rounded-xl overflow-hidden group cursor-pointer hover:border-blue-500"
-                                    >
-                                        {form.photos[idx] ? (
-                                            <img src={form.photos[idx]} className="w-full h-full object-cover" />
-                                        ) : (
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/5 transition-colors group-hover:bg-blue-600/10">
-                                                {uploading === `photos-${idx}` ? <Loader2 className="h-4 w-4 animate-spin text-blue-500" /> : <Camera className="h-4 w-4 text-zinc-600 mb-1" />}
-                                                <span className="text-[8px] font-bold uppercase text-zinc-500 tracking-tighter">{label}</span>
-                                            </div>
-                                        )}
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl">
-                            <div className="flex gap-2 text-blue-600 mb-1">
-                                <Info className="h-4 w-4 shrink-0" />
-                                <span className="text-[10px] font-bold uppercase">Recomendación</span>
-                            </div>
-                            <p className="text-[10px] text-gray-600 leading-relaxed">
-                                Sube fotos claras con buena iluminación. Un vehículo bien presentado atrae 3x más clientes.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex justify-end gap-4 border-t border-gray-100 pt-8">
-                    <button onClick={resetForm} className="px-6 py-2.5 rounded-xl font-bold text-gray-400 hover:bg-gray-50 transition-colors">Cancelar</button>
-                    <button
-                        onClick={handleRegister}
-                        disabled={saving}
-                        className="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-shadow shadow-lg shadow-blue-600/20 disabled:opacity-50"
-                    >
-                        {saving ? 'Guardando...' : (selectedVehicleId ? 'Guardar Cambios' : 'Registrar Vehículo')}
-                    </button>
-                </div>
-            </div>
-        )
-    }
+    const canAdd = hasMembership || (vehicles?.length || 0) < 1;
 
     return (
         <div className="space-y-8">
-            <div className="flex justify-between items-center">
-                <h3 className="font-bold text-xl text-[#0F2137]">Mis Vehículos registrados</h3>
-                <button
-                    onClick={() => setIsAdding(true)}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/10"
-                >
-                    <Plus className="h-4 w-4" />
-                    Agregar Vehículo
-                </button>
-            </div>
+            {isAdding ? (
+                <div className="animate-in fade-in zoom-in-95 duration-300 space-y-8">
+                    <div className="flex items-center gap-4 mb-4">
+                        <button onClick={resetForm} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 transition-colors">
+                            <ChevronRight className="h-6 w-6 rotate-180" />
+                        </button>
+                        <h3 className="text-xl font-bold text-[#0F2137]">{selectedVehicleId ? 'Editar Vehículo' : 'Registrar Nuevo Vehículo'}</h3>
+                    </div>
 
-            {vehicles?.length > 0 ? (
-                <div className="space-y-4">
-                    {vehicles?.map((v: any) => (
-                        <div
-                            key={v.id}
-                            onClick={() => handleEdit(v)}
-                            className="bg-white border border-gray-100 rounded-3xl p-6 relative group hover:border-blue-300 hover:shadow-soft transition-all cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-blue-50 rounded-xl text-blue-600 shrink-0">
-                                    <Car className="h-6 w-6" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="md:col-span-2 space-y-6">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-gray-500">Marca *</label>
+                                    <select
+                                        value={form.brand === 'Otra' ? 'Otra' : (carBrands[form.brand] ? form.brand : (form.brand ? 'Otra' : ''))}
+                                        onChange={e => {
+                                            const val = e.target.value;
+                                            if (val === 'Otra') {
+                                                setForm({ ...form, brand: '', model: '', isCustomBrand: true });
+                                            } else {
+                                                setForm({ ...form, brand: val, model: '', isCustomBrand: false });
+                                            }
+                                        }}
+                                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137] appearance-none cursor-pointer"
+                                    >
+                                        <option value="" disabled>Selecciona una marca</option>
+                                        {Object.keys(carBrands).sort().map(brand => (
+                                            <option key={brand} value={brand}>{brand}</option>
+                                        ))}
+                                        <option value="Otra">Otra marca...</option>
+                                    </select>
+                                    {form.isCustomBrand && (
+                                        <input
+                                            value={form.brand}
+                                            onChange={e => setForm({ ...form, brand: e.target.value })}
+                                            placeholder="Especifica la marca"
+                                            className="w-full mt-2 bg-white border border-blue-500/30 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 animate-in slide-in-from-top-2 duration-300 text-[#0F2137]"
+                                        />
+                                    )}
                                 </div>
-                                <div className="overflow-hidden">
-                                    <h4 className="font-bold truncate text-[#0F2137] text-lg">{v.brand} {v.model}</h4>
-                                    <p className="text-gray-500 text-sm">
-                                        {v.year} • {v.color} • {v.passenger_capacity || 4} Pasajeros
-                                    </p>
-                                    {v.trunk_capacity && (
-                                        <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                                            <span className="font-semibold">Cajuela:</span> {v.trunk_capacity}
-                                        </p>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-gray-500">Modelo *</label>
+                                    {!form.isCustomBrand && carBrands[form.brand] ? (
+                                        <>
+                                            <select
+                                                value={form.isCustomModel ? 'Otro' : form.model}
+                                                onChange={e => {
+                                                    const val = e.target.value;
+                                                    if (val === 'Otro') {
+                                                        setForm({ ...form, model: '', isCustomModel: true });
+                                                    } else {
+                                                        setForm({ ...form, model: val, isCustomModel: false });
+                                                    }
+                                                }}
+                                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137] appearance-none cursor-pointer"
+                                            >
+                                                <option value="" disabled>Selecciona un modelo</option>
+                                                {carBrands[form.brand]?.sort().map(model => (
+                                                    <option key={model} value={model}>{model}</option>
+                                                ))}
+                                                <option value="Otro">Otro modelo...</option>
+                                            </select>
+                                            {form.isCustomModel && (
+                                                <input
+                                                    value={form.model}
+                                                    onChange={e => setForm({ ...form, model: e.target.value })}
+                                                    placeholder="Especifica el modelo"
+                                                    className="w-full mt-2 bg-white border border-blue-500/30 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 animate-in slide-in-from-top-2 duration-300 text-[#0F2137]"
+                                                />
+                                            )}
+                                        </>
+                                    ) : (
+                                        <input
+                                            value={form.model}
+                                            onChange={e => setForm({ ...form, model: e.target.value })}
+                                            placeholder={form.isCustomBrand ? "Escribe el modelo" : "Selecciona una marca primero"}
+                                            disabled={!form.brand && !form.isCustomBrand}
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 disabled:opacity-50 text-[#0F2137]"
+                                        />
                                     )}
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end mt-4 md:mt-0 pl-[4.5rem] md:pl-0">
-                                <span className="px-3 py-1 bg-gray-100 rounded-lg text-xs font-mono text-gray-500 font-bold border border-gray-200">
-                                    {v.plate_number}
-                                </span>
-                                <div className="p-2 bg-gray-50 rounded-full text-zinc-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                                    <ChevronRight className="h-5 w-5" />
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-gray-500">Color *</label>
+                                    <input value={form.color} onChange={e => setForm({ ...form, color: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-gray-500">Año *</label>
+                                    <input type="number" value={form.year} onChange={e => setForm({ ...form, year: parseInt(e.target.value) })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-gray-500">Placas *</label>
+                                    <input value={form.plate_number} onChange={e => setForm({ ...form, plate_number: e.target.value })} placeholder="ABC-1234" className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 font-mono text-[#0F2137]" />
                                 </div>
                             </div>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation(); // Prevent card click
-                                    handleDelete(v.id);
-                                }}
-                                className="absolute top-4 right-4 md:static p-2 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all opacity-100 md:opacity-0 group-hover:opacity-100"
-                            >
-                                <Trash2 className="h-5 w-5" />
-                            </button>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-gray-500">Capacidad Pasajeros *</label>
+                                    <input type="number" min="1" value={form.passenger_capacity || 4} onChange={e => setForm({ ...form, passenger_capacity: parseInt(e.target.value) })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-gray-500">Capacidad Cajuela *</label>
+                                    <input value={form.trunk_capacity || ''} onChange={e => setForm({ ...form, trunk_capacity: e.target.value })} placeholder="Ej: 2 maletas grandes" className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-gray-500">Entidad de Registro *</label>
+                                    <input value={form.registration_state} onChange={e => setForm({ ...form, registration_state: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 text-[#0F2137]" />
+                                </div>
+                                {hasMembership && (
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase text-gray-500">Número NIV (VIN) *</label>
+                                        <input value={form.vin_number} onChange={e => setForm({ ...form, vin_number: e.target.value })} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 font-mono text-[#0F2137]" />
+                                    </div>
+                                )}
+                            </div>
+
+                            {hasMembership && (
+                                <div className="space-y-4">
+                                    <h4 className="text-[10px] font-bold uppercase text-gray-500 tracking-widest">Documentación del Auto</h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {[
+                                            { id: 'plate_photo_url', label: 'Foto Placa *', ref: platePhotoRef },
+                                            { id: 'circulation_card_url', label: 'Tarjeta Circulación *', ref: circulationCardRef },
+                                            { id: 'verification_url', label: 'Verificación *', ref: verificationRef },
+                                            { id: 'vin_photo_url', label: 'Foto NIV *', ref: vinPhotoRef },
+                                            { id: 'invoice_url', label: 'Factura (Opcional)', ref: invoiceRef },
+                                            { id: 'insurance_policy_url', label: 'Póliza Seguro (Opcional)', ref: insuranceRef },
+                                        ].map(doc => (
+                                            <div key={doc.id} className="space-y-2">
+                                                <input
+                                                    type="file"
+                                                    ref={doc.ref}
+                                                    className="hidden"
+                                                    accept="image/*,application/pdf"
+                                                    onChange={(e) => handleFile(e, doc.id)}
+                                                />
+                                                <div
+                                                    onClick={() => doc.ref.current?.click()}
+                                                    className={`cursor-pointer group relative aspect-video w-full rounded-xl overflow-hidden border border-dashed transition-all bg-gray-50 flex flex-col items-center justify-center ${form[doc.id] ? 'border-emerald-500/30' : 'border-gray-200 hover:border-blue-500'}`}
+                                                >
+                                                    {uploading === doc.id ? (
+                                                        <div className="flex flex-col items-center justify-center text-zinc-500">
+                                                            <Loader2 className="h-6 w-6 animate-spin mb-2 text-blue-500" />
+                                                            <span className="text-[10px]">Subiendo...</span>
+                                                        </div>
+                                                    ) : signedUrls[doc.id] ? (
+                                                        <>
+                                                            {signedUrls[doc.id]?.toLowerCase().includes('.pdf') ? (
+                                                                <div className="flex flex-col items-center justify-center text-zinc-400 group-hover:text-blue-400 transition-colors">
+                                                                    <FileText className="h-10 w-10 mb-2" />
+                                                                    <span className="text-[10px] font-medium">Documento PDF</span>
+                                                                </div>
+                                                            ) : (
+                                                                <img src={signedUrls[doc.id] || ''} alt={doc.label} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 transition-opacity" />
+                                                            )}
+
+                                                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <span className="text-white text-xs font-bold flex items-center gap-2">
+                                                                    <Camera className="h-4 w-4" /> Cambiar
+                                                                </span>
+                                                            </div>
+
+                                                            <div className="absolute top-2 right-2 bg-emerald-500/90 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                                                                <CheckCircle2 className="h-3 w-3" /> Listo
+                                                            </div>
+                                                        </>
+                                                    ) : (
+                                                        <div className="flex flex-col items-center justify-center text-gray-500 group-hover:text-blue-600 transition-colors">
+                                                            <Plus className="h-6 w-6 mb-2" />
+                                                            <span className="text-[10px]">{doc.label}</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className="text-[10px] font-bold uppercase text-gray-500 text-center">{doc.label}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    ))}
+
+                        <div className="space-y-6">
+                            <h4 className="text-[10px] font-bold uppercase text-gray-500 tracking-widest">
+                                Fotos del Vehículo {!hasMembership && <span className="text-amber-600 ml-1">(Premium para +4 fotos)</span>}
+                            </h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                {['Frente *', 'Lateral *', 'Trasera *', 'Interior 1 *', 'Interior 2 *', 'Interior 3 *'].map((label, idx) => {
+                                    const isLocked = !hasMembership && idx >= 2;
+                                    return (
+                                        <div key={label}>
+                                            <input
+                                                type="file"
+                                                ref={el => { photoRefs.current[idx] = el }}
+                                                className="hidden"
+                                                onChange={(e) => handleFile(e, 'photos', true, idx)}
+                                            />
+                                            <button
+                                                onClick={() => {
+                                                    if (isLocked) {
+                                                        setIsPremiumModalOpen(true);
+                                                        return;
+                                                    }
+                                                    photoRefs.current[idx]?.click();
+                                                }}
+                                                className={`relative w-full aspect-video bg-gray-50 border border-gray-200 rounded-xl overflow-hidden group cursor-pointer hover:border-blue-500 ${isLocked ? 'opacity-70 grayscale-[0.5]' : ''}`}
+                                            >
+                                                {form.photos[idx] ? (
+                                                    <img src={form.photos[idx]} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/5 transition-colors group-hover:bg-blue-600/10">
+                                                        {isLocked ? (
+                                                            <Lock className="h-4 w-4 text-amber-500 mb-1" />
+                                                        ) : uploading === `photos-${idx}` ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                                                        ) : (
+                                                            <Camera className="h-4 w-4 text-zinc-600 mb-1" />
+                                                        )}
+                                                        <span className={`text-[8px] font-bold uppercase text-zinc-500 tracking-tighter ${isLocked ? 'text-amber-600' : ''}`}>
+                                                            {isLocked ? 'Solo Premium' : label}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                                {isLocked && (
+                                                    <div className="absolute top-2 right-2">
+                                                        <Lock className="h-3 w-3 text-amber-500" />
+                                                    </div>
+                                                )}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+                                <div className="flex gap-2 text-blue-600 mb-1">
+                                    <Info className="h-4 w-4 shrink-0" />
+                                    <span className="text-[10px] font-bold uppercase">Recomendación</span>
+                                </div>
+                                <p className="text-[10px] text-gray-600 leading-relaxed">
+                                    Sube fotos claras con buena iluminación. Un vehículo bien presentado atrae 3x más clientes.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-4 border-t border-gray-100 pt-8">
+                        <button onClick={resetForm} className="px-6 py-2.5 rounded-xl font-bold text-gray-400 hover:bg-gray-50 transition-colors">Cancelar</button>
+                        <button
+                            onClick={handleRegister}
+                            disabled={saving}
+                            className="bg-blue-600 text-white px-8 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-shadow shadow-lg shadow-blue-600/20 disabled:opacity-50"
+                        >
+                            {saving ? 'Guardando...' : (selectedVehicleId ? 'Guardar Cambios' : 'Registrar Vehículo')}
+                        </button>
+                    </div>
                 </div>
             ) : (
-                <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-gray-200">
-                    <Car className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">No tienes vehículos registrados todavía.</p>
+                <div className="space-y-8">
+                    <div className="flex justify-between items-center">
+                        <h3 className="font-bold text-xl text-[#0F2137]">Mis Vehículos registrados</h3>
+                        {!canAdd ? (
+                            <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 flex items-center gap-1">
+                                    <Lock className="h-3 w-3" /> Máx. 1 Vehículo (Free)
+                                </span>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setIsAdding(true)}
+                                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/10"
+                            >
+                                <Plus className="h-4 w-4" />
+                                Agregar Vehículo
+                            </button>
+                        )}
+                    </div>
+
+                    {!hasMembership && vehicles?.length >= 1 && (
+                        <div className="p-6 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl text-white shadow-lg shadow-blue-500/30 relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                            <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
+                                <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-md">
+                                    <BadgeCheck className="h-8 w-8 text-white" />
+                                </div>
+                                <div className="flex-1 text-center md:text-left">
+                                    <h4 className="font-bold text-lg mb-1">¿Tienes más de un vehículo?</h4>
+                                    <p className="text-blue-100 text-sm opacity-90">
+                                        Los miembros Premium pueden registrar múltiples unidades y gestionarlas desde un solo perfil.
+                                        Aumenta tus ingresos operando con varios coches.
+                                    </p>
+                                </div>
+                                <Link href="/perfil?tab=payments" className="bg-white text-blue-600 px-6 py-3 rounded-xl font-bold hover:bg-blue-50 transition-colors shadow-xl text-sm">
+                                    Hacerme Premium
+                                </Link>
+                            </div>
+                        </div>
+                    )}
+
+                    {vehicles?.length > 0 ? (
+                        <div className="space-y-4">
+                            {vehicles?.map((v: any) => (
+                                <div
+                                    key={v.id}
+                                    onClick={() => handleEdit(v)}
+                                    className="bg-white border border-gray-100 rounded-3xl p-6 relative group hover:border-blue-300 hover:shadow-soft transition-all cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-blue-50 rounded-xl text-blue-600 shrink-0">
+                                            <Car className="h-6 w-6" />
+                                        </div>
+                                        <div className="overflow-hidden">
+                                            <h4 className="font-bold truncate text-[#0F2137] text-lg">{v.brand} {v.model}</h4>
+                                            <p className="text-gray-500 text-sm">
+                                                {v.year} • {v.color} • {v.passenger_capacity || 4} Pasajeros
+                                            </p>
+                                            {v.trunk_capacity && (
+                                                <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                                                    <span className="font-semibold">Cajuela:</span> {v.trunk_capacity}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end mt-4 md:mt-0 pl-[4.5rem] md:pl-0">
+                                        <span className="px-3 py-1 bg-gray-100 rounded-lg text-xs font-mono text-gray-500 font-bold border border-gray-200">
+                                            {v.plate_number}
+                                        </span>
+                                        <div className="p-2 bg-gray-50 rounded-full text-zinc-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                            <ChevronRight className="h-5 w-5" />
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevent card click
+                                            handleDelete(v.id);
+                                        }}
+                                        className="absolute top-4 right-4 md:static p-2 text-zinc-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-all opacity-100 md:opacity-0 group-hover:opacity-100"
+                                    >
+                                        <Trash2 className="h-5 w-5" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="py-20 text-center bg-white rounded-3xl border border-dashed border-gray-200">
+                            <Car className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                            <p className="text-gray-500">No tienes vehículos registrados todavía.</p>
+                        </div>
+                    )}
                 </div>
             )}
+
+            <PremiumUpsellModal
+                isOpen={isPremiumModalOpen}
+                onClose={() => setIsPremiumModalOpen(false)}
+                feature="Galería de Fotos Completa"
+                message="Sube hasta 6 fotos de tu vehículo para que los pasajeros puedan ver el confort y la calidad de tu servicio. Un vehículo bien presentado atrae 3x más clientes."
+            />
         </div>
     )
 }

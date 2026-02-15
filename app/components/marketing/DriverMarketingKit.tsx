@@ -1,8 +1,12 @@
 'use client'
 
-import React, { useRef, useState } from 'react'
-import { Download, Printer, Shield, Tag, CreditCard } from 'lucide-react'
+import React, { useRef, useState, useEffect } from 'react'
+import { Download, Tag, CreditCard, Truck, Shield, Award } from 'lucide-react'
 import html2canvas from 'html2canvas'
+import { createMarketingRequest, getMarketingRequest, type MarketingRequest } from '@/app/actions/user-requests'
+import { useRouter } from 'next/navigation'
+import MarketingRequestModal from './MarketingRequestModal'
+import { MarketingTemplates } from './MarketingTemplates'
 
 interface DriverMarketingKitProps {
     profile: {
@@ -13,34 +17,65 @@ interface DriverMarketingKitProps {
     }
     referralLink: string
     embedded?: boolean
+    hasMembership?: boolean
+    isPlataOrHigher?: boolean
 }
 
-export default function DriverMarketingKit({ profile, referralLink, embedded = false }: DriverMarketingKitProps) {
+export default function DriverMarketingKit({ profile, referralLink, embedded = false, hasMembership = false, isPlataOrHigher = false }: DriverMarketingKitProps) {
     const [downloading, setDownloading] = useState(false)
     const [activeTab, setActiveTab] = useState<'flyer' | 'sticker' | 'profile' | 'card'>('flyer')
-    const flyerRef = useRef<HTMLDivElement>(null)
-    const stickerRef = useRef<HTMLDivElement>(null)
-    const profileRef = useRef<HTMLDivElement>(null)
-    const cardRef = useRef<HTMLDivElement>(null)
+    const contentRef = useRef<HTMLDivElement>(null)
 
+    // Request State
+    const [requestModalOpen, setRequestModalOpen] = useState(false)
+    const [currentRequest, setCurrentRequest] = useState<MarketingRequest | null>(null)
+    const [requestLoading, setRequestLoading] = useState(false)
+    const [submitting, setSubmitting] = useState(false)
+
+    // Form State
+    const [address, setAddress] = useState('')
+    const [driverNotes, setDriverNotes] = useState('')
+    const [termsAccepted, setTermsAccepted] = useState({
+        correctInfo: false,
+        shippingCosts: false,
+        noRefunds: false,
+        deliveryDates: false
+    })
+
+    const router = useRouter()
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
     const profileLink = `${baseUrl}/driver/${profile.id}`
     const logoUrl = `${baseUrl}/images/logo.png`
 
-    const handleDownload = async () => {
-        let targetRef;
-        if (activeTab === 'flyer') targetRef = flyerRef;
-        else if (activeTab === 'sticker') targetRef = stickerRef;
-        else if (activeTab === 'profile') targetRef = profileRef;
-        else targetRef = cardRef;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(referralLink)}`
+    const profileQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(profileLink)}`
 
-        if (!targetRef?.current) return
+    useEffect(() => {
+        if (hasMembership) {
+            loadRequestStatus()
+        }
+    }, [hasMembership, profile.id])
+
+    const loadRequestStatus = async () => {
+        setRequestLoading(true)
+        try {
+            const req = await getMarketingRequest(profile.id)
+            setCurrentRequest(req)
+        } catch (error) {
+            console.error('Error loading request:', error)
+        } finally {
+            setRequestLoading(false)
+        }
+    }
+
+    const handleDownload = async () => {
+        if (!contentRef.current) return
 
         setDownloading(true)
         try {
             await new Promise(resolve => setTimeout(resolve, 1000))
 
-            const canvas = await html2canvas(targetRef.current, {
+            const canvas = await html2canvas(contentRef.current, {
                 useCORS: true,
                 scale: 3,
                 backgroundColor: null,
@@ -60,19 +95,117 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
         }
     }
 
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(referralLink)}`
-    const profileQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(profileLink)}`
+    const handleSubmitRequest = async () => {
+        if (!termsAccepted.correctInfo || !termsAccepted.shippingCosts || !termsAccepted.noRefunds || !termsAccepted.deliveryDates) {
+            alert('Debes aceptar todos los términos y condiciones para continuar.')
+            return
+        }
+        if (!address.trim()) {
+            alert('Por favor verifica tu dirección de envío.')
+            return
+        }
+
+        setSubmitting(true)
+        try {
+            const res = await createMarketingRequest(profile.id, address, driverNotes)
+            if (res.success) {
+                setRequestModalOpen(false)
+                loadRequestStatus()
+                alert('Solicitud enviada con éxito. Te notificaremos el costo de envío pronto.')
+            } else {
+                alert(res.error || 'Error al enviar solicitud')
+            }
+        } catch (error) {
+            console.error(error)
+            alert('Ocurrió un error inesperado')
+        } finally {
+            setSubmitting(false)
+        }
+    }
+
+    const getStatusLabel = (status: string) => {
+        switch (status) {
+            case 'pending_quote': return { label: 'Esperando Cotización', color: 'bg-yellow-100 text-yellow-800' }
+            case 'quote_sent': return { label: 'Cotización Enviada', color: 'bg-blue-100 text-blue-800' }
+            case 'paid': return { label: 'Pagado', color: 'bg-emerald-100 text-emerald-800' }
+            case 'processing': return { label: 'En Proceso', color: 'bg-purple-100 text-purple-800' }
+            case 'shipped': return { label: 'Enviado', color: 'bg-indigo-100 text-indigo-800' }
+            case 'delivered': return { label: 'Entregado', color: 'bg-gray-100 text-gray-800' }
+            case 'cancelled': return { label: 'Cancelado', color: 'bg-red-100 text-red-800' }
+            default: return { label: 'Desconocido', color: 'bg-gray-100 text-gray-800' }
+        }
+    }
 
     return (
         <div className={embedded ? "w-full" : "bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-soft"}>
             <div className={`${embedded ? "py-6" : "p-8"} border-b border-gray-100`}>
                 <div className="flex flex-col gap-8">
-                    <div>
-                        <h3 className="text-3xl font-black text-[#0F2137] flex items-center gap-4">
-                            <Tag className="h-8 w-8 text-emerald-500" />
-                            Kit de Marketing Personalizado
-                        </h3>
-                        <p className="text-gray-500 mt-2 text-lg">Genera herramientas impresas para promover tu red y perfil.</p>
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h3 className="text-3xl font-black text-[#0F2137] flex items-center gap-4">
+                                <Tag className="h-8 w-8 text-emerald-500" />
+                                Kit de Marketing Personalizado
+                            </h3>
+                            <p className="text-gray-500 mt-2 text-lg">Genera herramientas impresas para promover tu red y perfil.</p>
+                        </div>
+
+                        {/* Status / Request Button Area */}
+                        {hasMembership && !requestLoading && (
+                            <div className="flex flex-col items-end gap-2">
+                                {currentRequest ? (
+                                    <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 max-w-sm">
+                                        <div className="flex items-center justify-between gap-4 mb-2">
+                                            <span className="text-sm font-bold text-gray-700">Estado de Solicitud de Impresión</span>
+                                            <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${getStatusLabel(currentRequest.status).color}`}>
+                                                {getStatusLabel(currentRequest.status).label}
+                                            </span>
+                                        </div>
+                                        {currentRequest.shipping_cost > 0 && (
+                                            <div className="flex items-center justify-between text-sm mb-1">
+                                                <span className="text-gray-500">Costo de Envío:</span>
+                                                <span className="font-bold text-[#0F2137]">${currentRequest.shipping_cost} {currentRequest.currency}</span>
+                                            </div>
+                                        )}
+                                        {currentRequest.admin_notes && (
+                                            <div className="bg-blue-50 p-2 rounded-lg text-xs text-blue-800 mt-2 border border-blue-100">
+                                                <strong>Mensaje de AvivaGo:</strong> {currentRequest.admin_notes}
+                                            </div>
+                                        )}
+                                        {currentRequest.status === 'quote_sent' && (
+                                            <button className="w-full mt-3 py-1.5 bg-[#0F2137] text-white text-xs font-bold rounded-lg hover:bg-black transition-colors">
+                                                Pagar Envío
+                                            </button>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-col items-end gap-1">
+                                        {isPlataOrHigher ? (
+                                            <button
+                                                onClick={() => setRequestModalOpen(true)}
+                                                className="px-6 py-3 bg-white border-2 border-[#0F2137] text-[#0F2137] hover:bg-[#0F2137] hover:text-white rounded-xl font-bold transition-all shadow-sm flex items-center gap-2"
+                                            >
+                                                <Truck className="h-5 w-5" />
+                                                Solicitar Kit Impreso
+                                            </button>
+                                        ) : (
+                                            <div className="flex flex-col items-end">
+                                                <button
+                                                    disabled
+                                                    className="px-6 py-3 bg-gray-100 border-2 border-gray-200 text-gray-400 rounded-xl font-bold flex items-center gap-2 cursor-not-allowed"
+                                                >
+                                                    <Truck className="h-5 w-5" />
+                                                    Solicitar Kit Impreso
+                                                </button>
+                                                <div className="mt-1 flex items-center gap-1 text-[10px] font-black text-amber-600 uppercase tracking-widest bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
+                                                    <Award className="h-3 w-3" />
+                                                    Requiere Nivel Plata
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex flex-wrap bg-gray-50 p-1.5 rounded-[1.5rem] border border-gray-100 gap-1.5 w-fit">
@@ -101,181 +234,14 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
                         <span className="px-3 py-1 bg-white text-emerald-600 border border-emerald-100 text-[10px] font-black uppercase tracking-widest rounded-full shadow-sm">Vista Previa</span>
                     </div>
 
-                    {/* Flyer Template */}
-                    <div
-                        ref={flyerRef}
-                        style={{ width: '350px', height: '500px', minWidth: '350px', maxWidth: '350px', minHeight: '500px', maxHeight: '500px' }}
-                        className={`bg-white text-black rounded-3xl overflow-hidden shadow-2xl flex flex-col transition-all duration-300 ${activeTab === 'flyer' ? 'opacity-100 scale-100' : 'hidden opacity-0 scale-95'}`}
-                    >
-                        <div className="bg-[#10b981] h-[100px] flex flex-col justify-center items-center text-white text-center flex-shrink-0 w-full">
-                            <div className="flex items-center justify-center gap-3 mb-1 w-full">
-                                <div className="bg-white p-1 rounded-lg">
-                                    <img src={logoUrl} alt="Logo" className="h-8 w-auto block" crossOrigin="anonymous" />
-                                </div>
-                                <span className="font-black text-[24px] tracking-tighter leading-none">AvivaGo</span>
-                            </div>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.15em] opacity-90 leading-tight">Seguridad, Confianza y Certeza.</p>
-                        </div>
-
-                        <div className="h-[360px] w-full px-8 pt-4 pb-8 flex flex-col items-center justify-between flex-shrink-0">
-                            <div className="text-center w-full">
-                                <h2 className="text-[40px] font-black text-[#065f46] leading-none uppercase tracking-tight">¡VIAJA SEGURO!</h2>
-                                <p className="text-[14px] text-zinc-500 font-bold mt-2">Escanea y regístrate para tu primer viaje</p>
-                            </div>
-
-                            <div className="bg-zinc-50 p-6 rounded-[2.5rem] shadow-inner border border-zinc-100 flex items-center justify-center flex-shrink-0">
-                                <img src={qrUrl} alt="QR" className="w-[160px] h-[160px] object-contain block" crossOrigin="anonymous" />
-                            </div>
-
-                            <div className="w-full space-y-4 flex-shrink-0">
-                                <div className="flex items-center gap-4 w-full px-2">
-                                    <div className="h-[2px] flex-1 bg-zinc-100" />
-                                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest whitespace-nowrap">Tu Conductor</span>
-                                    <div className="h-[2px] flex-1 bg-zinc-100" />
-                                </div>
-
-                                <div className="flex items-center gap-4 text-left w-full h-[85px] bg-zinc-50 p-4 rounded-3xl border border-zinc-100 flex-shrink-0">
-                                    <img
-                                        src={profile.display_avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop'}
-                                        alt="Avatar"
-                                        className="w-14 h-14 rounded-full object-cover border-2 border-[#10b981] flex-shrink-0"
-                                        crossOrigin="anonymous"
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-[18px] font-black text-[#065f46] uppercase leading-tight truncate">{profile.full_name}</p>
-                                        <div className="flex items-center justify-between mt-0.5">
-                                            <span className="text-[10px] font-bold text-zinc-400 uppercase">CÓDIGO:</span>
-                                            <span className="text-[#10b981] font-black text-[18px] leading-none">{profile.referral_code}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="h-[40px] bg-zinc-50 border-t border-zinc-100 flex items-center justify-center text-center flex-shrink-0 w-full">
-                            <p className="text-[10px] text-zinc-400 font-black uppercase tracking-[0.2em]">Seguridad por Fundación Aviva</p>
-                        </div>
-                    </div>
-
-                    {/* Sticker Registration Template */}
-                    <div
-                        ref={stickerRef}
-                        style={{ width: '360px', height: '360px', minWidth: '360px', maxWidth: '360px', minHeight: '360px', maxHeight: '360px' }}
-                        className={`bg-white rounded-full shadow-2xl flex flex-col items-center justify-between px-12 pt-4 pb-10 transition-all duration-300 border-[15px] border-[#10b981] flex-shrink-0 ${activeTab === 'sticker' ? 'opacity-100 scale-100' : 'hidden opacity-0 scale-95'}`}
-                    >
-                        <div className="flex flex-col items-center mb-2 mt-4 flex-shrink-0">
-                            <img src={logoUrl} alt="Logo" className="h-12 w-auto" crossOrigin="anonymous" />
-                            <span className="text-[#065f46] font-black text-[24px] tracking-tighter leading-none text-center mt-[-6px]">AvivaGo</span>
-                        </div>
-
-                        <div className="bg-zinc-50 p-3 rounded-2xl shadow-inner border border-zinc-100 flex items-center justify-center flex-shrink-0">
-                            <img src={qrUrl} alt="QR" className="w-[120px] h-[120px] object-contain block" crossOrigin="anonymous" />
-                        </div>
-
-                        <div className="text-center w-full px-4 mb-4 flex-shrink-0">
-                            <div className="bg-[#10b981] text-white pt-1.5 pb-4 rounded-2xl shadow-lg shadow-emerald-900/20 w-full text-center flex flex-col items-center gap-1">
-                                <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-80 leading-none">CÓDIGO PROMO</span>
-                                <span className="font-black text-[24px] tracking-[0.1em] leading-none">
-                                    {profile.referral_code}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Ficha de Perfil Template (10cm x 15cm Portrait) */}
-                    <div
-                        ref={profileRef}
-                        style={{ width: '380px', height: '570px', minWidth: '380px', maxWidth: '380px', minHeight: '570px', maxHeight: '570px' }}
-                        className={`bg-white text-black rounded-lg overflow-hidden shadow-2xl flex flex-col transition-all duration-300 border border-zinc-200 flex-shrink-0 ${activeTab === 'profile' ? 'opacity-100 scale-100' : 'hidden opacity-0 scale-95'}`}
-                    >
-                        {/* Header: Photo and Name */}
-                        <div className="h-[250px] bg-[#0f172a] p-8 flex flex-col items-center justify-center relative flex-shrink-0 w-full">
-                            {/* Decorative Background Elements */}
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-bl-[100px]" />
-
-                            <img
-                                src={profile.display_avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop'}
-                                alt="Avatar"
-                                className="w-32 h-32 rounded-full object-cover border-4 border-emerald-500 shadow-2xl z-10"
-                                crossOrigin="anonymous"
-                            />
-                            <div className="mt-3 text-center z-10 w-full">
-                                <h3 className="text-[24px] font-black text-white uppercase tracking-tight leading-tight mb-2">
-                                    {profile.full_name}
-                                </h3>
-                                <div className="inline-block px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-                                    <span className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em]">Conductor Certificado</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Body: QR and Instructions */}
-                        <div className="h-[320px] w-full flex flex-col items-center justify-start pt-6 px-10 pb-10 bg-white flex-shrink-0">
-                            <div className="text-center mb-4 w-full">
-                                <p className="text-[14px] font-black text-zinc-800 uppercase tracking-tighter">Escanea para Ver Mi Perfil</p>
-                                <p className="text-[10px] font-medium text-zinc-500 mt-1 px-4">Conoce mis calificaciones, trayectoria y servicios.</p>
-                            </div>
-
-                            <div className="bg-zinc-50 p-6 rounded-[2.5rem] shadow-inner border border-zinc-100 flex items-center justify-center mb-6 flex-shrink-0">
-                                <img src={profileQrUrl} alt="QR Perfil" className="w-[180px] h-[180px] object-contain block" crossOrigin="anonymous" />
-                            </div>
-
-                            <div className="w-full h-[2px] bg-zinc-100 mb-6 flex-shrink-0" />
-
-                            <div className="flex items-center justify-center gap-2 w-full flex-shrink-0">
-                                <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                                <span className="text-[9px] font-black text-zinc-400 uppercase tracking-[0.4em]">Seguridad & Confianza</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Business Card Template (9cm x 5cm Standard) */}
-                    <div
-                        ref={cardRef}
-                        style={{ width: '510px', height: '283px', minWidth: '510px', maxWidth: '510px', minHeight: '283px', maxHeight: '283px' }}
-                        className={`bg-white text-black rounded-sm overflow-hidden shadow-2xl flex flex-col transition-all duration-300 border border-zinc-200 flex-shrink-0 ${activeTab === 'card' ? 'opacity-100 scale-100' : 'hidden opacity-0 scale-95'}`}
-                    >
-                        {/* Header Section - Explicit Height */}
-                        <div className="h-[95px] w-full flex flex-col items-center justify-center bg-zinc-50 border-b-2 border-zinc-800 px-4 flex-shrink-0">
-                            <h3 className="text-[22px] font-black text-[#333] tracking-tight uppercase leading-none text-center w-full mb-1">
-                                {profile.full_name}
-                            </h3>
-                            <p className="text-[11px] font-black text-emerald-600 uppercase tracking-[0.2em]">Conductor AvivaGo</p>
-                        </div>
-
-                        {/* Body Section - Explicit Height */}
-                        <div className="h-[188px] w-full flex flex-shrink-0">
-                            {/* Left Column: Info (306px wide) */}
-                            <div className="w-[306px] h-full p-6 flex flex-col justify-center bg-white border-r border-zinc-100 flex-shrink-0">
-                                <div className="mb-4">
-                                    <p className="text-[13px] font-black text-zinc-800 leading-tight mb-1">
-                                        ¡Conoce más de mis servicios!
-                                    </p>
-                                    <p className="text-[10px] font-bold text-zinc-500 leading-snug">
-                                        Escanea mi perfil certificado para ver mis calificaciones y regístrate con mi código.
-                                    </p>
-                                </div>
-
-                                <div className="bg-zinc-100 px-4 py-3 rounded-lg border border-zinc-200 w-fit">
-                                    <p className="text-[18px] font-black text-black tracking-[0.1em] leading-none m-0">
-                                        {profile.referral_code}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Right Column: QR (204px wide) */}
-                            <div className="w-[204px] h-full bg-[#10b981] flex items-center justify-center flex-shrink-0">
-                                <div className="bg-white p-2 rounded-lg shadow-xl w-[120px] h-[120px] flex items-center justify-center flex-shrink-0">
-                                    <img
-                                        src={profileQrUrl}
-                                        alt="QR Perfil"
-                                        className="w-full h-full object-contain block"
-                                        crossOrigin="anonymous"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <MarketingTemplates
+                        ref={contentRef}
+                        profile={profile}
+                        qrUrl={qrUrl}
+                        profileQrUrl={profileQrUrl}
+                        logoUrl={logoUrl}
+                        activeTab={activeTab}
+                    />
                 </div>
 
                 {/* Instructions Area */}
@@ -327,13 +293,28 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
                         ) : (
                             <>
                                 <Download className="h-6 w-6" />
-                                Descargar
+                                Descargar Imagen
                             </>
                         )}
                     </button>
                     <p className="text-center text-[10px] text-gray-400 font-black uppercase tracking-widest">HERRAMIENTAS OFICIALES AVIVAGO</p>
                 </div>
             </div>
+
+            {/* Request Modal */}
+            {requestModalOpen && (
+                <MarketingRequestModal
+                    address={address}
+                    setAddress={setAddress}
+                    driverNotes={driverNotes}
+                    setDriverNotes={setDriverNotes}
+                    termsAccepted={termsAccepted}
+                    setTermsAccepted={setTermsAccepted}
+                    onSubmit={handleSubmitRequest}
+                    onClose={() => setRequestModalOpen(false)}
+                    submitting={submitting}
+                />
+            )}
         </div>
     )
 }

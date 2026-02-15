@@ -175,7 +175,7 @@ function RegisterForm() {
             <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl relative">
                 {/* Close Button */}
                 <Link
-                    href="/"
+                    href={redirectUrl || '/'}
                     className="absolute top-6 right-6 p-2 text-zinc-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all border border-white/5"
                 >
                     <X className="h-4 w-4" />
@@ -329,7 +329,7 @@ function RegisterForm() {
                                 <label htmlFor="terms" className="text-sm text-zinc-400 select-none cursor-pointer leading-tight">
                                     He leído y acepto los <Link href="/legales/terminos-y-condiciones" className="text-white hover:underline">Términos y Condiciones</Link> y el <Link href="/legales/aviso-de-privacidad" className="text-white hover:underline">Aviso de Privacidad</Link> de AvivaGo.
                                 </label>
-                                <div className="flex gap-3 mt-1">
+                                <div className="flex flex-col gap-1 mt-1">
                                     <Link
                                         href="/legales/aviso-de-privacidad"
                                         target="_blank"

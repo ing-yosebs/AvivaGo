@@ -220,17 +220,19 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                             <ProfileDetails driver={driver} />
 
                             {/* Verification Badge */}
-                            <div className="bg-blue-600 border border-blue-400/20 rounded-[30px] sm:rounded-[40px] p-6 sm:p-8 flex flex-col md:flex-row items-center gap-6 shadow-xl shadow-blue-500/20">
-                                <div className="bg-white/20 p-4 rounded-3xl shrink-0 backdrop-blur-md">
-                                    <ShieldCheck className="h-8 w-8 text-white" />
+                            {(driver.is_verified || driver.is_premium) && (
+                                <div className="bg-blue-600 border border-blue-400/20 rounded-[30px] sm:rounded-[40px] p-6 sm:p-8 flex flex-col md:flex-row items-center gap-6 shadow-xl shadow-blue-500/20">
+                                    <div className="bg-white/20 p-4 rounded-3xl shrink-0 backdrop-blur-md">
+                                        <ShieldCheck className="h-8 w-8 text-white" />
+                                    </div>
+                                    <div className="flex-1 text-center md:text-left text-white">
+                                        <h4 className="text-xl font-bold mb-1 font-display">Perfil Verificado y Miembro AvivaGo</h4>
+                                        <p className="text-blue-50 text-sm leading-relaxed opacity-90">
+                                            Este conductor es miembro activo de nuestra comunidad desde {driver.year_joined} y ha superado satisfactoriamente nuestro proceso de validación de identidad, documentos y antecedentes.
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className="flex-1 text-center md:text-left text-white">
-                                    <h4 className="text-xl font-bold mb-1 font-display">Perfil Verificado y Miembro AvivaGo</h4>
-                                    <p className="text-blue-50 text-sm leading-relaxed opacity-90">
-                                        Este conductor es miembro activo de nuestra comunidad desde {driver.year_joined} y ha superado satisfactoriamente nuestro proceso de validación de identidad, documentos y antecedentes.
-                                    </p>
-                                </div>
-                            </div>
+                            )}
                         </div>
                     </div>
                 </div>
