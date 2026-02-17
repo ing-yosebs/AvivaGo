@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { Metadata } from 'next';
 import ProfileView from '../../components/ProfileView';
-import Header from '../../components/Header';
+import TrustFooter from '@/app/components/marketing/v1/TrustFooter';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
     const { id } = await params;
@@ -76,17 +76,19 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
 
     if (error || !driver) {
         return (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
-                <Header />
-                <div className="bg-white border border-gray-100 p-8 rounded-[40px] max-w-sm shadow-soft mt-10">
-                    <h1 className="text-2xl font-bold text-aviva-navy mb-2">Conductor no encontrado</h1>
-                    <p className="text-aviva-subtext mb-6 font-medium">
-                        {error ? `Hubo un error al cargar la información: ${error.message}` : 'El perfil que buscas no existe o ha sido desactivado.'}
-                    </p>
-                    <a href="/" className="inline-block bg-aviva-primary text-white px-8 py-3 rounded-2xl font-bold hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-500/20">
-                        Volver al Inicio
-                    </a>
+            <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+                <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+                    <div className="bg-white border border-gray-100 p-8 rounded-[40px] max-w-sm shadow-soft">
+                        <h1 className="text-2xl font-bold text-aviva-navy mb-2">Conductor no encontrado</h1>
+                        <p className="text-aviva-subtext mb-6 font-medium">
+                            {error ? `Hubo un error al cargar la información: ${error.message}` : 'El perfil que buscas no existe o ha sido desactivado.'}
+                        </p>
+                        <a href="/" className="inline-block bg-aviva-primary text-white px-8 py-3 rounded-2xl font-bold hover:bg-blue-700 transition-all active:scale-95 shadow-lg shadow-blue-500/20">
+                            Volver al Inicio
+                        </a>
+                    </div>
                 </div>
+                <TrustFooter />
             </div>
         );
     }

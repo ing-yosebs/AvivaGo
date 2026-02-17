@@ -278,6 +278,7 @@ export async function updateQuoteStatus(quoteId: string, status: 'accepted' | 'r
     }
 }
 
+
 export async function logQuoteInteraction(quoteId: string, action: string) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -295,5 +296,60 @@ export async function logQuoteInteraction(quoteId: string, action: string) {
     } catch (err: any) {
         console.error('Log interaction error:', err)
         return { error: err.message }
+    }
+}
+
+const reportSchema = z.object({
+    driverProfileId: z.string().uuid(),
+    reason: z.string().min(5, "Por favor describe el motivo del reporte con más detalle"),
+});
+
+export async function submitReport(formData: FormData) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { error: 'Debes iniciar sesión para enviar un reporte.' }
+    }
+
+    const driverProfileId = formData.get('driverProfileId') as string
+    const reason = formData.get('reason') as string
+
+    const validated = reportSchema.safeParse({
+        driverProfileId,
+        reason
+    })
+
+    if (!validated.success) {
+        return { error: validated.error.issues[0].message }
+    }
+
+    try {
+        // 1. Insert report
+        const { error } = await supabase
+            .from('reports')
+            .insert({
+                reporter_id: user.id,
+                reported_driver_profile_id: driverProfileId,
+                reason: reason,
+                status: 'pending'
+            })
+
+        if (error) throw error
+
+        // 2. Log Action (File logger) - Optional but good practice
+        await logDriverAction(
+            { id: user.id },
+            'driver_reported',
+            {
+                reportedDriverId: driverProfileId,
+                reason: reason
+            }
+        );
+
+        return { success: true }
+    } catch (err: any) {
+        console.error('Report error:', err)
+        return { error: err.message || 'Error al enviar el reporte' }
     }
 }

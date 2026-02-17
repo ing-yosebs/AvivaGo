@@ -92,30 +92,56 @@ export default function TerminosCondicionesPage() {
 
                 <hr className="border-gray-200" />
 
-                {/* 5. PAGOS Y TARIFAS */}
+                {/* 5. MODELO DE NEGOCIO */}
                 <section>
                     <h2 className="text-xl font-semibold text-[#0F2137] mb-4">
-                        5. PAGOS Y TARIFAS DE LA PLATAFORMA
+                        5. MODELO DE NEGOCIO Y GRATUIDAD PARA PASAJEROS
                     </h2>
                     <div className="space-y-4">
                         <div>
-                            <h3 className="font-semibold text-gray-900">a) Pagos a AvivaGo</h3>
+                            <h3 className="font-semibold text-gray-900">a) Para Pasajeros</h3>
                             <p>
-                                AvivaGo únicamente cobra tarifas por el uso de su tecnología:
-                                <br />- A los Conductores: Una membresía o anualidad por el uso del software y la publicación de su perfil.
-                                <br />- A los Usuarios: Una micro-cuota ("unlock fee") por el servicio de revelación de datos de contacto del conductor.
-                            </p>
-                            <p className="mt-1 font-medium bg-gray-100 p-2 rounded">
-                                Estos pagos NO SON un anticipo ni parte del costo del viaje.
+                                El uso de la plataforma AvivaGo para buscar, filtrar y contactar conductores es <strong>totalmente gratuito</strong>. AvivaGo no cobra a los pasajeros por el acceso a la información de contacto ni comisiones por los viajes realizados.
                             </p>
                         </div>
                         <div>
-                            <h3 className="font-semibold text-gray-900">b) Pagos al Conductor</h3>
+                            <h3 className="font-semibold text-gray-900">b) Para Conductores</h3>
                             <p>
-                                El pago por el servicio de transporte se acuerda y se realiza <strong>directamente entre el Usuario y el Conductor</strong>. AvivaGo no procesa, retiene ni gestiona los cobros de los viajes.
+                                AvivaGo opera bajo un modelo de suscripción para los conductores:
+                            </p>
+                            <ul className="list-disc pl-5 mt-2 space-y-1">
+                                <li><strong>Membresía Premium:</strong> Los conductores pagan una tarifa periódica para obtener el distintivo de "Verificado", mayor visibilidad y herramientas avanzadas.</li>
+                                <li><strong>Cuenta Gratuita:</strong> Los conductores pueden publicar un perfil básico sin costo, sujeto a limitaciones de visibilidad y características.</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-gray-900">c) Pagos de Viajes</h3>
+                            <p>
+                                El pago por los servicios de transporte se acuerda, procesa y realiza <strong>estricta y exclusivamente entre el Pasajero y el Conductor</strong>. AvivaGo no procesa pagos de viajes, no retiene fondos de pasajeros, ni emite facturas por servicios de transporte.
                             </p>
                         </div>
                     </div>
+                </section>
+
+                <hr className="border-gray-200" />
+
+                {/* 6. PRIVACIDAD Y CONSENTIMIENTO */}
+                <section>
+                    <h2 className="text-xl font-semibold text-[#0F2137] mb-4">
+                        6. PRIVACIDAD Y CONSENTIMIENTO EXPRESO DE CONTACTO
+                    </h2>
+                    <p>
+                        Al utilizar la función &quot;Solicitar Cotización&quot;, &quot;Contactar por WhatsApp&quot; o cualquier herramienta similar dentro de la plataforma, el Usuario <strong>otorga su consentimiento expreso e inequívoco</strong> para que AvivaGo comparta sus datos de contacto (incluyendo, pero no limitado a: nombre, número telefónico y detalles del viaje solicitado) con el Conductor seleccionado.
+                    </p>
+                    <div className="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <h3 className="font-bold text-blue-900 mb-2">Finalidad del Intercambio</h3>
+                        <p className="text-blue-800 text-sm">
+                            Este intercambio de información tiene como única y exclusiva finalidad permitir que el Conductor y el Usuario establezcan comunicación directa para negociar, coordinar y ejecutar el servicio de transporte.
+                        </p>
+                    </div>
+                    <p className="mt-4">
+                        El Usuario reconoce que, una vez compartidos sus datos con el Conductor, dichos datos quedan sujetos al manejo que el Conductor haga de ellos, deslindando a AvivaGo de cualquier responsabilidad por el uso indebido que un Conductor pudiera hacer fuera de la plataforma.
+                    </p>
                 </section>
 
                 <hr className="border-gray-200" />
@@ -160,7 +186,7 @@ export default function TerminosCondicionesPage() {
                 </section>
 
                 <div className="pt-8 text-center text-sm text-gray-500">
-                    Última actualización: enero de 2026.
+                    Última actualización: febrero de 2026.
                 </div>
             </div>
         </>

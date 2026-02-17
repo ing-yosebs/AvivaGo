@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Header from './Header';
+import TrustFooter from '@/app/components/marketing/v1/TrustFooter';
 import { createClient } from '@/lib/supabase/client';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, AlertTriangle } from 'lucide-react';
 import ReviewModal from './ReviewModal';
+import ReportModal from './ReportModal';
 import QuoteModal from './QuoteModal';
 import AuthRequiredModal from './AuthRequiredModal';
 import { DriverProfile } from './profile/types';
@@ -27,6 +28,7 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
     const [isFavorite, setIsFavorite] = useState(false);
     const [loadingFav, setLoadingFav] = useState(true);
     const [isReviewOpen, setIsReviewOpen] = useState(false);
+    const [isReportOpen, setIsReportOpen] = useState(false);
     const [showShareFeedback, setShowShareFeedback] = useState(false);
     const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
     const hasViewedRef = useState(false);
@@ -193,12 +195,10 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                 <div className="absolute top-[20%] right-[-10%] w-[30%] h-[30%] bg-indigo-50/50 rounded-full blur-[100px]" />
             </div>
 
-            <Header />
-
-            <main className="flex-1 pt-16 sm:pt-24 pb-12 px-4 sm:px-6 lg:px-8 relative z-10">
+            <main className="flex-1 pt-8 sm:pt-12 pb-12 px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="max-w-6xl mx-auto">
                     {/* Mobile Sticky Header - Placed outside grid to ensure sticky works */}
-                    <div className="lg:hidden sticky top-[56px] z-40 -mx-4 sm:mx-0 mb-2 px-4 sm:px-0 bg-gray-50/95 backdrop-blur-sm pt-0 pb-2 transition-all">
+                    <div className="lg:hidden sticky top-0 z-40 -mx-4 sm:mx-0 mb-2 px-4 sm:px-0 bg-gray-50/95 backdrop-blur-sm pt-0 pb-2 transition-all">
                         <div className="shadow-xl rounded-b-[30px] sm:rounded-b-[40px] overflow-hidden bg-white pt-2">
                             <ProfileHeader driver={driver} className="border-none shadow-none pb-0 mb-0 rounded-none rounded-b-[30px]" />
                         </div>
@@ -240,7 +240,7 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                             <ProfileDetails driver={driver} />
 
                             {/* Verification Badge */}
-                            {(driver.is_verified || driver.is_premium) && (
+                            {(driver.is_verified && driver.is_premium) && (
                                 <div className="bg-blue-600 border border-blue-400/20 rounded-[30px] sm:rounded-[40px] p-6 sm:p-8 flex flex-col md:flex-row items-center gap-6 shadow-xl shadow-blue-500/20">
                                     <div className="bg-white/20 p-4 rounded-3xl shrink-0 backdrop-blur-md">
                                         <ShieldCheck className="h-8 w-8 text-white" />
@@ -258,9 +258,52 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
                 </div>
             </main>
 
+
+            <div className="bg-gray-50 border-t border-gray-200 py-12 px-4 sm:px-6 lg:px-8">
+                <div className="max-w-4xl mx-auto text-center space-y-6">
+                    {(driver.is_verified || driver.is_premium) ? (
+                        <div className="space-y-4">
+                            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-sm font-bold mb-2">
+                                <ShieldCheck className="h-4 w-4" />
+                                <span>Conductor Verificado</span>
+                            </div>
+                            <p className="text-gray-500 text-sm leading-relaxed max-w-2xl mx-auto">
+                                <strong>Aviso:</strong> Este conductor ha completado nuestro proceso de validación de identidad y antecedentes. Sin embargo, AvivaGo recuerda a los usuarios que el conductor sigue siendo el único responsable de la calidad y cumplimiento de los servicios ofrecidos.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <div className="inline-flex items-center gap-2 bg-gray-100 text-gray-600 px-4 py-1.5 rounded-full text-sm font-bold mb-2">
+                                <AlertTriangle className="h-4 w-4" />
+                                <span>Aviso Importante</span>
+                            </div>
+                            <p className="text-gray-500 text-sm leading-relaxed max-w-2xl mx-auto">
+                                <strong>Renuncia de Responsabilidad:</strong> La información contenida en esta página es responsabilidad directa del conductor. AvivaGo no se hace responsable de ningún acto fraudulento, servicio deficiente o incumplimiento de lo ofrecido. Te recomendamos revisar nuestros <a href="/legales/terminos-y-condiciones" className="text-blue-600 hover:underline">Términos y Condiciones</a> antes de contratar. AvivaGo se reserva el derecho de suspender este perfil sin previo aviso si se detectan violaciones a nuestras políticas.
+                            </p>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={() => setIsReportOpen(true)}
+                        className="text-xs font-bold text-gray-400 hover:text-red-500 transition-colors uppercase tracking-widest border-b border-transparent hover:border-red-500"
+                    >
+                        ¿Tienes algún reporte sobre este perfil?
+                    </button>
+                </div>
+            </div>
+
+            <TrustFooter />
+
             <ReviewModal
                 isOpen={isReviewOpen}
                 onClose={() => setIsReviewOpen(false)}
+                driverId={String(driver.id)}
+                driverName={driver.name}
+            />
+
+            <ReportModal
+                isOpen={isReportOpen}
+                onClose={() => setIsReportOpen(false)}
                 driverId={String(driver.id)}
                 driverName={driver.name}
             />
