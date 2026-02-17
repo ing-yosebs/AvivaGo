@@ -1,32 +1,22 @@
-import Navbar from '@/app/components/marketing/v1/Navbar';
-import WelcomeVideo from '@/app/components/marketing/v1/WelcomeVideo';
-import Hero from '@/app/components/marketing/v1/Hero';
-import HowItWorks from '@/app/components/marketing/v1/HowItWorks';
-import PaymentMethods from '@/app/components/marketing/v1/PaymentMethods';
-import ReferralEarnings from '@/app/components/marketing/v1/ReferralEarnings';
-import EarningsCalculator from '@/app/components/marketing/v1/EarningsCalculator';
-import Comparison from '@/app/components/marketing/v1/Comparison';
-import BookingDemo from '@/app/components/marketing/v1/BookingDemo';
-import MarketingKitPromo from '@/app/components/marketing/v1/MarketingKitPromo';
-import CaseStudy from '@/app/components/marketing/v1/CaseStudy';
-import Pricing from '@/app/components/marketing/v1/Pricing';
+import Navbar from '@/app/components/marketing/v2/Navbar';
+import HeroAssistant from '@/app/components/marketing/v2/HeroAssistant';
+import PainPoints from '@/app/components/marketing/v2/PainPoints';
+import CustomNeeds from '@/app/components/marketing/v2/CustomNeeds';
+import ServicePillars from '@/app/components/marketing/v2/ServicePillars';
+import DriverInvitation from '@/app/components/marketing/v2/DriverInvitation';
+import Testimonials from '@/app/components/marketing/v2/Testimonials';
 import TrustFooter from '@/app/components/marketing/v1/TrustFooter';
 
 export default function LandingPage() {
     return (
         <main className="min-h-screen bg-white font-sans selection:bg-aviva-primary/20 selection:text-aviva-primary">
             <Navbar />
-            <WelcomeVideo />
-            <Hero />
-            <HowItWorks />
-            <PaymentMethods />
-            <ReferralEarnings />
-            <EarningsCalculator />
-            <Comparison />
-            <BookingDemo />
-            <MarketingKitPromo />
-            <CaseStudy />
-            <Pricing />
+            <HeroAssistant />
+            <PainPoints />
+            <CustomNeeds />
+            <ServicePillars />
+            <DriverInvitation />
+            <Testimonials />
             <TrustFooter />
         </main>
     );
