@@ -52,7 +52,9 @@ export async function POST(request: Request) {
             phone_confirm: true,
             user_metadata: {
                 full_name: fullName || 'Usuario Nuevo',
-                invitation_code: invitationCode || null
+                invitation_code: invitationCode || null,
+                referral_code: invitationCode || null,
+                role: role || 'client'
             }
         });
 
@@ -93,7 +95,12 @@ export async function POST(request: Request) {
             if (userId) {
                 await supabaseAdmin.auth.admin.updateUserById(userId, {
                     password: finalPassword,
-                    user_metadata: { full_name: fullName || 'Usuario Nuevo' },
+                    user_metadata: {
+                        full_name: fullName || 'Usuario Nuevo',
+                        invitation_code: invitationCode || null,
+                        referral_code: invitationCode || null,
+                        role: role || 'client'
+                    },
                     email_confirm: true,
                     phone_confirm: true
                 });

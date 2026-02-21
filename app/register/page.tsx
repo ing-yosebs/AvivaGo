@@ -124,7 +124,7 @@ function RegisterForm() {
             // OR we can call an update profile action now that we are logged in.
 
             // Redirect
-            window.location.href = redirectUrl || (isDriver ? '/perfil' : '/dashboard')
+            window.location.href = redirectUrl || (isDriver ? '/panel/perfil' : '/dashboard')
 
         } catch (err: any) {
             setError(err.message)
