@@ -4,7 +4,8 @@ import ProfileView from '../../components/ProfileView';
 import TrustFooter from '@/app/components/marketing/v1/TrustFooter';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-    const { id } = await params;
+    const resParams = await params;
+    const id = resParams.id.split('/')[0].trim(); // Sanitize: remove trailing slashes if present
     const supabase = await createClient();
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -19,7 +20,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     if (isUuid) {
         query = query.or(`id.eq.${id},user_id.eq.${id}`);
     } else {
-        query = query.eq('user_referral_code', id);
+        query = query.ilike('user_referral_code', id);
     }
 
     const { data: driver } = await query.maybeSingle();
@@ -50,7 +51,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 }
 
 export default async function DriverPage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
+    const resParams = await params;
+    const id = resParams.id.split('/')[0].trim(); // Sanitize: remove trailing slashes if present
     const supabase = await createClient();
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -68,7 +70,7 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
     if (isUuid) {
         query = query.or(`id.eq.${id},user_id.eq.${id}`);
     } else {
-        query = query.eq('user_referral_code', id);
+        query = query.ilike('user_referral_code', id);
     }
 
     // Fetch driver profile from Supabase
@@ -205,7 +207,7 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
                 .from('quote_requests')
                 .select('id')
                 .eq('passenger_id', user.id)
-                .eq('driver_id', id)
+                .eq('driver_id', driver.id) // Use the actual driver UUID from successfully fetched profile
                 .eq('status', 'accepted')
                 .limit(1);
 
