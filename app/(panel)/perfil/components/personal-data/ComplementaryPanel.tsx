@@ -56,6 +56,7 @@ export function ComplementaryPanel({
 
     const [autocomplete, setAutocomplete] = useState<any>(null)
     const mapRef = useRef<any>(null)
+    const [mapZoom, setMapZoom] = useState(15)
 
     const onPlaceChanged = () => {
         if (autocomplete !== null) {
@@ -87,6 +88,7 @@ export function ComplementaryPanel({
                 address_map_lat: place.geometry.location.lat(),
                 address_map_lng: place.geometry.location.lng(),
             })
+            setMapZoom(16)
         }
     }
 
@@ -193,6 +195,29 @@ export function ComplementaryPanel({
                                             if (c) {
                                                 setPhoneCode(c.phone_code)
                                                 setEmergencyPhoneCode(c.phone_code)
+
+                                                if (isLoaded && window.google) {
+                                                    const geocoder = new google.maps.Geocoder()
+                                                    geocoder.geocode({ address: c.name }, (results, status) => {
+                                                        if (status === 'OK' && results && results[0]) {
+                                                            const { lat, lng } = results[0].geometry.location
+                                                            onAddressUpdate({
+                                                                address_map_lat: lat(),
+                                                                address_map_lng: lng(),
+                                                                address_country: c.name,
+                                                                address_state: '',
+                                                                address_suburb: '',
+                                                                address_street: '',
+                                                                address_postal_code: '',
+                                                                address_number_ext: '',
+                                                                address_number_int: '',
+                                                                address_references: '',
+                                                                address_text: ''
+                                                            })
+                                                            setMapZoom(5)
+                                                        }
+                                                    })
+                                                }
                                             }
                                         }}
                                         className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 appearance-none relative z-10"
@@ -255,8 +280,14 @@ export function ComplementaryPanel({
                                 <GoogleMap
                                     mapContainerStyle={{ width: '100%', height: '100%' }}
                                     center={{ lat: Number(formData.address_map_lat), lng: Number(formData.address_map_lng) }}
-                                    zoom={15}
+                                    zoom={mapZoom}
                                     onLoad={map => { mapRef.current = map }}
+                                    onZoomChanged={() => {
+                                        if (mapRef.current) {
+                                            const z = mapRef.current.getZoom()
+                                            if (z !== undefined && z !== mapZoom) setMapZoom(z) // sync zoom internally so any react rerender doesn't bounce the zoom
+                                        }
+                                    }}
                                     options={{ disableDefaultUI: true, zoomControl: true }}
                                 >
                                     <MarkerF
