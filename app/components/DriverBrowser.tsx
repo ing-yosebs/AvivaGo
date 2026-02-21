@@ -29,19 +29,17 @@ export default function DriverBrowser() {
         const fetchDrivers = async () => {
             setLoading(true);
             const { data, error } = await supabase
-                .from('driver_profiles')
+                .from('driver_profiles_public')
                 .select(`
                     id,
                     bio,
                     profile_photo_url,
                     city,
                     average_rating,
-                    users (
-                        full_name,
-                        email,
-                        avatar_url,
-                        address_state
-                    ),
+                    user_full_name,
+                    user_email,
+                    user_avatar_url,
+                    user_address_state,
                     vehicles (
                         brand,
                         model,
@@ -76,8 +74,8 @@ export default function DriverBrowser() {
 
     const filteredDrivers = drivers.filter(driver => {
         const term = searchTerm.toLowerCase();
-        const fullName = driver.users?.full_name?.toLowerCase() || '';
-        const city = (driver.users?.address_state || driver.city || '').toLowerCase();
+        const fullName = driver.user_full_name?.toLowerCase() || '';
+        const city = (driver.user_address_state || driver.city || '').toLowerCase();
         const vehicle = driver.vehicles?.[0] ? `${driver.vehicles[0].brand} ${driver.vehicles[0].model}`.toLowerCase() : '';
 
         const matchesSearch =
@@ -86,7 +84,7 @@ export default function DriverBrowser() {
             vehicle.includes(term) ||
             driver.bio?.toLowerCase().includes(term);
 
-        const matchesCity = selectedCity === 'all' || (driver.users?.address_state === selectedCity || driver.city === selectedCity);
+        const matchesCity = selectedCity === 'all' || (driver.user_address_state === selectedCity || driver.city === selectedCity);
 
         const services = (Array.isArray(driver.driver_services) ? driver.driver_services[0] : driver.driver_services) || {};
         const questionnaire = services.professional_questionnaire || {};
@@ -130,7 +128,7 @@ export default function DriverBrowser() {
         { id: 'universal', label: 'Compromiso Universal' }
     ];
 
-    const cities = Array.from(new Set(drivers.map(d => d.users?.address_state || d.city))).filter(Boolean).sort();
+    const cities = Array.from(new Set(drivers.map(d => d.user_address_state || d.city))).filter(Boolean).sort();
 
     // Extract unique zones, languages, and indigenous languages for filters
     const allAvailableZones = Array.from(new Set(drivers.flatMap(d => {

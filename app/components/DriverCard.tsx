@@ -24,7 +24,9 @@ interface DriverCardProps {
 
 export default function DriverCard({ driver }: DriverCardProps) {
     const userObj = Array.isArray(driver.users) ? driver.users[0] : driver.users;
-    const fullName = userObj?.full_name || 'Conductor AvivaGo';
+    const fullName = driver.user_full_name || userObj?.full_name || 'Conductor AvivaGo';
+    const avatarUrl = driver.user_avatar_url || userObj?.avatar_url || driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop';
+    const addressState = driver.user_address_state || userObj?.address_state || driver.city;
 
     const vehicleArr = Array.isArray(driver.vehicles) ? driver.vehicles : (driver.vehicles ? [driver.vehicles] : []);
     const vehicleObj = vehicleArr[0];
@@ -86,7 +88,7 @@ export default function DriverCard({ driver }: DriverCardProps) {
             <div className="flex items-start gap-4 mb-4">
                 <div className="relative shrink-0">
                     <img
-                        src={userObj?.avatar_url || driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop'}
+                        src={avatarUrl}
                         alt={fullName}
                         onError={(e) => {
                             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop';
@@ -122,7 +124,7 @@ export default function DriverCard({ driver }: DriverCardProps) {
                     <div className="flex items-center gap-3 text-xs text-gray-500">
                         <div className="flex items-center gap-1 min-w-0">
                             <MapPin className="h-3 w-3 text-gray-400 shrink-0" />
-                            <span className="truncate">{userObj?.address_state || driver.city}</span>
+                            <span className="truncate">{addressState}</span>
                         </div>
                     </div>
                 </div>

@@ -49,17 +49,9 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
 
     // Fetch driver profile from Supabase
     const { data: driver, error } = await supabase
-        .from('driver_profiles')
+        .from('driver_profiles_public')
         .select(`
             *,
-            users!driver_profiles_user_id_fkey (
-                full_name,
-                email,
-                avatar_url,
-                address_state,
-                phone_number,
-                referral_code
-            ),
             vehicles (*),
             driver_services (*),
             driver_memberships (
@@ -216,12 +208,12 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         is_verified: driver.is_verified,
         is_premium: hasActiveMembership,
         id: driver.id,
-        name: driver.users?.full_name || 'Conductor AvivaGo',
-        city: driver.users?.address_state || driver.city,
-        area: driver.users?.address_state || driver.city,
+        name: driver.user_full_name || 'Conductor AvivaGo',
+        city: driver.user_address_state || driver.city,
+        area: driver.user_address_state || driver.city,
         vehicle: driver.vehicles?.[0] ? `${driver.vehicles[0].brand} ${driver.vehicles[0].model}` : 'Vehículo Confort',
         year: driver.vehicles?.[0]?.year || 2022,
-        photo: driver.users?.avatar_url || driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop',
+        photo: driver.user_avatar_url || driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop',
         rating: Number(driver.average_rating) || 5.0,
         reviews: driver.total_reviews || 0,
         price: 18.00,
@@ -232,7 +224,7 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         indigenous: finalIndigenous,
         schedule: scheduleObj, // Pass full object
         bio: questionnaire.bio || driver.bio || "Este conductor aún no ha redactado su reseña profesional.",
-        phone: driver.users?.phone_number || driver.whatsapp_number,
+        phone: driver.user_phone_number || driver.whatsapp_number,
         personality: {
             social: personalityOptions.social[questionnaire.social],
             driving: personalityOptions.driving[questionnaire.driving],
@@ -249,7 +241,7 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         vehiclePhotos: (hasActiveMembership ? driver.vehicles?.[0]?.photos : driver.vehicles?.[0]?.photos?.slice(0, 2)) || [],
         passenger_capacity: driver.vehicles?.[0]?.passenger_capacity || 4,
         trunk_capacity: driver.vehicles?.[0]?.trunk_capacity || "",
-        referral_code: driver.users?.referral_code
+        referral_code: driver.user_referral_code
     };
 
     return <ProfileView driver={formattedDriver} />;
