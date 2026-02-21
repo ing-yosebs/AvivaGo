@@ -4,11 +4,11 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Mail, Lock, Loader2, Eye, EyeOff, CheckCircle, X } from 'lucide-react'
+import { Mail, Lock, Loader2, Eye, EyeOff, CheckCircle, X, Phone } from 'lucide-react'
 import AvivaLogo from '@/app/components/AvivaLogo'
 
 export default function LoginPage() {
-    const [email, setEmail] = useState('')
+    const [identifier, setIdentifier] = useState('') // Email or Phone
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -23,10 +23,24 @@ export default function LoginPage() {
         setLoading(true)
         setError(null)
 
-        const { error } = await supabase.auth.signInWithPassword({
-            email,
-            password,
-        })
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)
+        let credentials: any = { password }
+
+        if (isEmail) {
+            credentials.email = identifier
+        } else {
+            // Assume phone. Clean it.
+            // If user enters 10 digits, add +52 by default or require international format.
+            // Let's assume most users are MX (+52) if they just type 10 digits.
+            // But to be safe, we should probably strip everything and check length.
+            let phone = identifier.replace(/\D/g, '')
+            if (phone.length === 10) {
+                phone = `52${phone}` // Default to MX
+            }
+            credentials.phone = phone
+        }
+
+        const { error } = await supabase.auth.signInWithPassword(credentials)
 
         if (error) {
             console.log("Login error:", error.message)
@@ -99,13 +113,18 @@ export default function LoginPage() {
                     <form onSubmit={handleLogin} className="space-y-4">
                         <div className="space-y-2">
                             <div className="relative">
-                                <Mail className="absolute left-3 top-3 h-5 w-5 text-zinc-500" />
+                                {/* Dynamic Icon based on input */}
+                                {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier) ? (
+                                    <Mail className="absolute left-3 top-3 h-5 w-5 text-zinc-500" />
+                                ) : (
+                                    <Phone className="absolute left-3 top-3 h-5 w-5 text-zinc-500" />
+                                )}
                                 <input
-                                    type="email"
+                                    type="text"
                                     required
-                                    placeholder="Correo Electrónico"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Correo o Teléfono (10 dígitos)"
+                                    value={identifier}
+                                    onChange={(e) => setIdentifier(e.target.value)}
                                     className="w-full bg-black/20 border border-white/10 rounded-xl px-10 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
                                 />
                             </div>
@@ -143,7 +162,7 @@ export default function LoginPage() {
                                     {error}
                                 </div>
                                 {error === 'Correo no verificado.' ? (
-                                    <Link href={`/auth/verify-otp?email=${encodeURIComponent(email)}`} className="underline font-semibold hover:text-white">
+                                    <Link href={`/auth/verify-otp?email=${encodeURIComponent(identifier)}`} className="underline font-semibold hover:text-white">
                                         Verificar ahora
                                     </Link>
                                 ) : (

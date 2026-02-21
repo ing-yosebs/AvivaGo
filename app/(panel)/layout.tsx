@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Rocket } from 'lucide-react'
+import MissingInfoModal from '@/app/components/MissingInfoModal'
 
 export default function PanelLayout({
     children,
@@ -50,6 +51,8 @@ export default function PanelLayout({
             ) : (
                 <Header />
             )}
+
+            <MissingInfoModal user={user} />
 
             {/* Main Content Area */}
             <main className={`flex-1 p-4 sm:p-6 lg:p-8 min-h-screen relative overflow-x-hidden pt-20 ${showSidebar ? 'lg:ml-64 lg:pt-8' : 'lg:pt-24'}`}>

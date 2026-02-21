@@ -154,19 +154,30 @@ function ProfileContent() {
 
                     // Calculate Level for restrictions (Marketing Kit)
                     const mDate = membershipData.created_at
-                    const { count } = await supabase
-                        .from('users')
-                        .select('id', { count: 'exact', head: true })
-                        .eq('referred_by', userData.referral_code)
-                        .gt('created_at', mDate)
-                        .filter('roles', 'cs', '{"driver"}')
+                    /* 
+                    // Temporarily disabled to prevent 400 Bad Request
+                    if (userData.referral_code) {
+                        try {
+                            const { count, error: countError } = await supabase
+                                .from('users')
+                                .select('*', { count: 'exact', head: true })
+                                .eq('referred_by', userData.referral_code)
+                                .gt('created_at', mDate)
+                                .contains('roles', ['driver'])
 
-                    const referralCount = count || 0
-                    const dbLevel = userData.driver_profile?.affiliate_level
+                            if (!countError) {
+                                const referralCount = count || 0
+                                const dbLevel = userData.driver_profile?.affiliate_level
 
-                    if (referralCount >= 11 || dbLevel === 'silver' || dbLevel === 'gold' || referralCount >= 51) {
-                        setIsPlataOrHigher(true)
+                                if (referralCount >= 11 || dbLevel === 'silver' || dbLevel === 'gold' || referralCount >= 51) {
+                                    setIsPlataOrHigher(true)
+                                }
+                            }
+                        } catch (err) {
+                            console.warn('Error calculating referral level', err)
+                        }
                     }
+                    */
                 } else {
                     // Check for pending payments (SPEI/OXXO instructions)
                     const { data: pending } = await supabase
@@ -395,7 +406,7 @@ function ProfileContent() {
                     )}
 
                     {activeTab === 'security' && (
-                        <SecuritySection />
+                        <SecuritySection profile={profile} />
                     )}
 
                     {isDriver && activeTab === 'solicitudes' && (

@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { Eye, EyeOff, Lock, Loader2, Check, AlertCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Eye, EyeOff, Lock, Loader2, Check, AlertCircle, ShieldCheck, ChevronRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
-export default function SecuritySection() {
+export default function SecuritySection({ profile }: { profile: any }) {
+    const router = useRouter()
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -51,6 +53,7 @@ export default function SecuritySection() {
 
     return (
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
+
 
             {/* Cambio de Contraseña */}
             <div className="bg-white border border-gray-100 rounded-3xl p-6 md:p-8 space-y-8 shadow-soft">

@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, Rocket, X, CheckCircle, AlertCircle } from 'lucide-react'
+import { Loader2, Rocket, X, CheckCircle, AlertCircle, Phone } from 'lucide-react'
 import Link from 'next/link'
 
 function VerifyOTPForm() {
@@ -14,36 +14,62 @@ function VerifyOTPForm() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const email = searchParams.get('email')
+    const phone = searchParams.get('phone')
     const redirectUrl = searchParams.get('redirect')
+
+    const identifier = email || phone
+    const isPhone = !!phone
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!email) {
-            setError('Falta el correo electrónico')
+        if (!identifier) {
+            setError('Falta el método de verificación (correo o teléfono)')
             return
         }
         setLoading(true)
         setError(null)
 
-        const supabase = createClient()
-        const { error } = await supabase.auth.verifyOtp({
-            email,
-            token: otp,
-            type: 'signup',
-        })
+        if (isPhone) {
+            // Verify via custom WhatsApp API
+            try {
+                const res = await fetch('/api/auth/whatsapp/verify-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone, code: otp })
+                })
+                const data = await res.json()
 
-        if (error) {
-            setError(error.message === 'Token has expired' ? 'El código ha expirado' : 'Código inválido o ya utilizado')
-            setLoading(false)
-        } else {
-            setSuccess(true)
-            setTimeout(() => {
-                if (redirectUrl) {
-                    router.push(redirectUrl)
+                if (!res.ok) {
+                    setError(data.error || 'Código incorrecto')
+                    setLoading(false)
                 } else {
-                    router.push('/dashboard')
+                    setSuccess(true)
+                    setTimeout(() => {
+                        router.push(redirectUrl || '/dashboard')
+                    }, 2000)
                 }
-            }, 2000)
+            } catch (err) {
+                setError('Error de conexión')
+                setLoading(false)
+            }
+        } else {
+            // Verify via Supabase Email Auth
+            const supabase = createClient()
+            const { error } = await supabase.auth.verifyOtp({
+                email: email!,
+                token: otp,
+                type: 'signup',
+            })
+
+            if (error) {
+                setError(error.message === 'Token has expired' ? 'El código ha expirado' : 'Código inválido o ya utilizado')
+                setLoading(false)
+            } else {
+                setSuccess(true)
+                setTimeout(() => {
+                    router.push(redirectUrl || '/dashboard')
+                }, 2000)
+            }
         }
     }
 
@@ -51,7 +77,7 @@ function VerifyOTPForm() {
         <main className="w-full max-w-md p-6 relative z-10">
             <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl relative">
                 <Link
-                    href="/register"
+                    href={isPhone ? "/register" : "/auth/login"}
                     className="absolute top-6 right-6 p-2 text-zinc-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all border border-white/5"
                 >
                     <X className="h-4 w-4" />
@@ -60,7 +86,7 @@ function VerifyOTPForm() {
                 <div className="text-center mb-8">
                     <div className="flex justify-center mb-4">
                         <div className="bg-white/10 p-3 rounded-2xl border border-white/10 backdrop-blur-md shadow-lg">
-                            <Rocket className="h-8 w-8 text-white transform -rotate-45" />
+                            {isPhone ? <Phone className="h-8 w-8 text-white" /> : <Rocket className="h-8 w-8 text-white transform -rotate-45" />}
                         </div>
                     </div>
                     <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
@@ -68,7 +94,7 @@ function VerifyOTPForm() {
                     </h1>
                     <p className="text-zinc-400 text-sm">
                         Hemos enviado un código de 6 dígitos a <br />
-                        <span className="text-white font-medium">{email}</span>
+                        <span className="text-white font-medium">{identifier}</span>
                     </p>
                 </div>
 
@@ -114,22 +140,29 @@ function VerifyOTPForm() {
                         </button>
 
                         <div className="text-center">
-                            <button
-                                type="button"
-                                onClick={async () => {
-                                    if (!email) return
-                                    const { resendOtp } = await import('@/app/auth/actions')
-                                    const res = await resendOtp(email)
-                                    if (res.error) {
-                                        setError(res.error)
-                                    } else {
-                                        alert('Nuevo código enviado. Por favor revisa tu correo.')
-                                    }
-                                }}
-                                className="text-sm text-zinc-500 hover:text-white transition-colors underline"
-                            >
-                                ¿No recibiste el código o expiró? Reenviar
-                            </button>
+                            {!isPhone && (
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        if (!email) return
+                                        const { resendOtp } = await import('@/app/auth/actions')
+                                        const res = await resendOtp(email)
+                                        if (res.error) {
+                                            setError(res.error)
+                                        } else {
+                                            alert('Nuevo código enviado. Por favor revisa tu correo.')
+                                        }
+                                    }}
+                                    className="text-sm text-zinc-500 hover:text-white transition-colors underline"
+                                >
+                                    ¿No recibiste el código o expiró? Reenviar
+                                </button>
+                            )}
+                            {isPhone && (
+                                <p className="text-xs text-zinc-500">
+                                    Si no recibiste el código, intenta registrarte nuevamente para solicitar uno nuevo.
+                                </p>
+                            )}
                         </div>
                     </form>
                 )}

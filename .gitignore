@@ -44,3 +44,10 @@ desktop.ini
 *.metadata.json
 *.resolved
 *.resolved.*
+
+# Google Cloud Credentials
+google-cloud-credentials.json
+key-*.json
+
+# Production Credentials Docs
+docs/CONFIG_PRODUCCION_Vercel.md

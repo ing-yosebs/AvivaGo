@@ -47,7 +47,8 @@ export default function DashboardSidebar() {
                 .single()
 
             if (user) {
-                setUserEmail(user.email || null)
+                // Prioritize Email, fallback to Phone
+                setUserEmail(user.email || user.phone || 'Usuario')
             }
 
             if (userData?.roles?.includes('driver')) {
@@ -137,7 +138,7 @@ export default function DashboardSidebar() {
 
                 <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                     {menuItems.map((item) => {
-                        const currentTab = searchParams.get('tab')
+                        const currentTab = searchParams.get('tab') || (pathname === '/perfil' ? 'personal' : null)
                         const itemTab = item.href.includes('tab=') ? item.href.split('tab=')[1] : null
                         const hasSubItems = item.subItems && item.subItems.length > 0
 
@@ -145,13 +146,13 @@ export default function DashboardSidebar() {
                         if (hasSubItems) {
                             const isAnySubActive = (item.subItems as any[]).some(sub => {
                                 const subTab = sub.href.includes('tab=') ? sub.href.split('tab=')[1] : null
-                                return pathname === '/perfil' && currentTab === subTab
+                                return subTab ? (pathname === '/perfil' && currentTab === subTab) : (pathname === sub.href)
                             })
-                            isActive = isAnySubActive || (pathname === '/perfil' && currentTab === itemTab) || (pathname === item.href && !currentTab)
+                            isActive = isAnySubActive || (itemTab ? (pathname === '/perfil' && currentTab === itemTab) : (pathname === item.href))
                         } else if (itemTab) {
                             isActive = pathname === '/perfil' && currentTab === itemTab
                         } else {
-                            isActive = pathname === item.href && !currentTab
+                            isActive = pathname === item.href
                         }
 
                         return (
@@ -175,7 +176,7 @@ export default function DashboardSidebar() {
                                     <div className="pl-9 space-y-1 mt-1 border-l border-gray-200 ml-5">
                                         {item.subItems.map((sub) => {
                                             const subTab = sub.href.includes('tab=') ? sub.href.split('tab=')[1] : null
-                                            const isSubActive = pathname === '/perfil' && currentTab === subTab;
+                                            const isSubActive = subTab ? (pathname === '/perfil' && currentTab === subTab) : (pathname === sub.href);
 
                                             return (
                                                 <Link
