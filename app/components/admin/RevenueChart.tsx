@@ -9,8 +9,14 @@ export default function RevenueChart({
 }) {
     return (
         <ResponsiveContainer width="100%" height={350}>
-            <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#333" vertical={false} />
+            <BarChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                <defs>
+                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.2} />
+                    </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" strokeOpacity={0.5} vertical={false} />
                 <XAxis
                     dataKey="name"
                     stroke="#888888"
@@ -26,14 +32,16 @@ export default function RevenueChart({
                     tickFormatter={(value) => `$${value}`}
                 />
                 <Tooltip
-                    contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', color: '#fff' }}
-                    itemStyle={{ color: '#fff' }}
-                    cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                    contentStyle={{ backgroundColor: 'rgba(24, 24, 27, 0.9)', backdropFilter: 'blur(10px)', borderColor: '#3f3f46', color: '#fff', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
+                    itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                    cursor={{ fill: 'rgba(255,255,255,0.02)' }}
                 />
                 <Bar
                     dataKey="total"
-                    fill="#3b82f6"
-                    radius={[4, 4, 0, 0]}
+                    name="Ingresos"
+                    fill="url(#colorRevenue)"
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={50}
                 />
             </BarChart>
         </ResponsiveContainer>

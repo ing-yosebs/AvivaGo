@@ -105,7 +105,8 @@ function RegisterForm() {
                     code: otpCode,
                     fullName,
                     invitationCode,
-                    password
+                    password,
+                    role: isDriver ? 'driver' : 'client'
                 })
             })
             const data = await res.json()

@@ -6,7 +6,7 @@ import { createClient as createServerClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
     try {
-        const { phone, code, fullName, invitationCode, password } = await request.json();
+        const { phone, code, fullName, invitationCode, password, role } = await request.json();
         console.log('[Verify OTP] Attempting verification for:', phone);
 
         if (!phone || !code) {
@@ -56,12 +56,15 @@ export async function POST(request: Request) {
             }
         });
 
+        let publicUser: any = null;
+
         if (createError) {
             console.log('[Verify OTP] Create User Error:', createError.message);
 
             // 2. If exists, we MUST find the existing ID to update password and sync public
             // Strategy: Check public.users first (fastest)
-            const { data: publicUser } = await supabaseAdmin.from('users').select('id').eq('phone_number', cleanPhone).single();
+            const { data: existingUser } = await supabaseAdmin.from('users').select('id, roles').eq('phone_number', cleanPhone).single();
+            publicUser = existingUser;
 
             if (publicUser) {
                 userId = publicUser.id;
@@ -102,18 +105,36 @@ export async function POST(request: Request) {
         // 3. Force Sync to public.users (Upsert)
         // This ensures public.users ALWAYS has the record, fixing the "Zombie" issue.
         if (userId) {
+            let currentRoles = publicUser?.roles || [];
+            if (role === 'driver' && !currentRoles.includes('driver')) {
+                currentRoles = [...currentRoles, 'driver'];
+            }
+            if (currentRoles.length === 0) {
+                currentRoles = ['client'];
+            }
+
             const { error: upsertError } = await supabaseAdmin
                 .from('users')
                 .upsert({
                     id: userId,
                     phone_number: cleanPhone,
                     full_name: fullName || 'Usuario Nuevo',
-                    // avatar_url?
+                    roles: currentRoles,
                 }, { onConflict: 'id' });
 
             if (upsertError) {
                 console.error('[Verify OTP] Public Sync Error:', upsertError);
-                // Continue anyway, login might work
+            }
+
+            // If user requested driver, ensure driver_profiles is initialized
+            if (role === 'driver') {
+                const { data: driverProfile } = await supabaseAdmin.from('driver_profiles').select('id').eq('user_id', userId).single();
+                if (!driverProfile) {
+                    await supabaseAdmin.from('driver_profiles').insert({
+                        user_id: userId,
+                        status: 'incomplete'
+                    });
+                }
             }
         }
 

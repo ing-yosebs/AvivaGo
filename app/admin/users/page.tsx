@@ -146,9 +146,9 @@ export default async function UsersPage({
             <div className="backdrop-blur-2xl bg-white/[0.02] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full blur-[120px] pointer-events-none" />
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
+                <div className="w-full">
+                    <table className="w-full text-left border-collapse block lg:table">
+                        <thead className="hidden lg:table-header-group">
                             <tr className="bg-white/5 border-b border-white/10">
                                 <th className="px-4 py-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Nombre</th>
                                 <th className="px-4 py-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest">Perfil</th>
@@ -157,7 +157,7 @@ export default async function UsersPage({
                                 <th className="px-4 py-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest text-right">Administrar</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5 relative z-10">
+                        <tbody className="divide-y divide-white/5 relative z-10 block lg:table-row-group">
                             {filteredUsers.map((user) => {
                                 const driverProfile = Array.isArray(user.driver_profiles) ? user.driver_profiles[0] : user.driver_profiles
                                 const roles = user.roles || []
@@ -165,15 +165,28 @@ export default async function UsersPage({
                                 const isDriver = !!driverProfile || (Array.isArray(roles) ? roles.includes('driver') : roles === 'driver')
 
                                 return (
-                                    <tr key={user.id} className="hover:bg-white/5 transition-all group">
-                                        <td className="px-4 py-6">
-                                            <div className="flex flex-col">
-                                                <p className="font-bold text-white text-sm leading-tight mb-0.5">{user.full_name || 'Sin Nombre'}</p>
-                                                <p className="text-zinc-500 text-[11px] font-mono">{user.email}</p>
+                                    <tr key={user.id} className="hover:bg-white/5 transition-all group grid grid-cols-3 lg:table-row p-4 lg:p-0 gap-y-4 items-start">
+                                        <td className="col-span-full px-2 lg:px-4 lg:py-6 block lg:table-cell border-b border-white/5 lg:border-none pb-4 lg:pb-0">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex flex-col gap-0.5">
+                                                    <p className="font-bold text-white text-base lg:text-sm leading-tight mb-0.5">{user.full_name || 'Sin Nombre'}</p>
+                                                    <p className="text-zinc-400 text-xs lg:text-[11px] font-mono">{user.email || 'Sin correo electrónico'}</p>
+                                                    <p className="text-zinc-500 text-xs lg:text-[11px] font-mono">{user.phone_number || 'Sin teléfono'}</p>
+                                                </div>
+                                                <div className="lg:hidden mt-0.5">
+                                                    <Link
+                                                        href={`/admin/users/${user.id}`}
+                                                        className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg active:scale-95 group/btn"
+                                                        title="Gestionar Usuario"
+                                                    >
+                                                        <Settings className="w-6 h-6 group-hover/btn:rotate-90 transition-transform duration-500" />
+                                                    </Link>
+                                                </div>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-6">
-                                            <div className="flex items-center">
+                                        <td className="col-span-1 px-1 lg:px-4 lg:py-6 flex flex-col items-center lg:items-start gap-2 lg:table-cell">
+                                            <span className="lg:hidden text-[9px] font-bold text-zinc-500 uppercase tracking-widest text-center">Perfil</span>
+                                            <div className="flex items-center justify-center lg:justify-start">
                                                 {isAdmin ? (
                                                     <span className="inline-flex items-center justify-center p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-sm" title="Admin">
                                                         <Shield className="h-4 w-4" />
@@ -189,29 +202,33 @@ export default async function UsersPage({
                                                 )}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-6">
-                                            {!user.email_confirmed_at ? (
-                                                <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-black uppercase border animate-pulse-subtle ${getStatusColor('unconfirmed')}`}>
-                                                    {translateStatus('unconfirmed')}
-                                                </span>
-                                            ) : isDriver ? (
-                                                <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-black uppercase border ${getStatusColor(driverProfile?.status)}`}>
-                                                    {translateStatus(driverProfile?.status)}
-                                                </span>
-                                            ) : ( // Passenger Logic
-                                                <span className={`inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-black uppercase border ${getStatusColor((user.full_name && user.phone_number) ? 'validated' : 'incomplete')}`}>
-                                                    {translateStatus((user.full_name && user.phone_number) ? 'validated' : 'incomplete')}
-                                                </span>
-                                            )}
+                                        <td className="col-span-1 px-1 lg:px-4 lg:py-6 flex flex-col items-center lg:items-start gap-2 lg:table-cell text-center lg:text-left">
+                                            <span className="lg:hidden text-[9px] font-bold text-zinc-500 uppercase tracking-widest text-center">Estado</span>
+                                            <div className="flex justify-center w-full lg:block">
+                                                {!user.email_confirmed_at ? (
+                                                    <span className={`inline-flex items-center px-1.5 lg:px-3 py-1 lg:py-1.5 rounded-lg text-[8px] lg:text-[10px] font-black uppercase border animate-pulse-subtle text-center ${getStatusColor('unconfirmed')}`}>
+                                                        {translateStatus('unconfirmed')}
+                                                    </span>
+                                                ) : isDriver ? (
+                                                    <span className={`inline-flex items-center px-1.5 lg:px-3 py-1 lg:py-1.5 rounded-lg text-[8px] lg:text-[10px] font-black uppercase border text-center ${getStatusColor(driverProfile?.status)}`}>
+                                                        {translateStatus(driverProfile?.status)}
+                                                    </span>
+                                                ) : ( // Passenger Logic
+                                                    <span className={`inline-flex items-center px-1.5 lg:px-3 py-1 lg:py-1.5 rounded-lg text-[8px] lg:text-[10px] font-black uppercase border text-center ${getStatusColor((user.full_name && user.phone_number) ? 'validated' : 'incomplete')}`}>
+                                                        {translateStatus((user.full_name && user.phone_number) ? 'validated' : 'incomplete')}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
-                                        <td className="px-4 py-6">
-                                            <div className="flex flex-col">
-                                                <span className="text-zinc-300 font-medium text-sm">
+                                        <td className="col-span-1 px-1 lg:px-4 lg:py-6 flex flex-col items-center lg:items-start gap-2 lg:table-cell">
+                                            <span className="lg:hidden text-[9px] font-bold text-zinc-500 uppercase tracking-widest text-center text-balance leading-tight">Registro</span>
+                                            <div className="flex flex-col text-center lg:text-left w-full">
+                                                <span className="text-zinc-300 font-medium text-[9px] lg:text-sm">
                                                     {formatDateMX(user.created_at)}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-6 text-right">
+                                        <td className="hidden lg:table-cell px-2 lg:px-4 py-3 lg:py-6 lg:text-right border-t border-white/5 lg:border-none mt-2 lg:mt-0 lg:pt-6">
                                             <Link
                                                 href={`/admin/users/${user.id}`}
                                                 className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-white/5 border border-white/10 text-zinc-400 hover:bg-white hover:text-black hover:scale-110 transition-all shadow-lg active:scale-95 group/btn"
@@ -225,8 +242,8 @@ export default async function UsersPage({
                             })}
 
                             {filteredUsers.length === 0 && (
-                                <tr>
-                                    <td colSpan={5} className="px-8 py-24 text-center">
+                                <tr className="block lg:table-row">
+                                    <td colSpan={5} className="px-4 lg:px-8 py-16 lg:py-24 text-center block lg:table-cell w-full">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/5">
                                                 <Search className="h-6 w-6 text-zinc-700" />
