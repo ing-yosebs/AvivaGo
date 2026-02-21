@@ -7,15 +7,18 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const { id } = await params;
     const supabase = await createClient();
 
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const searchColumn = isUuid ? 'id' : 'user_referral_code';
+
     const { data: driver } = await supabase
-        .from('driver_profiles')
+        .from('driver_profiles_public')
         .select(`
             driver_memberships (
                 status,
                 expires_at
             )
         `)
-        .eq('id', id)
+        .eq(searchColumn, id)
         .maybeSingle();
 
     const memberships = Array.isArray(driver?.driver_memberships)
@@ -47,6 +50,9 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
     const { id } = await params;
     const supabase = await createClient();
 
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const searchColumn = isUuid ? 'id' : 'user_referral_code';
+
     // Fetch driver profile from Supabase
     const { data: driver, error } = await supabase
         .from('driver_profiles_public')
@@ -59,7 +65,7 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
                 expires_at
             )
         `)
-        .eq('id', id)
+        .eq(searchColumn, id)
         .maybeSingle();
 
     if (error) {
@@ -224,7 +230,7 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         indigenous: finalIndigenous,
         schedule: scheduleObj, // Pass full object
         bio: questionnaire.bio || driver.bio || "Este conductor aún no ha redactado su reseña profesional.",
-        phone: null,
+        phone: undefined,
         personality: {
             social: personalityOptions.social[questionnaire.social],
             driving: personalityOptions.driving[questionnaire.driving],
