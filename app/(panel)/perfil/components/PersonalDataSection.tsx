@@ -11,7 +11,7 @@ import { ComplementaryPanel } from './personal-data/ComplementaryPanel'
 import { ChangePhoneModal } from './personal-data/ChangePhoneModal'
 import { ChangeEmailModal } from './personal-data/ChangeEmailModal'
 
-export default function PersonalDataSection({ profile, onSave, saving }: any) {
+export default function PersonalDataSection({ profile, onSave, saving, hasMembership, isDriver }: any) {
     const supabase = createClient()
     const [uploading, setUploading] = useState<string | null>(null)
     const [signedUrls, setSignedUrls] = useState<{ id: string | null, idBack: string | null, address: string | null }>({
@@ -240,6 +240,8 @@ export default function PersonalDataSection({ profile, onSave, saving }: any) {
                     uploading={uploading}
                     signedUrls={signedUrls}
                     selectedCountry={selectedCountry}
+                    hasMembership={hasMembership}
+                    isDriver={isDriver}
                 />
 
                 <ComplementaryPanel

@@ -366,6 +366,8 @@ function ProfileContent() {
                             profile={profile}
                             onSave={handleSaveProfile}
                             saving={saving}
+                            hasMembership={hasMembership}
+                            isDriver={isDriver}
                         />
                     )}
 

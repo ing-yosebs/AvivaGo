@@ -17,6 +17,7 @@ export default function MissingInfoModal({ user }: MissingInfoModalProps) {
     const [isLoading, setIsLoading] = useState(true)
     const [identityVerified, setIdentityVerified] = useState(true)
     const [userPhone, setUserPhone] = useState<string | null>(null)
+    const [isDriverFree, setIsDriverFree] = useState(false)
 
     const hasEmail = user?.email && user.email.trim() !== ''
 
@@ -29,24 +30,42 @@ export default function MissingInfoModal({ user }: MissingInfoModalProps) {
             // Get phone and identity verification status
             const { data: profile } = await supabase
                 .from('users')
-                .select('phone, driver_profile:driver_profiles(verified_at)')
+                .select('roles, phone, driver_profile:driver_profiles(verified_at, driver_memberships(status, expires_at))')
                 .eq('id', user.id)
                 .single()
 
             const phone = user?.phone || profile?.phone
-            const isVerified = !!(profile as any)?.driver_profile?.verified_at
 
+            const drvProfileList = Array.isArray(profile?.driver_profile) ? profile?.driver_profile : (profile?.driver_profile ? [profile.driver_profile] : [])
+            const drvProfile = drvProfileList.length > 0 ? drvProfileList[0] as any : null
+
+            const isVerified = !!drvProfile?.verified_at
+
+            // Check membership status for driver
+            const isDriverRole = profile?.roles?.includes('driver')
+            let hasMembership = false
+
+            if (isDriverRole && drvProfile) {
+                const memberships = Array.isArray(drvProfile.driver_memberships) ? drvProfile.driver_memberships : (drvProfile.driver_memberships ? [drvProfile.driver_memberships] : [])
+                hasMembership = memberships.some((m: any) => m.status === 'active' && new Date(m.expires_at) > new Date())
+            }
+
+            const driverNeedsMembership = isDriverRole && !hasMembership
+            setIsDriverFree(driverNeedsMembership)
             setUserPhone(phone)
             setIdentityVerified(isVerified)
 
             const hasPhone = phone && phone.trim() !== ''
-            const missingData = !hasEmail || !hasPhone || !isVerified
+            // For free drivers, treat lack of membership as 'missing data' because they need it to proceed.
+            const missingData = !hasEmail || !hasPhone || !isVerified || driverNeedsMembership
 
             // Don't show if already on profile page
             const isProfilePage = pathname === '/perfil'
+            const hasSeenModal = sessionStorage.getItem(`missingInfoModalShown_${user.id}`) === 'true';
 
-            if (missingData && !isProfilePage) {
+            if (missingData && !isProfilePage && !hasSeenModal) {
                 setIsVisible(true)
+                sessionStorage.setItem(`missingInfoModalShown_${user.id}`, 'true');
             } else {
                 setIsVisible(false)
             }
@@ -84,23 +103,29 @@ export default function MissingInfoModal({ user }: MissingInfoModalProps) {
                 </div>
 
                 <div className="p-8 space-y-6">
-                    <p className="text-gray-600 text-base leading-relaxed text-center md:text-left">
-                        Para ayudar a mejorar la seguridad de la comunidad y habilitar todas las funciones de tu perfil, necesitamos validar tu{' '}
-                        {missingFields.map((field, index) => (
-                            <span key={field}>
-                                <strong className="text-[#0F2137]">{field}</strong>
-                                {index < missingFields.length - 2 ? ', ' : index === missingFields.length - 2 ? ' e ' : ''}
-                            </span>
-                        ))}
-                        .
-                    </p>
+                    {isDriverFree ? (
+                        <p className="text-gray-600 text-base leading-relaxed text-center md:text-left">
+                            Para que nuevos pasajeros te busquen y te encuentren en la plataforma, debes <strong className="text-[#0F2137]">adquirir una membresía activa</strong> y, posteriormente, <strong className="text-[#0F2137]">validar tu identidad</strong>. Si decides no hacerlo por ahora, puedes seguir trabajando de forma privada solo con los pasajeros que ya te conocen.
+                        </p>
+                    ) : (
+                        <p className="text-gray-600 text-base leading-relaxed text-center md:text-left">
+                            Para ayudar a mejorar la seguridad de la comunidad y habilitar todas las funciones de tu perfil, necesitamos validar tu{' '}
+                            {missingFields.map((field, index) => (
+                                <span key={field}>
+                                    <strong className="text-[#0F2137]">{field}</strong>
+                                    {index < missingFields.length - 2 ? ', ' : index === missingFields.length - 2 ? ' e ' : ''}
+                                </span>
+                            ))}
+                            .
+                        </p>
+                    )}
 
                     <div className="flex flex-col gap-3">
                         <button
-                            onClick={() => router.push('/perfil')}
+                            onClick={() => router.push(isDriverFree ? '/perfil?tab=payments' : '/perfil')}
                             className="w-full py-4 bg-black text-white font-bold rounded-xl hover:bg-gray-900 transition-all flex justify-center items-center gap-2 shadow-lg shadow-black/20 group"
                         >
-                            <span>Vincular y Validar Datos</span>
+                            <span>{isDriverFree ? 'Ver Opciones de Membresía' : 'Vincular y Validar Datos'}</span>
                             <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                         </button>
                     </div>

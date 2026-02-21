@@ -22,6 +22,42 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'No data provided' }, { status: 400 });
         }
 
+        // Check if user is a driver and needs membership
+        const { data: userData } = await supabaseAdmin
+            .from('users')
+            .select('roles')
+            .eq('id', user.id)
+            .single();
+
+        const isDriver = userData?.roles?.includes('driver');
+
+        if (isDriver) {
+            const { data: drvProfile } = await supabaseAdmin
+                .from('driver_profiles')
+                .select('id')
+                .eq('user_id', user.id)
+                .single();
+
+            if (!drvProfile) {
+                return NextResponse.json({ error: 'Perfil de conductor no encontrado.' }, { status: 403 });
+            }
+
+            const { data: membershipData } = await supabaseAdmin
+                .from('driver_memberships')
+                .select('status')
+                .eq('driver_profile_id', drvProfile.id)
+                .eq('status', 'active')
+                .gt('expires_at', new Date().toISOString())
+                .maybeSingle();
+
+            if (!membershipData) {
+                return NextResponse.json({
+                    error: 'Necesitas una membresía activa para validar tu identidad como conductor.',
+                    code: 'MEMBERSHIP_REQUIRED'
+                }, { status: 403 });
+            }
+        }
+
         // Helper to upload base64 image
         const uploadImage = async (base64Data: string, bucket: string, path: string) => {
             try {

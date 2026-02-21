@@ -18,6 +18,8 @@ interface IdentityPanelProps {
     uploading: string | null
     signedUrls: { id: string | null, idBack: string | null, address: string | null }
     selectedCountry: any
+    hasMembership?: boolean
+    isDriver?: boolean
 }
 
 export function IdentityPanel({
@@ -31,7 +33,9 @@ export function IdentityPanel({
     onOpenEmailModal,
     uploading,
     signedUrls,
-    selectedCountry
+    selectedCountry,
+    hasMembership,
+    isDriver
 }: IdentityPanelProps) {
     const router = useRouter()
     const isVerified = !!profile?.driver_profile?.verified_at
@@ -91,19 +95,27 @@ export function IdentityPanel({
                             <div className="flex items-start gap-3">
                                 <Shield className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                                 <div>
-                                    <h5 className="text-[10px] font-bold uppercase text-amber-600 mb-1">Identidad no verificada</h5>
+                                    <h5 className="text-[10px] font-bold uppercase text-amber-600 mb-1">
+                                        Identidad no verificada
+                                    </h5>
                                     <p className="text-xs text-amber-900 leading-relaxed font-medium">
-                                        Para habilitar todas las funciones, es necesaria tu validación.
+                                        {isDriver && !hasMembership
+                                            ? "Para validar tu identidad y habilitar todas las funciones de conductor, necesitas una membresía activa."
+                                            : "Para habilitar todas las funciones, es necesaria tu validación."}
                                     </p>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => router.push('/verify-id')}
-                                className="w-full py-3 bg-[#0F2137] text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#0F2137]/90 transition-all shadow-lg shadow-[#0F2137]/20 active:scale-[0.98]"
-                            >
-                                Iniciar Verificación
-                                <ChevronRight className="h-4 w-4" />
-                            </button>
+
+                            {/* Solo mostrar el botón si es pasajero o si es conductor CON membresía */}
+                            {(!isDriver || hasMembership) && (
+                                <button
+                                    onClick={() => router.push('/verify-id')}
+                                    className="w-full py-3 bg-[#0F2137] text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#0F2137]/90 transition-all shadow-lg shadow-[#0F2137]/20 active:scale-[0.98]"
+                                >
+                                    Iniciar Verificación
+                                    <ChevronRight className="h-4 w-4" />
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
