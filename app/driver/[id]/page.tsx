@@ -8,18 +8,21 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const supabase = await createClient();
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-    const searchColumn = isUuid ? 'id' : 'user_referral_code';
 
-    const { data: driver } = await supabase
-        .from('driver_profiles_public')
-        .select(`
-            driver_memberships (
-                status,
-                expires_at
-            )
-        `)
-        .eq(searchColumn, id)
-        .maybeSingle();
+    let query = supabase.from('driver_profiles_public').select(`
+        driver_memberships (
+            status,
+            expires_at
+        )
+    `);
+
+    if (isUuid) {
+        query = query.or(`id.eq.${id},user_id.eq.${id}`);
+    } else {
+        query = query.eq('user_referral_code', id);
+    }
+
+    const { data: driver } = await query.maybeSingle();
 
     const memberships = Array.isArray(driver?.driver_memberships)
         ? driver.driver_memberships
@@ -51,22 +54,25 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
     const supabase = await createClient();
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-    const searchColumn = isUuid ? 'id' : 'user_referral_code';
+
+    let query = supabase.from('driver_profiles_public').select(`
+        *,
+        vehicles (*),
+        driver_services (*),
+        driver_memberships (
+            status,
+            expires_at
+        )
+    `);
+
+    if (isUuid) {
+        query = query.or(`id.eq.${id},user_id.eq.${id}`);
+    } else {
+        query = query.eq('user_referral_code', id);
+    }
 
     // Fetch driver profile from Supabase
-    const { data: driver, error } = await supabase
-        .from('driver_profiles_public')
-        .select(`
-            *,
-            vehicles (*),
-            driver_services (*),
-            driver_memberships (
-                status,
-                expires_at
-            )
-        `)
-        .eq(searchColumn, id)
-        .maybeSingle();
+    const { data: driver, error } = await query.maybeSingle();
 
     if (error) {
         console.error('Error fetching driver:', JSON.stringify(error, null, 2));

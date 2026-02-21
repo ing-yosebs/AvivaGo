@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
-import { Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, Award, Copy, Check, Info, Users, Share2, DollarSign, Car } from 'lucide-react'
+import { Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, Award, Copy, Check, Info, Users, Share2, DollarSign, Car, Loader2 } from 'lucide-react'
 
 
 import { useRouter } from 'next/navigation'
@@ -100,13 +100,13 @@ export default function WalletPage() {
                 .from('users')
                 .select('full_name, avatar_url, referral_code, passenger_credits')
                 .eq('id', user.id)
-                .single()
+                .maybeSingle()
 
             const { data: driverData } = await supabase
                 .from('driver_profiles')
                 .select('id, affiliate_level, referral_count, referral_count_pending, b2c_referral_count, profile_photo_url')
                 .eq('user_id', user.id)
-                .single()
+                .maybeSingle()
 
             if (driverData) {
                 const { data: membershipData } = await supabase
@@ -126,6 +126,7 @@ export default function WalletPage() {
             setProfile({
                 ...userData,
                 ...driverData,
+                referral_code: userData?.referral_code || '',
                 display_avatar: driverData?.profile_photo_url || userData?.avatar_url
             })
             setLoading(false)
@@ -501,11 +502,17 @@ export default function WalletPage() {
                         </div>
 
                         <div className="bg-white p-4 rounded-3xl shrink-0 group/qr hover:scale-105 transition-transform duration-500 shadow-xl shadow-blue-900/5 self-center lg:self-start border border-gray-100">
-                            <img
-                                src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(referralLink)}`}
-                                alt="QR de Referido"
-                                className="w-[150px] h-[150px] lg:w-[180px] lg:h-[180px]"
-                            />
+                            {referralLink ? (
+                                <img
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(referralLink)}`}
+                                    alt="QR de Referido"
+                                    className="w-[150px] h-[150px] lg:w-[180px] lg:h-[180px]"
+                                />
+                            ) : (
+                                <div className="w-[150px] h-[150px] lg:w-[180px] lg:h-[180px] flex items-center justify-center bg-gray-50 rounded-2xl">
+                                    <Loader2 className="h-8 w-8 text-blue-600 animate-spin" />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

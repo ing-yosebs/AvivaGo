@@ -17,7 +17,7 @@ export default function MarketingSection({ profile, hasMembership, isPlataOrHigh
     }, [profile])
 
     const marketingProfile = {
-        id: profile?.id,
+        id: profile?.driver_profile?.id || profile?.id,
         full_name: profile?.full_name,
         display_avatar: profile?.driver_profile?.profile_photo_url || profile?.avatar_url,
         referral_code: profile?.referral_code

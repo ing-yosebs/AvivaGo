@@ -115,7 +115,7 @@ export async function updateSession(request: NextRequest) {
 
     // 2. Driver Dashboard Protection (Allow public profiles)
     // Matches /driver/some-id
-    const isPublicProfile = /^\/driver\/[a-zA-Z0-9-]+$/.test(path);
+    const isPublicProfile = /^\/driver\/[a-zA-Z0-9-]+\/?$/.test(path);
     // If it starts with /driver, is NOT a public profile, and user is not logged in -> Redirect
     if (path.startsWith('/driver') && !isPublicProfile && !user) {
         return NextResponse.redirect(new URL('/auth/login', request.url))
