@@ -124,7 +124,7 @@ function RegisterForm() {
             // OR we can call an update profile action now that we are logged in.
 
             // Redirect
-            window.location.href = redirectUrl || (isDriver ? '/panel/perfil' : '/dashboard')
+            window.location.href = redirectUrl || (isDriver ? '/perfil' : '/dashboard')
 
         } catch (err: any) {
             setError(err.message)
@@ -266,20 +266,22 @@ function RegisterForm() {
                             </div>
 
                             {/* Terms */}
-                            <div className="space-y-2 px-1">
-                                <div className="flex items-start gap-2">
-                                    <input
-                                        type="checkbox"
-                                        id="terms"
-                                        required
-                                        checked={termsAccepted}
-                                        onChange={(e) => setTermsAccepted(e.target.checked)}
-                                        className="mt-1 w-4 h-4 rounded border-white/10 bg-black/20 text-purple-600 focus:ring-purple-500/50"
-                                    />
-                                    <label htmlFor="terms" className="text-sm text-zinc-400 select-none cursor-pointer leading-tight">
-                                        He leído y acepto los <Link href="/legales/terminos-y-condiciones" className="text-white hover:underline">Términos y Condiciones</Link> y el <Link href="/legales/aviso-de-privacidad" className="text-white hover:underline">Aviso de Privacidad</Link>.
-                                    </label>
-                                </div>
+                            <div className="space-y-4 px-1 pt-2">
+                                <label className="flex items-start gap-4 p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all cursor-pointer group">
+                                    <div className="flex items-center h-6">
+                                        <input
+                                            type="checkbox"
+                                            id="terms"
+                                            required
+                                            checked={termsAccepted}
+                                            onChange={(e) => setTermsAccepted(e.target.checked)}
+                                            className="w-6 h-6 rounded-lg border-white/20 bg-black/40 text-purple-600 focus:ring-purple-500/50 cursor-pointer transition-all transform active:scale-95"
+                                        />
+                                    </div>
+                                    <div className="text-[14px] text-zinc-400 select-none leading-relaxed">
+                                        He leído y acepto los <Link href="/legales/terminos-y-condiciones" onClick={(e) => e.stopPropagation()} className="text-white font-medium hover:underline decoration-purple-500/50 underline-offset-4">Términos y Condiciones</Link> y el <Link href="/legales/aviso-de-privacidad" onClick={(e) => e.stopPropagation()} className="text-white font-medium hover:underline decoration-purple-500/50 underline-offset-4">Aviso de Privacidad</Link>.
+                                    </div>
+                                </label>
                             </div>
 
                             {error && (
@@ -314,8 +316,16 @@ function RegisterForm() {
                         <div className="space-y-2">
                             <input
                                 value={otpCode}
-                                onChange={(e) => setOtpCode(e.target.value)}
+                                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                onPaste={(e) => {
+                                    e.preventDefault();
+                                    const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+                                    setOtpCode(text);
+                                }}
                                 type="text"
+                                inputMode="numeric"
+                                pattern="\d*"
+                                autoComplete="one-time-code"
                                 placeholder="Código de 6 dígitos"
                                 required
                                 maxLength={6}
