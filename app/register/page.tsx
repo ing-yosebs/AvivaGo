@@ -16,6 +16,7 @@ function RegisterForm() {
     const [message, setMessage] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [showPassword, setShowPassword] = useState(false)
+    const [showSuccessModal, setShowSuccessModal] = useState(false)
 
     // Form State
     const [fullName, setFullName] = useState('')
@@ -123,8 +124,8 @@ function RegisterForm() {
             // BUT for now let's just redirect. The user can update profile later.
             // OR we can call an update profile action now that we are logged in.
 
-            // Redirect
-            window.location.href = redirectUrl || (isDriver ? '/panel/perfil' : '/dashboard')
+            // Show success modal instead of redirecting immediately
+            setShowSuccessModal(true)
 
         } catch (err: any) {
             setError(err.message)
@@ -371,6 +372,33 @@ function RegisterForm() {
                     </Link>
                 </div>
             </div>
+
+            {/* Success Modal */}
+            {showSuccessModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { }} />
+                    <div className="bg-zinc-900 border border-white/10 p-8 rounded-3xl shadow-2xl z-10 w-full max-w-sm text-center animate-in zoom-in-95 duration-300">
+                        <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <CheckCircle className="w-10 h-10 text-green-500" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-white mb-2">¡Registro Exitoso!</h3>
+                        <p className="text-zinc-400 mb-8">
+                            Tu cuenta ha sido creada correctamente. Bienvenido a AvivaGo.
+                        </p>
+                        <button
+                            onClick={() => {
+                                // If redirectUrl is specifically for the landing page or similar public pages, we should ignore it on registration success.
+                                // Actually, let's just send them to their panel directly.
+                                const isLandingRedirect = redirectUrl === '/conductores' || redirectUrl === '/pasajeros' || redirectUrl === '/';
+                                window.location.href = (redirectUrl && !isLandingRedirect) ? redirectUrl : (isDriver ? '/panel/perfil' : '/dashboard');
+                            }}
+                            className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
+                        >
+                            Ir a mi panel <ArrowRight className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+            )}
         </main>
     )
 }
