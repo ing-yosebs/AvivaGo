@@ -224,7 +224,7 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         indigenous: finalIndigenous,
         schedule: scheduleObj, // Pass full object
         bio: questionnaire.bio || driver.bio || "Este conductor aún no ha redactado su reseña profesional.",
-        phone: driver.user_phone_number || driver.whatsapp_number,
+        phone: null,
         personality: {
             social: personalityOptions.social[questionnaire.social],
             driving: personalityOptions.driving[questionnaire.driving],

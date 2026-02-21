@@ -37,7 +37,6 @@ export default function DriverBrowser() {
                     city,
                     average_rating,
                     user_full_name,
-                    user_email,
                     user_avatar_url,
                     user_address_state,
                     vehicles (
