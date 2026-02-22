@@ -36,8 +36,17 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                                 <tr key={driver.id} className="hover:bg-white/5 transition-colors group">
                                     <td className="py-4 px-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex flex-col justify-center items-center border border-emerald-500/20">
-                                                <Car className="h-4 w-4 text-emerald-400" />
+                                            <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex flex-col justify-center items-center border border-emerald-500/20 overflow-hidden group/photo relative">
+                                                {driver.signed_photo_url || driver.users?.avatar_url || driver.profile_photo_url ? (
+                                                    <img src={driver.signed_photo_url || driver.users?.avatar_url || driver.profile_photo_url} alt="" className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <>
+                                                        <Car className="h-4 w-4 text-emerald-400" />
+                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center">
+                                                            <span className="text-[7px] text-white font-bold uppercase">Sin Foto</span>
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-white font-medium text-sm">{driver.users?.full_name || 'Sin Nombre'}</span>
@@ -81,8 +90,17 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                                 <tr key={driver.id} className="hover:bg-white/5 transition-colors group">
                                     <td className="py-4 px-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-orange-500/10 flex flex-col justify-center items-center border border-orange-500/20">
-                                                <AlertTriangle className="h-4 w-4 text-orange-400" />
+                                            <div className="w-10 h-10 rounded-full bg-orange-500/10 flex flex-col justify-center items-center border border-orange-500/20 overflow-hidden group/photo relative">
+                                                {driver.signed_photo_url || driver.users?.avatar_url || driver.profile_photo_url ? (
+                                                    <img src={driver.signed_photo_url || driver.users?.avatar_url || driver.profile_photo_url} alt="" className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <>
+                                                        <AlertTriangle className="h-4 w-4 text-orange-400" />
+                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center">
+                                                            <span className="text-[7px] text-white font-bold uppercase">Sin Foto</span>
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-white font-medium text-sm">{driver.users?.full_name || 'Sin Nombre'}</span>
@@ -125,8 +143,17 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                                 <tr key={payment.id} className="hover:bg-white/5 transition-colors group">
                                     <td className="py-4 px-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-purple-500/10 flex flex-col justify-center items-center border border-purple-500/20">
-                                                <CreditCard className="h-4 w-4 text-purple-400" />
+                                            <div className="w-10 h-10 rounded-full bg-purple-500/10 flex flex-col justify-center items-center border border-purple-500/20 overflow-hidden group/photo relative">
+                                                {payment.signed_photo_url || payment.users?.avatar_url ? (
+                                                    <img src={payment.signed_photo_url || payment.users?.avatar_url} alt="" className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <>
+                                                        <CreditCard className="h-4 w-4 text-purple-400" />
+                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center">
+                                                            <span className="text-[7px] text-white font-bold uppercase">Sin Foto</span>
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-white font-medium text-sm">{payment.users?.full_name || 'Sin Nombre'}</span>
@@ -172,8 +199,17 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                                     <tr key={user.id} className="hover:bg-white/5 transition-colors group">
                                         <td className="py-4 px-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex flex-col justify-center items-center border border-blue-500/20">
-                                                    <User className="h-4 w-4 text-blue-400" />
+                                                <div className="w-10 h-10 rounded-full bg-blue-500/10 flex flex-col justify-center items-center border border-blue-500/20 overflow-hidden group/photo relative">
+                                                    {user.signed_photo_url || user.avatar_url ? (
+                                                        <img src={user.signed_photo_url || user.avatar_url} alt="" className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        <>
+                                                            <User className="h-4 w-4 text-blue-400" />
+                                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center">
+                                                                <span className="text-[7px] text-white font-bold uppercase">Sin Foto</span>
+                                                            </div>
+                                                        </>
+                                                    )}
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="text-white font-medium text-sm">{user.full_name || 'Sin Nombre'}</span>

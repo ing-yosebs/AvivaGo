@@ -5,106 +5,110 @@ import RevenueChart from '@/app/components/admin/RevenueChart'
 import ActivityChart from '@/app/components/admin/ActivityChart'
 import DashboardTables from '@/app/components/admin/DashboardTables'
 
+async function getSignedUrlsBatch(supabase: any, items: any[], bucket: string, photoKey: (item: any) => string | null) {
+    const validItems = items.filter(item => {
+        const url = photoKey(item);
+        return url && url.includes(`/storage/v1/object/public/${bucket}/`);
+    });
+
+    if (validItems.length === 0) return items;
+
+    const paths = validItems.map(item => photoKey(item)!.split(`/storage/v1/object/public/${bucket}/`)[1]);
+    const { data } = await supabase.storage.from(bucket).createSignedUrls(paths, 3600);
+
+    return items.map(item => {
+        const url = photoKey(item);
+        if (url && url.includes(`/storage/v1/object/public/${bucket}/`)) {
+            const path = url.split(`/storage/v1/object/public/${bucket}/`)[1];
+            const signed = data?.find((d: any) => d.path === path);
+            return { ...item, signed_photo_url: signed?.signedUrl || url };
+        }
+        return { ...item, signed_photo_url: url };
+    });
+}
+
 async function getDashboardData(view?: string) {
     const supabase = createAdminClient()
-
-    // 1. Total Users
-    const { count: totalUsers } = await supabase.from('users').select('*', { count: 'exact', head: true })
-
-    // 2. Active Drivers 
-    const { count: activeDrivers } = await supabase.from('driver_profiles').select('*', { count: 'exact', head: true }).eq('status', 'active')
-
-    // 3. Pending Approvals
-    const { count: pendingDrivers } = await supabase.from('driver_profiles').select('*', { count: 'exact', head: true }).eq('status', 'pending_approval')
-
-    // 4. Monthly Revenue & Pending Payments
     const now = new Date()
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-
-    const { data: revenueData } = await supabase
-        .from('unlocks')
-        .select('amount_paid')
-        .eq('status', 'completed')
-        .gte('created_at', firstDayOfMonth)
-
-    const monthlyRevenue = revenueData?.reduce((acc, curr) => acc + Number(curr.amount_paid), 0) || 0
-
-    const { count: pendingPaymentsCount } = await supabase
-        .from('pending_payments')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'open')
-
-    const estimatedPendingRevenue = (pendingPaymentsCount || 0) * 524
-
-    // 5. Chart Data (Last 6 months)
-    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-
-    // Revenue Chart Data
-    const revenueChartData = Array.from({ length: 6 }, (_, i) => {
-        const d = new Date()
-        d.setMonth(d.getMonth() - i)
-        return { name: monthNames[d.getMonth()], month: d.getMonth(), year: d.getFullYear(), total: 0 }
-    }).reverse()
-
     const sixMonthsAgo = new Date()
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)
     sixMonthsAgo.setDate(1)
 
-    const { data: historicalRevenue } = await supabase
-        .from('unlocks')
-        .select('amount_paid, created_at')
-        .eq('status', 'completed')
-        .gte('created_at', sixMonthsAgo.toISOString())
+    // Run foundational queries in parallel
+    const [
+        { count: totalUsers },
+        { count: activeDrivers },
+        { count: pendingDrivers },
+        { data: revenueData },
+        { count: pendingPaymentsCount },
+        { data: historicalRevenue },
+        { data: recentUsersForChart },
+        { data: recentDriversForChart }
+    ] = await Promise.all([
+        supabase.from('users').select('*', { count: 'exact', head: true }),
+        supabase.from('driver_profiles').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('driver_profiles').select('*', { count: 'exact', head: true }).eq('status', 'pending_approval'),
+        supabase.from('unlocks').select('amount_paid').eq('status', 'completed').gte('created_at', firstDayOfMonth),
+        supabase.from('pending_payments').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+        supabase.from('unlocks').select('amount_paid, created_at').eq('status', 'completed').gte('created_at', sixMonthsAgo.toISOString()),
+        supabase.from('users').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
+        supabase.from('driver_profiles').select('created_at').gte('created_at', sixMonthsAgo.toISOString())
+    ])
 
-    historicalRevenue?.forEach(rev => {
-        const revDate = new Date(rev.created_at)
-        const dataPoint = revenueChartData.find(d => d.month === revDate.getMonth() && d.year === revDate.getFullYear())
-        if (dataPoint) dataPoint.total += Number(rev.amount_paid)
-    })
+    const monthlyRevenue = revenueData?.reduce((acc, curr) => acc + Number(curr.amount_paid), 0) || 0
+    const estimatedPendingRevenue = (pendingPaymentsCount || 0) * 524
 
-    // Activity Chart Data
-    const activityChartData = Array.from({ length: 6 }, (_, i) => {
+    // Chart Formatting
+    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    const range = Array.from({ length: 6 }, (_, i) => {
         const d = new Date()
         d.setMonth(d.getMonth() - i)
-        return { name: monthNames[d.getMonth()], month: d.getMonth(), year: d.getFullYear(), users: 0, drivers: 0 }
+        return { month: d.getMonth(), year: d.getFullYear(), name: monthNames[d.getMonth()] }
     }).reverse()
 
-    const { data: recentUsersForChart } = await supabase
-        .from('users')
-        .select('created_at')
-        .gte('created_at', sixMonthsAgo.toISOString())
+    const revenueChartData = range.map(r => ({
+        ...r,
+        total: historicalRevenue?.filter(rev => {
+            const d = new Date(rev.created_at)
+            return d.getMonth() === r.month && d.getFullYear() === r.year
+        }).reduce((acc, curr) => acc + Number(curr.amount_paid), 0) || 0
+    }))
 
-    recentUsersForChart?.forEach(u => {
-        const date = new Date(u.created_at)
-        const dataPoint = activityChartData.find(d => d.month === date.getMonth() && d.year === date.getFullYear())
-        if (dataPoint) dataPoint.users += 1
-    })
-
-    const { data: recentDriversForChart } = await supabase
-        .from('driver_profiles')
-        .select('created_at')
-        .gte('created_at', sixMonthsAgo.toISOString())
-
-    recentDriversForChart?.forEach(d => {
-        const date = new Date(d.created_at)
-        const dataPoint = activityChartData.find(dp => dp.month === date.getMonth() && dp.year === date.getFullYear())
-        if (dataPoint) dataPoint.drivers += 1
-    })
+    const activityChartData = range.map(r => ({
+        ...r,
+        users: recentUsersForChart?.filter(u => {
+            const d = new Date(u.created_at)
+            return d.getMonth() === r.month && d.getFullYear() === r.year
+        }).length || 0,
+        drivers: recentDriversForChart?.filter(d => {
+            const dt = new Date(d.created_at)
+            return dt.getMonth() === r.month && dt.getFullYear() === r.year
+        }).length || 0
+    }))
 
     // 6. Conditional View Data fetching
     let viewData = []
     if (view === 'active_drivers') {
-        const { data } = await supabase.from('driver_profiles').select('*, users(full_name, email, phone_number)').eq('status', 'active').limit(50).order('created_at', { ascending: false })
+        const { data } = await supabase.from('driver_profiles').select('*, users(full_name, email, phone_number, avatar_url)').eq('status', 'active').limit(50).order('created_at', { ascending: false })
         viewData = data || []
+        // Batch sign
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (d) => d.profile_photo_url || d.users?.avatar_url)
     } else if (view === 'pending_drivers') {
-        const { data } = await supabase.from('driver_profiles').select('*, users(full_name, email, phone_number)').eq('status', 'pending_approval').limit(50).order('created_at', { ascending: false })
+        const { data } = await supabase.from('driver_profiles').select('*, users(full_name, email, phone_number, avatar_url)').eq('status', 'pending_approval').limit(50).order('created_at', { ascending: false })
         viewData = data || []
+        // Batch sign
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (d) => d.profile_photo_url || d.users?.avatar_url)
     } else if (view === 'pending_payments') {
-        const { data } = await supabase.from('pending_payments').select('*, users(full_name, email, phone_number)').eq('status', 'open').limit(50).order('created_at', { ascending: false })
+        const { data } = await supabase.from('pending_payments').select('*, users(full_name, email, phone_number, avatar_url)').eq('status', 'open').limit(50).order('created_at', { ascending: false })
         viewData = data || []
+        // Batch sign
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (p) => p.users?.avatar_url)
     } else if (view === 'recent_users') {
-        const { data } = await supabase.from('users').select('*, driver_profiles(status)').limit(15).order('created_at', { ascending: false })
+        const { data } = await supabase.from('users').select('*, driver_profiles(status, profile_photo_url)').limit(20).order('created_at', { ascending: false })
         viewData = data || []
+        // Batch sign
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (u) => (Array.isArray(u.driver_profiles) ? u.driver_profiles[0]?.profile_photo_url : u.driver_profiles?.profile_photo_url) || u.avatar_url)
     }
 
     return {

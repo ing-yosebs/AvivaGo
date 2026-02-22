@@ -70,24 +70,33 @@ export default function Navbar() {
                         {/* Desktop CTA */}
                         <div className="hidden md:flex items-center gap-4">
                             {session ? (
-                                <Link
-                                    href="/dashboard"
-                                    className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 pl-1.5 pr-4 py-1.5 rounded-2xl transition-all hover:shadow-soft active:scale-95 group"
-                                >
-                                    <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center border border-blue-200 text-blue-600 overflow-hidden shrink-0">
-                                        {profile?.avatar_url ? (
-                                            <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                                        ) : (
-                                            <User className="h-4 w-4" />
-                                        )}
-                                    </div>
-                                    <div className="flex flex-col text-left">
-                                        <span className="text-xs font-bold text-gray-900 leading-none mb-0.5">
-                                            {profile?.full_name?.split(' ')[0] || session.user.email?.split('@')[0]}
-                                        </span>
-                                        <span className="text-[10px] font-medium text-gray-400 leading-none">Mi Perfil</span>
-                                    </div>
-                                </Link>
+                                (() => {
+                                    const roles = profile?.roles || [];
+                                    const isAdmin = Array.isArray(roles) ? roles.includes('admin') : roles === 'admin';
+                                    const targetLink = isAdmin ? '/admin' : '/dashboard';
+                                    const targetLabel = isAdmin ? 'Panel Admin' : 'Mi Perfil';
+
+                                    return (
+                                        <Link
+                                            href={targetLink}
+                                            className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 pl-1.5 pr-4 py-1.5 rounded-2xl transition-all hover:shadow-soft active:scale-95 group"
+                                        >
+                                            <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center border border-blue-200 text-blue-600 overflow-hidden shrink-0">
+                                                {profile?.avatar_url ? (
+                                                    <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <User className="h-4 w-4" />
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col text-left">
+                                                <span className="text-xs font-bold text-gray-900 leading-none mb-0.5">
+                                                    {profile?.full_name?.split(' ')[0] || session.user.email?.split('@')[0]}
+                                                </span>
+                                                <span className="text-[10px] font-medium text-gray-400 leading-none">{targetLabel}</span>
+                                            </div>
+                                        </Link>
+                                    );
+                                })()
                             ) : (
                                 <>
                                     <Link
@@ -154,25 +163,34 @@ export default function Navbar() {
 
                             <div className="border-t border-gray-100 my-2 pt-2">
                                 {session ? (
-                                    <Link
-                                        href="/dashboard"
-                                        onClick={() => setIsMobileMenuOpen(false)}
-                                        className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100 text-gray-900 mb-2 transition-all active:scale-[0.98]"
-                                    >
-                                        <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center border border-blue-200 text-blue-600 overflow-hidden shrink-0">
-                                            {profile?.avatar_url ? (
-                                                <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <User className="h-6 w-6" />
-                                            )}
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-gray-900">
-                                                {profile?.full_name || session.user.email?.split('@')[0]}
-                                            </span>
-                                            <span className="text-xs text-gray-500">Mi Perfil y Panel</span>
-                                        </div>
-                                    </Link>
+                                    (() => {
+                                        const roles = profile?.roles || [];
+                                        const isAdmin = Array.isArray(roles) ? roles.includes('admin') : roles === 'admin';
+                                        const targetLink = isAdmin ? '/admin' : '/dashboard';
+                                        const targetLabel = isAdmin ? 'Panel Admin' : 'Mi Perfil y Panel';
+
+                                        return (
+                                            <Link
+                                                href={targetLink}
+                                                onClick={() => setIsMobileMenuOpen(false)}
+                                                className="flex items-center gap-4 p-4 rounded-2xl bg-gray-50 border border-gray-100 text-gray-900 mb-2 transition-all active:scale-[0.98]"
+                                            >
+                                                <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center border border-blue-200 text-blue-600 overflow-hidden shrink-0">
+                                                    {profile?.avatar_url ? (
+                                                        <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <User className="h-6 w-6" />
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-gray-900">
+                                                        {profile?.full_name || session.user.email?.split('@')[0]}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500">{targetLabel}</span>
+                                                </div>
+                                            </Link>
+                                        );
+                                    })()
                                 ) : (
                                     <div className="flex flex-col gap-3">
                                         <Link

@@ -38,11 +38,16 @@ export async function updateDriverStatus(driverProfileId: string, status: 'activ
 
     // 3. Prepare Update Data
     const updateData: any = { status };
-    if (status === 'rejected' || status === 'suspended') {
+
+    // Auto-adjust visibility and rejection reason based on status
+    if (status === 'active') {
+        updateData.is_visible = true; // Auto-publish on approval
+        updateData.rejection_reason = null; // Clear old rejection reasons
+    } else if (status === 'rejected' || status === 'suspended') {
+        updateData.is_visible = false; // Auto-hide on suspension/rejection
         if (reason) updateData.rejection_reason = reason;
-    } else if (status === 'active') {
-        // Clear rejection reason if activating
-        updateData.rejection_reason = null;
+    } else if (status === 'draft') {
+        updateData.is_visible = false; // Security default
     }
 
     // 4. Perform Update (Use Service Role if available to bypass RLS, otherwise fallback to session client)

@@ -61,8 +61,8 @@ export async function submitOnboarding(formData: FormData) {
                 whatsapp_number: phone,
                 city: validated.data.city,
                 profile_photo_url: user.user_metadata.avatar_url || 'https://via.placeholder.com/150',
-                status: 'active',
-                is_visible: true
+                status: 'active', // Modelo Autogestión (Free)
+                is_visible: true // Visible para links directos (QR). El buscador premium los bloquea.
             })
             .select()
             .single()

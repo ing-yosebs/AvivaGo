@@ -136,11 +136,77 @@ export async function POST(req: Request) {
                             });
                     }
 
+                    // Get payment method if possible
+                    let paymentMethod = session.payment_method_types?.[0] || 'Desconocido';
+
                     // Mark pending payment as completed
                     await supabase
                         .from('pending_payments')
-                        .update({ status: 'completed', updated_at: new Date().toISOString() })
+                        .update({
+                            status: 'completed',
+                            payment_method: paymentMethod,
+                            updated_at: new Date().toISOString()
+                        })
                         .eq('stripe_session_id', session.id);
+                }
+                break;
+            }
+
+            case 'checkout.session.expired': {
+                const session = event.data.object as Stripe.Checkout.Session;
+                console.log(`[WEBHOOK] Session expired: ${session.id}`);
+
+                await supabase
+                    .from('pending_payments')
+                    .update({
+                        status: 'expired',
+                        failure_reason: 'El usuario abandonó la página de pago',
+                        last_attempt_at: new Date().toISOString()
+                    })
+                    .eq('stripe_session_id', session.id);
+                break;
+            }
+
+            case 'checkout.session.async_payment_failed': {
+                const session = event.data.object as Stripe.Checkout.Session;
+                console.log(`[WEBHOOK] Async payment failed: ${session.id}`);
+
+                await supabase
+                    .from('pending_payments')
+                    .update({
+                        status: 'failed',
+                        failure_reason: 'El pago asíncrono no se concretó (ej. Ticket de OXXO expirado)',
+                        payment_method: session.payment_method_types?.[0] || 'oxxo',
+                        last_attempt_at: new Date().toISOString()
+                    })
+                    .eq('stripe_session_id', session.id);
+                break;
+            }
+
+            case 'payment_intent.payment_failed': {
+                const intent = event.data.object as Stripe.PaymentIntent;
+                console.log(`[WEBHOOK] Payment Intent Failed: ${intent.id}`);
+
+                try {
+                    // Stripe checkout sessions map to payment intents, let's find the session ID
+                    const sessionsList = await stripe.checkout.sessions.list({ payment_intent: intent.id });
+                    const session = sessionsList.data[0];
+
+                    if (session) {
+                        const failureReason = intent.last_payment_error?.message || 'La tarjeta fue declinada';
+                        const paymentMethod = intent.last_payment_error?.payment_method?.type || 'card';
+
+                        await supabase
+                            .from('pending_payments')
+                            .update({
+                                failure_reason: failureReason,
+                                payment_method: paymentMethod,
+                                last_attempt_at: new Date().toISOString()
+                            })
+                            .eq('stripe_session_id', session.id);
+                    }
+                } catch (e) {
+                    console.error('Failed to link payment intent to session', e);
                 }
                 break;
             }
