@@ -8,6 +8,7 @@ import StatusHistory from '@/app/components/admin/StatusHistory'
 import DriverActions from '@/app/components/admin/DriverActions'
 import PassengerActions from '@/app/components/admin/PassengerActions'
 import MembershipManager from '@/app/components/admin/MembershipManager'
+import DeleteUserButton from '@/app/components/admin/DeleteUserButton'
 import { formatDateMX } from '@/lib/dateUtils'
 
 async function getSignedUrl(supabase: any, publicUrl: string | null, bucket: string) {
@@ -136,6 +137,10 @@ export default async function UserDetailPage({
 
     // Fetch Referrer details if available
     let referrer = null
+    let totalReferralsCount = 0;
+    let driverReferralsCount = 0;
+    let passengerReferralsCount = 0;
+
     if (user.referred_by) {
         const { data: referrerData } = await supabase
             .from('users')
@@ -145,27 +150,51 @@ export default async function UserDetailPage({
         referrer = referrerData
     }
 
+    // Fetch Referrals stats (users who used this user's referral code)
+    const { data: referralsData } = await supabase
+        .from('users')
+        .select('roles')
+        .eq('referred_by', user.id);
+
+    if (referralsData) {
+        totalReferralsCount = referralsData.length;
+        driverReferralsCount = referralsData.filter(r =>
+            Array.isArray(r.roles) ? r.roles.includes('driver') : r.roles === 'driver'
+        ).length;
+        passengerReferralsCount = totalReferralsCount - driverReferralsCount;
+    }
+
 
     return (
         <div>
             {/* Header */}
-            {/* ... existing header ... */}
+            <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+                <div className="flex items-center gap-4">
+                    <Link
+                        href="/admin/users"
+                        className="p-2 rounded-xl bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 transition-all"
+                    >
+                        <ArrowLeft className="h-5 w-5" />
+                    </Link>
+                    <div>
+                        <h2 className="text-2xl font-bold text-white">Detalle de Usuario</h2>
+                        <p className="text-zinc-500 text-sm">Gestiona la información y el estado de la cuenta</p>
+                    </div>
+                </div>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Info - Left Column */}
                 <div className="lg:col-span-2 space-y-8">
 
-                    {/* ... existing sections (Personal Info, Driver Request Note, Documents, Service Info) ... */}
                     {/* Personal Information (Consolidated) */}
                     <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl">
-                        {/* ... content ... */}
                         <h3 className="text-lg font-semibold mb-6 flex items-center gap-2 text-white">
                             <User className="h-5 w-5 text-purple-400" />
                             Información Personal
                         </h3>
-                        {/* ... content ... */}
+
                         <div className="flex flex-col md:flex-row gap-8">
-                            {/* ... content ... */}
                             <div className="flex-shrink-0 space-y-4">
                                 {(isDriver ? driverProfile.profile_photo_url : user.avatar_url) ? (
                                     <div className="w-full md:w-48 aspect-square relative rounded-xl overflow-hidden border border-white/10 bg-black/20 group">
@@ -183,9 +212,8 @@ export default async function UserDetailPage({
                                     </div>
                                 )}
                             </div>
-                            {/* ... content ... */}
+
                             <div className="flex-grow space-y-5">
-                                {/* ... content ... */}
                                 <div className="grid grid-cols-1 gap-5">
                                     <div>
                                         <label className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Nombre Completo</label>
@@ -215,7 +243,7 @@ export default async function UserDetailPage({
                                             </p>
                                         </div>
                                     </div>
-                                    {/* ... content ... */}
+
                                     <div>
                                         <label className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Dirección</label>
                                         <div className="flex items-start gap-2 text-white font-medium">
@@ -271,7 +299,7 @@ export default async function UserDetailPage({
                             <Shield className="h-5 w-5 text-blue-400" />
                             Documentos Personales
                         </h3>
-                        {/* ... content ... */}
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Official ID */}
                             <div className="space-y-2">
@@ -419,7 +447,7 @@ export default async function UserDetailPage({
                             Programa de Referidos
                         </h3>
                         {referrer ? (
-                            <div className="space-y-4">
+                            <div className="space-y-4 pb-4 border-b border-white/10 mb-4">
                                 <div>
                                     <label className="block text-zinc-500 text-xs uppercase tracking-wider mb-1">Invitado por</label>
                                     <p className="text-white font-medium">{referrer.full_name}</p>
@@ -432,12 +460,28 @@ export default async function UserDetailPage({
                                 </div>
                             </div>
                         ) : (
-                            <div className="py-2">
+                            <div className="py-2 pb-4 border-b border-white/10 mb-4">
                                 <p className="text-zinc-500 italic text-sm">
                                     Este usuario no fue invitado por nadie (llegó orgánicamente).
                                 </p>
                             </div>
                         )}
+
+                        {/* Invited by this user */}
+                        <div className="space-y-3">
+                            <label className="block text-zinc-500 text-xs uppercase tracking-wider">Usuarios Invitados</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-white/5 border border-white/5 p-3 rounded-xl">
+                                    <p className="text-2xl font-bold text-white leading-none mb-1">{driverReferralsCount}</p>
+                                    <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-tight">Conductores</p>
+                                </div>
+                                <div className="bg-white/5 border border-white/5 p-3 rounded-xl">
+                                    <p className="text-2xl font-bold text-white leading-none mb-1">{passengerReferralsCount}</p>
+                                    <p className="text-zinc-500 text-[10px] uppercase font-bold tracking-tight">Pasajeros</p>
+                                </div>
+                            </div>
+                            <p className="text-[11px] text-zinc-600 text-center">Total: {totalReferralsCount} referidos</p>
+                        </div>
                     </div>
 
                     {/* Driver Actions */}
@@ -453,6 +497,17 @@ export default async function UserDetailPage({
                                 currentStatus={driverProfile.status}
                                 isVisible={driverProfile.is_visible}
                             />
+
+                            <div className="mt-4 pt-4 border-t border-white/10">
+                                <Link
+                                    href={`/driver/${driverProfile.id}`}
+                                    target="_blank"
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/10 transition-colors text-sm font-medium"
+                                >
+                                    <Activity className="h-4 w-4 text-blue-400" />
+                                    Ver Perfil Público
+                                </Link>
+                            </div>
                         </div>
                     )}
 
@@ -515,6 +570,7 @@ export default async function UserDetailPage({
 
                     {/* Vehicle Details */}
                     {isDriver && vehicle && (
+                        /* ... */
                         <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl">
                             {/* ... vehicle info ... */}
                             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2 text-white">
@@ -591,9 +647,20 @@ export default async function UserDetailPage({
                         </div>
                     )}
 
+                    {/* Danger Zone */}
+                    <div className="backdrop-blur-xl bg-red-500/5 border border-red-500/10 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 rounded-full blur-3xl -mr-16 -mt-16" />
+                        <h3 className="text-lg font-semibold mb-4 text-red-500 flex items-center gap-2">
+                            Zona de Peligro
+                        </h3>
+                        <p className="text-zinc-500 text-xs mb-6">
+                            Estas acciones son permanentes y no se pueden deshacer. Procede con extrema precaución.
+                        </p>
+                        <DeleteUserButton userId={user.id} />
+                    </div>
+
                 </div>
             </div>
         </div>
     )
 }
-

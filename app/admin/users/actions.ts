@@ -295,3 +295,55 @@ export async function extendDriverMembership(driverProfileId: string, days: numb
 
     return { success: true, message: `Membresía extendida correctamente hasta ${newExpiry.toLocaleDateString()}.` }
 }
+
+export async function deleteUser(userId: string) {
+    console.log(`[deleteUser] Iniciando acción de borrado para userId=${userId}`);
+    const supabase = await createClient()
+
+    // 1. Verify Authentication
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        console.error('[deleteUser] No autenticado');
+        return { success: false, error: 'No autenticado' }
+    }
+
+    // 2. Verify Admin Role
+    const { data: adminUser } = await supabase
+        .from('users')
+        .select('roles')
+        .eq('id', user.id)
+        .single()
+
+    const isAdmin = Array.isArray(adminUser?.roles)
+        ? adminUser.roles.includes('admin')
+        : adminUser?.roles === 'admin'
+
+    if (!isAdmin) {
+        console.error('[deleteUser] Usuario no es admin:', user.id);
+        return { success: false, error: 'No tienes permisos de administrador.' }
+    }
+
+    // 3. Perform Deletion using Service Role Key
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error('[deleteUser] SUPABASE_SERVICE_ROLE_KEY no configurada');
+        return { success: false, error: 'Configuración de servidor incompleta.' }
+    }
+
+    const adminClient = createSupabaseClient(
+        process.env.SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+    )
+
+    const { error } = await adminClient.auth.admin.deleteUser(userId)
+
+    if (error) {
+        console.error('[deleteUser] Error borrando usuario:', error)
+        return { success: false, error: 'No se pudo eliminar el usuario: ' + error.message }
+    }
+
+    console.log('[deleteUser] Borrado exitoso. Revalidando paths...');
+    revalidatePath('/admin/users')
+
+    return { success: true, message: 'Usuario eliminado permanentemente.' }
+}
