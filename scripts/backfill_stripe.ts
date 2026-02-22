@@ -6,7 +6,7 @@ import * as dotenv from 'dotenv'
 dotenv.config({ path: '.env.local' })
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-    apiVersion: '2025-01-27.acacia',
+    apiVersion: '2025-12-15.clover' as any,
 })
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string
@@ -48,8 +48,10 @@ async function main() {
             // Intentar leer el payment_intent primero
             if (session.payment_intent) {
                 const intent = session.payment_intent as Stripe.PaymentIntent
-                if (intent.payment_method?.type) {
-                    method = intent.payment_method.type
+                const paymentMethod = intent.payment_method;
+
+                if (paymentMethod && typeof paymentMethod !== 'string') {
+                    method = (paymentMethod as any).type || 'Desconocido'
                 } else {
                     method = session.payment_method_types?.[0] || 'Desconocido'
                 }
