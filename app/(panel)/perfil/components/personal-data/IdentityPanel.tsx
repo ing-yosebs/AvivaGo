@@ -100,8 +100,8 @@ export function IdentityPanel({
                                     </h5>
                                     <p className="text-xs text-amber-900 leading-relaxed font-medium">
                                         {isDriver && !hasMembership
-                                            ? "Para validar tu identidad y habilitar todas las funciones de conductor, necesitas una membresía activa."
-                                            : "Para habilitar todas las funciones, es necesaria tu validación."}
+                                            ? "Activa tu membresía para verificar tu identidad y ser visible en el catálogo público. Mientras tanto, úsala de forma interna con tus conocidos."
+                                            : "Verifica tu identidad para poder contactar a conductores de tu interés. Mientras tanto, solo podrás contactar al conductor que te invitó."}
                                     </p>
                                 </div>
                             </div>
@@ -143,32 +143,32 @@ export function IdentityPanel({
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase text-gray-500">Teléfono (WhatsApp)</label>
                         <div className="relative group">
-                            <div className="flex gap-1 relative">
-                                <div className="phone-input-container !w-fit group relative h-[46px] opacity-70 pointer-events-none">
-                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 pl-10 pr-1 text-base md:text-sm text-gray-500 font-mono">
-                                        +{phoneCode}
+                            <div className="flex items-center gap-2 min-h-[46px] p-1 px-2 bg-gray-50 rounded-xl border border-gray-200">
+                                {/* Country selector display */}
+                                <div className="flex items-center gap-1.5 shrink-0 bg-white/50 px-2 py-1 rounded-lg border border-gray-100/50 opacity-70">
+                                    <div className="pointer-events-none scale-90 origin-left">
+                                        <PhoneInput
+                                            country={'mx'}
+                                            value={phoneCode}
+                                            containerClass="!w-fit"
+                                            inputClass="!hidden"
+                                            buttonClass="!bg-transparent !border-none !p-0 !h-auto !static"
+                                            dropdownClass="!hidden"
+                                            specialLabel=""
+                                        />
                                     </div>
-                                    <PhoneInput
-                                        country={'mx'}
-                                        value={phoneCode}
-                                        containerClass="!w-[90px] !h-full"
-                                        inputClass="!hidden"
-                                        buttonClass="!bg-gray-50 !border-gray-200 !rounded-xl !h-full !w-full !static !flex !items-center !justify-start !px-3"
-                                        dropdownClass="!hidden"
-                                        specialLabel=""
-                                    />
+                                    <span className="text-xs font-mono text-gray-500">+{phoneCode}</span>
                                 </div>
 
-                                <input
-                                    value={formData.phone_number}
-                                    readOnly
-                                    disabled
-                                    className="flex-1 bg-gray-50 border border-gray-200 rounded-xl h-[46px] px-4 outline-none text-gray-500 font-mono text-base md:text-sm cursor-not-allowed"
-                                />
+                                {/* Phone number */}
+                                <span className="flex-1 text-sm font-mono text-gray-600 truncate px-1">
+                                    {formData.phone_number}
+                                </span>
 
+                                {/* Action button */}
                                 <button
                                     onClick={onOpenPhoneModal}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors shadow-sm"
+                                    className="shrink-0 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors shadow-sm"
                                 >
                                     Cambiar
                                 </button>
@@ -215,21 +215,23 @@ export function IdentityPanel({
                 <div className="space-y-6">
 
                     {/* ID / CURP */}
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase text-gray-500">
-                            {selectedCountry?.id_label || 'ID Nacional / CURP'} *
-                        </label>
-                        <div className="relative">
-                            <input
-                                name="curp"
-                                value={formData.curp}
-                                readOnly
-                                placeholder="Se completará mediante validación"
-                                className="w-full border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 bg-gray-50 cursor-not-allowed opacity-70 font-mono focus:outline-none"
-                            />
-                            <Shield className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 opacity-50 pointer-events-none" />
+                    {isVerified && (
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold uppercase text-gray-500">
+                                {selectedCountry?.id_label || 'ID Nacional / CURP'} *
+                            </label>
+                            <div className="relative">
+                                <input
+                                    name="curp"
+                                    value={formData.curp}
+                                    readOnly
+                                    placeholder="Se completará mediante validación"
+                                    className="w-full border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 bg-gray-50 cursor-not-allowed opacity-70 font-mono focus:outline-none"
+                                />
+                                <Shield className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 opacity-50 pointer-events-none" />
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Document Cards (Only if they exist) */}
                     {(formData.id_document_url || formData.id_document_back_url) && (

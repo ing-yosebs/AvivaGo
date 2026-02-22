@@ -115,7 +115,7 @@ export function AddressSection({ formData, onChange, onUpdate }: AddressSectionP
                             </Autocomplete>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2 col-span-2">
                                 <label className="text-[10px] font-bold uppercase text-gray-500">Calle *</label>
                                 <input

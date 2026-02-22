@@ -1,4 +1,4 @@
-import { ChevronDown, AlertCircle, MapPin, Search, CheckCircle2 } from 'lucide-react'
+import { ChevronDown, AlertCircle, MapPin, Search, CheckCircle2, Shield } from 'lucide-react'
 import { GoogleMap, useJsApiLoader, Autocomplete, MarkerF } from '@react-google-maps/api'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
@@ -185,52 +185,19 @@ export function ComplementaryPanel({
                                     <select
                                         name="country_code"
                                         value={formData.country_code}
-                                        onChange={(e) => {
-                                            onChange(e)
-                                            if (e.target.value === '') {
-                                                setSelectedCountry(null)
-                                                return
-                                            }
-                                            const c = countries.find(x => x.code === e.target.value)
-                                            if (c) {
-                                                setPhoneCode(c.phone_code)
-                                                setEmergencyPhoneCode(c.phone_code)
-
-                                                if (isLoaded && window.google) {
-                                                    const geocoder = new google.maps.Geocoder()
-                                                    geocoder.geocode({ address: c.name }, (results, status) => {
-                                                        if (status === 'OK' && results && results[0]) {
-                                                            const { lat, lng } = results[0].geometry.location
-                                                            onAddressUpdate({
-                                                                address_map_lat: lat(),
-                                                                address_map_lng: lng(),
-                                                                address_country: c.name,
-                                                                address_state: '',
-                                                                address_suburb: '',
-                                                                address_street: '',
-                                                                address_postal_code: '',
-                                                                address_number_ext: '',
-                                                                address_number_int: '',
-                                                                address_references: '',
-                                                                address_text: ''
-                                                            })
-                                                            setMapZoom(5)
-                                                        }
-                                                    })
-                                                }
-                                            }
-                                        }}
-                                        className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 appearance-none relative z-10"
+                                        disabled
+                                        className="w-full bg-gray-50 border border-gray-200 text-gray-500 rounded-xl px-4 py-2.5 appearance-none relative z-10 cursor-not-allowed opacity-75"
                                     >
-                                        <option value="">Selecciona tu país</option>
+                                        <option value="">Detectando país...</option>
                                         {countries.map(c => (
                                             <option key={c.code} value={c.code}>{c.name}</option>
                                         ))}
                                     </select>
                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none z-20">
-                                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                                        <Shield className="h-4 w-4 text-gray-300" />
                                     </div>
                                 </div>
+                                <p className="text-[10px] text-gray-400 italic">Este valor se asigna automáticamente basado en el teléfono con el que te registraste.</p>
                             </div>
 
                             <div className="relative z-20">

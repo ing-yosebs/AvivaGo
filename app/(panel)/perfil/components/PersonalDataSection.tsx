@@ -132,6 +132,15 @@ export default function PersonalDataSection({ profile, onSave, saving, hasMember
             setPhoneCode(pData.code);
             setEmergencyPhoneCode(eData.code);
 
+            // 1. Determine Country by Phone Code
+            let detectedCountryCode = profile.driver_profile?.country_code || '';
+            if (countries.length > 0) {
+                const countryByPhone = countries.find(c => c.phone_code === pData.code);
+                if (countryByPhone) {
+                    detectedCountryCode = countryByPhone.code;
+                }
+            }
+
             setFormData(prev => ({
                 ...prev,
                 full_name: profile.full_name || '',
@@ -159,10 +168,10 @@ export default function PersonalDataSection({ profile, onSave, saving, hasMember
                 id_document_url: profile.id_document_url || '',
                 id_document_back_url: profile.id_document_back_url || '',
                 address_proof_url: profile.address_proof_url || '',
-                country_code: profile.driver_profile?.country_code || '',
+                country_code: detectedCountryCode,
             }))
         }
-    }, [profile])
+    }, [profile, countries])
 
     useEffect(() => {
         const signUrl = async (url: string) => {

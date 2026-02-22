@@ -33,24 +33,24 @@ export function EmergencyContactSection({
                 </div>
                 <div className="space-y-2 md:w-1/2">
                     <label className="text-[10px] font-bold uppercase text-zinc-500">Teléfono</label>
-                    <div className="flex gap-1 w-full">
-                        <div className="phone-input-container !w-fit group relative h-[42px]">
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 pl-10 pr-1 text-base md:text-xs text-zinc-500 font-mono">
-                                +{emergencyPhoneCode}
+                    <div className="flex items-center gap-2 w-full bg-white border border-gray-200 rounded-xl h-[42px] px-2 focus-within:border-blue-500 transition-all">
+                        <div className="flex items-center gap-1.5 shrink-0 pr-2 border-r border-gray-100">
+                            <div className="scale-90 origin-left">
+                                <PhoneInput
+                                    country={'mx'}
+                                    preferredCountries={['mx']}
+                                    value={emergencyPhoneCode}
+                                    onChange={(val, country: any) => setEmergencyPhoneCode(country.dialCode)}
+                                    containerClass="!w-fit"
+                                    inputClass="!hidden"
+                                    buttonClass="!bg-transparent !border-none !p-0 !h-auto !static"
+                                    dropdownClass="!bg-white !text-[#0F2137] !border-gray-200 !rounded-xl"
+                                    enableSearch
+                                    disableSearchIcon
+                                    specialLabel=""
+                                />
                             </div>
-                            <PhoneInput
-                                country={'mx'}
-                                preferredCountries={['mx']}
-                                value={emergencyPhoneCode}
-                                onChange={(val, country: any) => setEmergencyPhoneCode(country.dialCode)}
-                                containerClass="!w-[86px] !h-full"
-                                inputClass="!hidden"
-                                buttonClass="!bg-white !border-gray-200 !rounded-xl !h-full !w-full !static !flex !items-center !justify-start !px-3 hover:!bg-gray-50"
-                                dropdownClass="!bg-white !text-[#0F2137] !border-gray-200 !rounded-xl"
-                                enableSearch
-                                disableSearchIcon
-                                specialLabel=""
-                            />
+                            <span className="text-xs font-mono text-zinc-500">+{emergencyPhoneCode}</span>
                         </div>
                         <input
                             name="emergency_contact_phone"
@@ -59,7 +59,7 @@ export function EmergencyContactSection({
                                 const val = e.target.value.replace(/\D/g, '');
                                 onChange({ target: { name: 'emergency_contact_phone', value: val } });
                             }}
-                            className="flex-1 bg-white border border-gray-200 text-[#0F2137] rounded-xl h-[42px] px-4 outline-none focus:border-blue-500 font-mono text-base md:text-sm placeholder:text-gray-400 transition-all"
+                            className="flex-1 bg-transparent border-none outline-none text-[#0F2137] font-mono text-base md:text-sm placeholder:text-gray-400"
                         />
                     </div>
                 </div>
