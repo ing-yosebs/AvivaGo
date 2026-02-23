@@ -39,6 +39,25 @@ function RegisterForm() {
         if (ref) setInvitationCode(ref)
     }, [searchParams])
 
+    const [userCountry, setUserCountry] = useState('mx')
+
+    // Detect user country by IP
+    useEffect(() => {
+        const detectCountry = async () => {
+            try {
+                const response = await fetch('https://ipapi.co/json/')
+                const data = await response.json()
+                if (data.country_code) {
+                    setUserCountry(data.country_code.toLowerCase())
+                }
+            } catch (err) {
+                console.error('Error detecting country:', err)
+                // Fallback is already 'mx'
+            }
+        }
+        detectCountry()
+    }, [])
+
     // Force role mode if specified in URL
     useEffect(() => {
         if (forcedRole) setIsDriver(true)
@@ -217,13 +236,15 @@ function RegisterForm() {
                                     </div>
                                     <div className="pl-10">
                                         <PhoneInput
-                                            country={'mx'}
+                                            country={userCountry}
                                             value={phone}
                                             onChange={setPhone}
                                             inputClass="!w-full !bg-black/20 !border !border-white/10 !rounded-xl !py-3 !text-white !h-[46px] !pl-[48px] focus:!border-purple-500/50 focus:!ring-1 focus:!ring-purple-500/50 transition-all placeholder:!text-zinc-600"
                                             buttonClass="!bg-transparent !border-none !left-0"
                                             dropdownClass="!bg-zinc-900 !text-white !border-white/10"
-                                            preferredCountries={['mx', 'us', 'co']}
+                                            preferredCountries={['mx', 'us', 'co', 'pe']}
+                                            countryCodeEditable={false}
+                                            enableSearch
                                         />
                                     </div>
                                 </div>
