@@ -1,4 +1,4 @@
-import { User, Shield, ChevronDown } from 'lucide-react'
+import { User, Shield, ChevronDown, Pencil } from 'lucide-react'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
 
@@ -74,13 +74,14 @@ export function BasicInfoSection({
             </div>
 
             <div className="space-y-2">
-                <div className="flex justify-between items-center px-1">
+                <div className="flex items-center gap-2 px-1">
                     <label className="text-[10px] font-bold uppercase text-gray-500">Correo Electrónico *</label>
                     <button
                         onClick={onOpenEmailModal}
-                        className="text-[10px] font-bold text-blue-600 hover:text-blue-700 uppercase tracking-tight"
+                        className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[9px] font-bold border border-blue-100 hover:bg-blue-100 transition-colors uppercase tracking-tight"
                     >
-                        {formData.email ? '[ Cambiar ]' : '[ Agregar ]'}
+                        <Pencil className="h-2.5 w-2.5" />
+                        {formData.email ? 'Cambiar' : 'Agregar'}
                     </button>
                 </div>
                 <div className="flex items-center gap-3 min-h-[46px] px-4 bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
@@ -89,13 +90,14 @@ export function BasicInfoSection({
                 <p className="text-[10px] text-gray-400 italic px-1">Validado y protegido para tu seguridad.</p>
             </div>
             <div className="space-y-2">
-                <div className="flex justify-between items-center px-1">
+                <div className="flex items-center gap-2 px-1">
                     <label className="text-[10px] font-bold uppercase text-gray-500">Teléfono (WhatsApp) *</label>
                     <button
                         onClick={onOpenPhoneModal}
-                        className="text-[10px] font-bold text-blue-600 hover:text-blue-700 uppercase tracking-tight"
+                        className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[9px] font-bold border border-blue-100 hover:bg-blue-100 transition-colors uppercase tracking-tight"
                     >
-                        [ Cambiar ]
+                        <Pencil className="h-2.5 w-2.5" />
+                        Cambiar
                     </button>
                 </div>
                 <div className="flex items-center gap-2 min-h-[46px] px-4 bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">

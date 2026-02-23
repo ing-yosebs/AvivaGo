@@ -125,27 +125,39 @@ export function IdentityPanel({
                 {/* Personal Info Column */}
                 <div className="space-y-6">
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase text-gray-500">Correo Electrónico</label>
+                        <div className="flex items-center gap-2 px-1">
+                            <label className="text-[10px] font-bold uppercase text-gray-500">Correo Electrónico</label>
+                            <button
+                                onClick={onOpenEmailModal}
+                                className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[9px] font-bold border border-blue-100 hover:bg-blue-100 transition-colors uppercase tracking-tight"
+                            >
+                                <Pencil className="h-2.5 w-2.5" />
+                                {formData.email ? 'Cambiar' : 'Agregar'}
+                            </button>
+                        </div>
                         <div className="relative group">
-                            <div className="flex items-center gap-3 h-[46px] px-4 bg-gray-50 rounded-xl border border-gray-200 relative">
+                            <div className="flex items-center gap-3 h-[46px] px-4 bg-gray-50 rounded-xl border border-gray-200 relative overflow-hidden">
                                 <Mail className="h-4 w-4 text-gray-400" />
-                                <span className="text-sm text-gray-600 truncate flex-1">{formData.email || 'Sin correo'}</span>
-                                <button
-                                    onClick={onOpenEmailModal}
-                                    className="px-3 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors shadow-sm whitespace-nowrap"
-                                >
-                                    {formData.email ? 'Cambiar' : 'Agregar'}
-                                </button>
+                                <span className="text-sm text-gray-600 flex-1 min-w-0 break-all">{formData.email || 'Sin correo'}</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase text-gray-500">Teléfono (WhatsApp)</label>
+                        <div className="flex items-center gap-2 px-1">
+                            <label className="text-[10px] font-bold uppercase text-gray-500">Teléfono (WhatsApp)</label>
+                            <button
+                                onClick={onOpenPhoneModal}
+                                className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[9px] font-bold border border-blue-100 hover:bg-blue-100 transition-colors uppercase tracking-tight"
+                            >
+                                <Pencil className="h-2.5 w-2.5" />
+                                Cambiar
+                            </button>
+                        </div>
                         <div className="relative group">
-                            <div className="flex items-center gap-2 min-h-[46px] p-1 px-2 bg-gray-50 rounded-xl border border-gray-200">
+                            <div className="flex items-center gap-2 min-h-[46px] px-4 bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
                                 {/* Country selector display */}
-                                <div className="flex items-center gap-1.5 shrink-0 bg-white/50 px-2 py-1 rounded-lg border border-gray-100/50 opacity-70">
+                                <div className="flex items-center gap-1.5 shrink-0 opacity-70">
                                     <div className="pointer-events-none scale-90 origin-left">
                                         <PhoneInput
                                             country={'mx'}
@@ -157,21 +169,13 @@ export function IdentityPanel({
                                             specialLabel=""
                                         />
                                     </div>
-                                    <span className="text-xs font-mono text-gray-500">+{phoneCode}</span>
+                                    <span className="text-sm font-mono text-gray-500">+{phoneCode}</span>
                                 </div>
 
                                 {/* Phone number */}
-                                <span className="flex-1 text-sm font-mono text-gray-600 truncate px-1">
+                                <span className="flex-1 text-sm font-mono text-gray-600 min-w-0 break-all">
                                     {formData.phone_number}
                                 </span>
-
-                                {/* Action button */}
-                                <button
-                                    onClick={onOpenPhoneModal}
-                                    className="shrink-0 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors shadow-sm"
-                                >
-                                    Cambiar
-                                </button>
                             </div>
                         </div>
                     </div>
