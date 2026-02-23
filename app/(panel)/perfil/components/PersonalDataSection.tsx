@@ -96,7 +96,7 @@ export default function PersonalDataSection({ profile, onSave, saving, hasMember
 
             const splitPhone = (full: string) => {
                 if (!full) return { code: '52', num: '' };
-                const clean = full.replace(/[^\D+]/g, '');
+                const clean = full.replace(/[^\d+]/g, '');
 
                 const commonCodes = ['52', '1', '57', '54', '34', '56', '51', '7', '593', '506', '598', '507', '502', '58', '591', '595', '503', '504', '505', '53', '55'];
 

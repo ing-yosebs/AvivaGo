@@ -83,8 +83,8 @@ export function BasicInfoSection({
                         {formData.email ? '[ Cambiar ]' : '[ Agregar ]'}
                     </button>
                 </div>
-                <div className="flex items-center gap-3 min-h-[46px] px-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <span className="text-sm text-gray-500 truncate flex-1">{formData.email || 'Sin correo'}</span>
+                <div className="flex items-center gap-3 min-h-[46px] px-4 bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+                    <span className="text-sm text-gray-500 flex-1 min-w-0 break-all">{formData.email || 'Sin correo'}</span>
                 </div>
                 <p className="text-[10px] text-gray-400 italic px-1">Validado y protegido para tu seguridad.</p>
             </div>
@@ -98,7 +98,7 @@ export function BasicInfoSection({
                         [ Cambiar ]
                     </button>
                 </div>
-                <div className="flex items-center gap-2 min-h-[46px] px-4 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="flex items-center gap-2 min-h-[46px] px-4 bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
                     {/* Country selector display */}
                     <div className="flex items-center gap-1.5 shrink-0 opacity-70">
                         <div className="pointer-events-none scale-90 origin-left">
@@ -116,7 +116,7 @@ export function BasicInfoSection({
                     </div>
 
                     {/* Phone number */}
-                    <span className="flex-1 text-sm font-mono text-gray-600 truncate">
+                    <span className="flex-1 text-sm font-mono text-gray-600 min-w-0 break-all">
                         {formData.phone_number}
                     </span>
                 </div>
