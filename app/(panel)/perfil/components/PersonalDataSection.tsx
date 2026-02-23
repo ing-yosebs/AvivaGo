@@ -96,11 +96,12 @@ export default function PersonalDataSection({ profile, onSave, saving, hasMember
 
             const splitPhone = (full: string) => {
                 if (!full) return { code: '52', num: '' };
-                const clean = full.replace(/[^\d+]/g, '');
+                const clean = full.replace(/[^\D+]/g, '');
+
+                const commonCodes = ['52', '1', '57', '54', '34', '56', '51', '7', '593', '506', '598', '507', '502', '58', '591', '595', '503', '504', '505', '53', '55'];
 
                 if (clean.startsWith('+')) {
                     const withoutPlus = clean.substring(1);
-                    const commonCodes = ['52', '1', '57', '54', '34', '56', '51', '7'];
                     let code = '52';
                     let num = clean;
                     let found = false;
@@ -119,10 +120,19 @@ export default function PersonalDataSection({ profile, onSave, saving, hasMember
                     return { code, num };
                 }
 
+                // If no +, try to see if it starts with a known code
                 let dirtyNum = clean.replace(/\D/g, '');
-                if (dirtyNum.startsWith('52') && dirtyNum.length === 12) {
-                    return { code: '52', num: dirtyNum.substring(2) };
+                for (const c of commonCodes) {
+                    if (dirtyNum.startsWith(c) && dirtyNum.length > c.length + 8) {
+                        return { code: c, num: dirtyNum.substring(c.length) };
+                    }
                 }
+
+                // Fallback for Mexico (10 digits)
+                if (dirtyNum.length === 10) {
+                    return { code: '52', num: dirtyNum };
+                }
+
                 return { code: '52', num: dirtyNum };
             };
 
@@ -140,6 +150,7 @@ export default function PersonalDataSection({ profile, onSave, saving, hasMember
                     detectedCountryCode = countryByPhone.code;
                 }
             }
+
 
             setFormData(prev => ({
                 ...prev,

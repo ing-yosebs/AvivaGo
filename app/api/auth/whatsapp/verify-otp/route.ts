@@ -13,7 +13,8 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Phone and code are required' }, { status: 400 });
         }
 
-        const cleanPhone = phone.replace(/\D/g, '');
+        const digitsOnly = phone.replace(/\D/g, '');
+        const phoneWithPlus = '+' + digitsOnly;
 
         // Use provided password or generate random if missing (should not happen in normal flow)
         const finalPassword = password || `Pwd_${Math.random().toString(36).slice(-8)}_${Date.now()}`;
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
         const { data: records, error: dbError } = await supabaseAdmin
             .from('verification_codes')
             .select('*')
-            .eq('phone', cleanPhone)
+            .eq('phone', digitsOnly)
             .eq('code', code)
             .gt('expires_at', new Date().toISOString())
             .order('created_at', { ascending: false })
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
 
         // 1. Try creating user in Auth
         const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-            phone: cleanPhone,
+            phone: phoneWithPlus,
             password: finalPassword,
             email_confirm: true,
             phone_confirm: true,
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
 
             // 2. If exists, we MUST find the existing ID to update password and sync public
             // Strategy: Check public.users first (fastest)
-            const { data: existingUser } = await supabaseAdmin.from('users').select('id, roles').eq('phone_number', cleanPhone).single();
+            const { data: existingUser } = await supabaseAdmin.from('users').select('id, roles').eq('phone_number', phoneWithPlus).single();
             publicUser = existingUser;
 
             if (publicUser) {
@@ -76,8 +77,8 @@ export async function POST(request: Request) {
 
                 // Try finding by Phone OR Email (since we enforce a specific dummy email format)
                 const authUser = userList?.users.find(u =>
-                    u.phone === cleanPhone ||
-                    u.phone === `+${cleanPhone}`
+                    u.phone === digitsOnly ||
+                    u.phone === phoneWithPlus
                 );
 
                 if (authUser) {
@@ -124,7 +125,7 @@ export async function POST(request: Request) {
                 .from('users')
                 .upsert({
                     id: userId,
-                    phone_number: cleanPhone,
+                    phone_number: phoneWithPlus,
                     full_name: fullName || 'Usuario Nuevo',
                     roles: currentRoles,
                 }, { onConflict: 'id' });
@@ -147,7 +148,7 @@ export async function POST(request: Request) {
 
         // 4. Sign In
         const { error: signInError } = await supabase.auth.signInWithPassword({
-            phone: cleanPhone,
+            phone: phoneWithPlus,
             password: finalPassword
         });
 
@@ -159,7 +160,7 @@ export async function POST(request: Request) {
         }
 
         // Cleanup
-        await supabaseAdmin.from('verification_codes').delete().eq('phone', cleanPhone);
+        await supabaseAdmin.from('verification_codes').delete().eq('phone', digitsOnly);
 
         return NextResponse.json({ success: true, message: 'Verified' });
 

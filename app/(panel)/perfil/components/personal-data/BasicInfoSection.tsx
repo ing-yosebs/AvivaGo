@@ -93,7 +93,7 @@ export function BasicInfoSection({
                     <div className="flex items-center gap-1.5 shrink-0 bg-white/50 px-2 py-1 rounded-lg border border-gray-100/50 opacity-70">
                         <div className="pointer-events-none scale-90 origin-left">
                             <PhoneInput
-                                country={'mx'}
+                                country={formData.country_code?.toLowerCase() || 'mx'}
                                 value={phoneCode}
                                 containerClass="!w-fit"
                                 inputClass="!hidden"
