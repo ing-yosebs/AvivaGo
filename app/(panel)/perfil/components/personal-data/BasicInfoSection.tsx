@@ -74,23 +74,33 @@ export function BasicInfoSection({
             </div>
 
             <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase text-gray-500">Correo Electrónico *</label>
-                <div className="flex items-center gap-3 min-h-[46px] px-4 bg-gray-50 rounded-xl border border-gray-200">
-                    <span className="text-sm text-gray-500 truncate flex-1">{formData.email || 'Sin correo'}</span>
+                <div className="flex justify-between items-center px-1">
+                    <label className="text-[10px] font-bold uppercase text-gray-500">Correo Electrónico *</label>
                     <button
                         onClick={onOpenEmailModal}
-                        className="shrink-0 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors shadow-sm"
+                        className="text-[10px] font-bold text-blue-600 hover:text-blue-700 uppercase tracking-tight"
                     >
-                        {formData.email ? 'Cambiar' : 'Agregar'}
+                        {formData.email ? '[ Cambiar ]' : '[ Agregar ]'}
                     </button>
                 </div>
-                <p className="text-[10px] text-gray-400 italic">Validado y protegido. Para cambiarlo requieres verificación.</p>
+                <div className="flex items-center gap-3 min-h-[46px] px-4 bg-gray-50 rounded-xl border border-gray-200">
+                    <span className="text-sm text-gray-500 truncate flex-1">{formData.email || 'Sin correo'}</span>
+                </div>
+                <p className="text-[10px] text-gray-400 italic px-1">Validado y protegido para tu seguridad.</p>
             </div>
             <div className="space-y-2">
-                <label className="text-[10px] font-bold uppercase text-gray-500">Teléfono de contacto (WhatsApp) *</label>
-                <div className="flex items-center gap-2 min-h-[46px] p-1 px-2 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="flex justify-between items-center px-1">
+                    <label className="text-[10px] font-bold uppercase text-gray-500">Teléfono (WhatsApp) *</label>
+                    <button
+                        onClick={onOpenPhoneModal}
+                        className="text-[10px] font-bold text-blue-600 hover:text-blue-700 uppercase tracking-tight"
+                    >
+                        [ Cambiar ]
+                    </button>
+                </div>
+                <div className="flex items-center gap-2 min-h-[46px] px-4 bg-gray-50 rounded-xl border border-gray-200">
                     {/* Country selector display */}
-                    <div className="flex items-center gap-1.5 shrink-0 bg-white/50 px-2 py-1 rounded-lg border border-gray-100/50 opacity-70">
+                    <div className="flex items-center gap-1.5 shrink-0 opacity-70">
                         <div className="pointer-events-none scale-90 origin-left">
                             <PhoneInput
                                 country={formData.country_code?.toLowerCase() || 'mx'}
@@ -102,23 +112,15 @@ export function BasicInfoSection({
                                 specialLabel=""
                             />
                         </div>
-                        <span className="text-xs font-mono text-gray-500">+{phoneCode}</span>
+                        <span className="text-sm font-mono text-gray-500">+{phoneCode}</span>
                     </div>
 
                     {/* Phone number */}
-                    <span className="flex-1 text-sm font-mono text-gray-600 truncate px-1">
+                    <span className="flex-1 text-sm font-mono text-gray-600 truncate">
                         {formData.phone_number}
                     </span>
-
-                    {/* Action button */}
-                    <button
-                        onClick={onOpenPhoneModal}
-                        className="shrink-0 px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-blue-600 hover:bg-blue-50 transition-colors shadow-sm"
-                    >
-                        Cambiar
-                    </button>
                 </div>
-                <p className="text-[10px] text-gray-400 italic">Por seguridad, para cambiar tu número debes verificar el nuevo celular.</p>
+                <p className="text-[10px] text-gray-400 italic px-1">Para cambiar tu número debes verificar el nuevo celular.</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
