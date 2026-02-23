@@ -127,7 +127,7 @@ export default function Navbar() {
                             {/* Mobile Menu Toggle */}
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                                className="relative z-50 p-2 rounded-xl bg-gray-50 text-gray-900 border border-gray-100 transition-colors hover:bg-gray-100"
+                                className="sm:hidden relative z-50 p-2 rounded-xl bg-gray-50 text-gray-900 border border-gray-100 transition-colors hover:bg-gray-100"
                                 aria-label="Toggle menu"
                             >
                                 {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
