@@ -37,7 +37,7 @@ export default function OnboardingForm() {
                 }
 
                 setTimeout(() => {
-                    router.push('/driver/dashboard');
+                    router.push('/perfil?tab=driver_dashboard');
                     router.refresh();
                 }, 2000);
             }

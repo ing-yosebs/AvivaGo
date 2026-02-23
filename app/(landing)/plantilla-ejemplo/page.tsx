@@ -34,7 +34,7 @@ export default function PlantillaLanding() {
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                            <Link href="/register/driver" className="w-full sm:w-auto">
+                            <Link href="/register?role=driver" className="w-full sm:w-auto">
                                 <button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl text-lg font-bold shadow-lg shadow-blue-200 transition-all hover:scale-105 flex items-center justify-center gap-2">
                                     Registrarme Ahora <ArrowRight size={20} />
                                 </button>
@@ -122,7 +122,7 @@ export default function PlantillaLanding() {
                         <p className="text-blue-100 text-xl max-w-2xl mx-auto mb-10">
                             Únete a la comunidad de conductores más exclusiva de México.
                         </p>
-                        <Link href="/register/driver">
+                        <Link href="/register?role=driver">
                             <button className="bg-white text-blue-600 hover:bg-slate-100 px-10 py-5 rounded-xl text-lg font-bold shadow-xl transition-all hover:shadow-2xl hover:-translate-y-1">
                                 Crear mi Cuenta Gratis
                             </button>

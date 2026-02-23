@@ -419,7 +419,7 @@ function RegisterForm() {
                                 // If redirectUrl is specifically for the landing page or similar public pages, we should ignore it on registration success.
                                 // Actually, let's just send them to their panel directly.
                                 const isLandingRedirect = redirectUrl === '/conductores' || redirectUrl === '/pasajeros' || redirectUrl === '/';
-                                window.location.href = (redirectUrl && !isLandingRedirect) ? redirectUrl : (isDriver ? '/panel/perfil' : '/dashboard');
+                                window.location.href = (redirectUrl && !isLandingRedirect) ? redirectUrl : (isDriver ? '/perfil?tab=driver_dashboard' : '/dashboard');
                             }}
                             className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
                         >

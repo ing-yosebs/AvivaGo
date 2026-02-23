@@ -67,7 +67,7 @@ export async function submitReview(params: SubmitReviewParams) {
     }
 
     revalidatePath(`/driver/${params.driver_profile_id}`)
-    revalidatePath('/panel/comunidad')
+    revalidatePath('/comunidad')
     revalidatePath('/perfil')
     return { success: true }
 }

@@ -98,7 +98,7 @@ export default function LandingTuNegocio() {
                                 La única plataforma donde el <span className="text-slate-950 font-bold">100% del viaje es para ti</span>. Sin comisiones, sin algoritmos ocultos. Solo tú, tu servicio y tus clientes.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                                <Link href="/register/driver" className="w-full sm:w-auto">
+                                <Link href="/register?role=driver" className="w-full sm:w-auto">
                                     <button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-10 py-5 rounded-2xl text-xl font-black shadow-2xl shadow-blue-200 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3">
                                         Obtener mi Web Personal y Certificación <ArrowRight size={24} />
                                     </button>
@@ -384,7 +384,7 @@ export default function LandingTuNegocio() {
                         <p className="text-xl md:text-2xl text-slate-600 max-w-2xl mx-auto mb-12 font-medium">
                             Únete a la Red de Certeza hoy mismo y empieza a construir el negocio que siempre soñaste.
                         </p>
-                        <Link href="/register/driver">
+                        <Link href="/register?role=driver">
                             <button className="bg-blue-600 hover:bg-slate-900 text-white px-12 py-6 rounded-2xl text-2xl font-black shadow-xl transition-all hover:scale-110 flex items-center justify-center gap-4 mx-auto group">
                                 Únete a la Red de Certeza <ArrowRight size={28} className="group-hover:translate-x-2 transition-transform" />
                             </button>
