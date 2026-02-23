@@ -29,6 +29,9 @@ export interface DriverProfile {
     payment_methods?: string[];
     payment_link?: string;
     hasAcceptedQuote?: boolean;
+    heroPhotos?: string[];
+    profilePhotos?: string[];
+    selfiePhoto?: string;
     vehicleSidePhoto?: string;
     vehiclePhotos?: string[];
     passenger_capacity?: number;

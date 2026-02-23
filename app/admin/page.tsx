@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { Users, Car, DollarSign, Activity, AlertTriangle, ArrowRight } from 'lucide-react'
+import { Users, Car, DollarSign, Activity, AlertTriangle, ArrowRight, Shield } from 'lucide-react'
 import Link from 'next/link'
 import RevenueChart from '@/app/components/admin/RevenueChart'
 import ActivityChart from '@/app/components/admin/ActivityChart'
@@ -42,6 +42,7 @@ async function getDashboardData(view?: string) {
         { count: pendingDrivers },
         { data: revenueData },
         { count: pendingPaymentsCount },
+        { count: abandonedPaymentsCount },
         { data: historicalRevenue },
         { data: recentUsersForChart },
         { data: recentDriversForChart }
@@ -51,6 +52,7 @@ async function getDashboardData(view?: string) {
         supabase.from('driver_profiles').select('*', { count: 'exact', head: true }).eq('status', 'pending_approval'),
         supabase.from('unlocks').select('amount_paid').eq('status', 'completed').gte('created_at', firstDayOfMonth),
         supabase.from('pending_payments').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+        supabase.from('pending_payments').select('*', { count: 'exact', head: true }).in('status', ['expired', 'failed']),
         supabase.from('unlocks').select('amount_paid, created_at').eq('status', 'completed').gte('created_at', sixMonthsAgo.toISOString()),
         supabase.from('users').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
         supabase.from('driver_profiles').select('created_at').gte('created_at', sixMonthsAgo.toISOString())
@@ -104,6 +106,11 @@ async function getDashboardData(view?: string) {
         viewData = data || []
         // Batch sign
         viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (p) => p.users?.avatar_url)
+    } else if (view === 'abandoned_payments') {
+        const { data } = await supabase.from('pending_payments').select('*, users(full_name, email, phone_number, avatar_url)').in('status', ['expired', 'failed']).limit(50).order('created_at', { ascending: false })
+        viewData = data || []
+        // Batch sign
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (p) => p.users?.avatar_url)
     } else if (view === 'recent_users') {
         const { data } = await supabase.from('users').select('*, driver_profiles(status, profile_photo_url)').limit(20).order('created_at', { ascending: false })
         viewData = data || []
@@ -117,6 +124,7 @@ async function getDashboardData(view?: string) {
         pendingDrivers: pendingDrivers || 0,
         monthlyRevenue,
         pendingPaymentsCount: pendingPaymentsCount || 0,
+        abandonedPaymentsCount: abandonedPaymentsCount || 0,
         estimatedPendingRevenue,
         revenueChartData,
         activityChartData,
@@ -201,11 +209,24 @@ export default async function AdminDashboard({
                 </Link>
 
                 {/* Pending Approvals KPI */}
+                <Link href="/admin?view=abandoned_payments" scroll={false} className={`block backdrop-blur-xl border rounded-[2rem] p-6 shadow-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 ${view === 'abandoned_payments' ? 'bg-red-500/10 border-red-500/50 scale-[1.02]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
+                    <div className={`absolute inset-0 transition-opacity ${stats.abandonedPaymentsCount > 0 && view !== 'abandoned_payments' ? 'bg-red-500/5 opacity-100' : 'opacity-0'}`} />
+                    <div className="flex items-center gap-4 relative z-10">
+                        <div className={`p-4 rounded-2xl border transition-colors ${view === 'abandoned_payments' ? 'bg-red-500/20 border-red-400/30' : 'bg-red-500/10 border-red-500/20 group-hover:bg-red-500/20'}`}>
+                            <AlertTriangle className="h-7 w-7 text-red-400" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors">Pagos Abandonados</p>
+                            <p className="text-3xl font-black text-white tracking-tight">{stats.abandonedPaymentsCount}</p>
+                        </div>
+                    </div>
+                </Link>
+
                 <Link href="/admin?view=pending_drivers" scroll={false} className={`block backdrop-blur-xl border rounded-[2rem] p-6 shadow-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 ${view === 'pending_drivers' ? 'bg-orange-500/10 border-orange-500/50 scale-[1.02]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
                     <div className={`absolute inset-0 transition-opacity ${stats.pendingDrivers > 0 && view !== 'pending_drivers' ? 'bg-orange-500/5 opacity-100' : 'opacity-0'}`} />
                     <div className="flex items-center gap-4 relative z-10">
                         <div className={`p-4 rounded-2xl border transition-colors ${view === 'pending_drivers' ? 'bg-orange-500/20 border-orange-400/30' : 'bg-orange-500/10 border-orange-500/20 group-hover:bg-orange-500/20'}`}>
-                            <AlertTriangle className="h-7 w-7 text-orange-400" />
+                            <Shield className="h-7 w-7 text-orange-400" />
                         </div>
                         <div>
                             <p className="text-sm font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors">Req. Aprobación</p>

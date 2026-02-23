@@ -487,7 +487,12 @@ export default function VehiclesSection({ vehicles, onAdd, hasMembership }: any)
                                                 className={`relative w-full aspect-video bg-gray-50 border border-gray-200 rounded-xl overflow-hidden group cursor-pointer hover:border-blue-500 ${isLocked ? 'opacity-70 grayscale-[0.5]' : ''}`}
                                             >
                                                 {form.photos[idx] ? (
-                                                    <img src={form.photos[idx]} className="w-full h-full object-cover" />
+                                                    <>
+                                                        <img src={form.photos[idx]} className="w-full h-full object-cover opacity-80" />
+                                                        <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1">
+                                                            <span className="text-[8px] text-white font-bold uppercase">{label}</span>
+                                                        </div>
+                                                    </>
                                                 ) : (
                                                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/5 transition-colors group-hover:bg-blue-600/10">
                                                         {isLocked ? (

@@ -128,52 +128,101 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                 )
 
             case 'pending_payments':
+            case 'abandoned_payments':
                 return (
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-white/10 text-zinc-500 text-xs uppercase tracking-wider">
                                 <th className="pb-4 font-semibold px-4">Usuario</th>
                                 <th className="pb-4 font-semibold px-4">Fecha de Creación</th>
-                                <th className="pb-4 font-semibold px-4">Monto Estimado</th>
-                                <th className="pb-4 font-semibold px-4 text-right">Estado Sesión</th>
+                                <th className="pb-4 font-semibold px-4">Estado</th>
+                                <th className="pb-4 font-semibold px-4 text-right">Contacto</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
-                            {data.map((payment) => (
-                                <tr key={payment.id} className="hover:bg-white/5 transition-colors group">
-                                    <td className="py-4 px-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-purple-500/10 flex flex-col justify-center items-center border border-purple-500/20 overflow-hidden group/photo relative">
-                                                {payment.signed_photo_url || payment.users?.avatar_url ? (
-                                                    <img src={payment.signed_photo_url || payment.users?.avatar_url} alt="" className="h-full w-full object-cover" />
-                                                ) : (
-                                                    <>
-                                                        <CreditCard className="h-4 w-4 text-purple-400" />
-                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/photo:opacity-100 transition-opacity flex items-center justify-center">
-                                                            <span className="text-[7px] text-white font-bold uppercase">Sin Foto</span>
+                            {data.map((payment) => {
+                                const phone = payment.users?.phone_number
+                                const whatsappUrl = phone ? `https://wa.me/${phone.replace(/\D/g, '')}` : null
+
+                                return (
+                                    <tr key={payment.id} className="hover:bg-white/5 transition-colors group">
+                                        <td className="py-4 px-4">
+                                            {payment.driver_profile_id ? (
+                                                <Link
+                                                    href={`/driver/${payment.driver_profile_id}`}
+                                                    target="_blank"
+                                                    className="hover:opacity-80 transition-opacity block group/link"
+                                                    title="Ver Perfil Público"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full bg-purple-500/10 flex flex-col justify-center items-center border border-purple-500/20 overflow-hidden group-hover/link:border-purple-400/50 relative transition-colors">
+                                                            {payment.signed_photo_url || payment.users?.avatar_url ? (
+                                                                <img src={payment.signed_photo_url || payment.users?.avatar_url} alt="" className="h-full w-full object-cover" />
+                                                            ) : (
+                                                                <>
+                                                                    <CreditCard className="h-4 w-4 text-purple-400" />
+                                                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/link:opacity-100 transition-opacity flex items-center justify-center">
+                                                                        <span className="text-[7px] text-white font-bold uppercase">Ver Perfil</span>
+                                                                    </div>
+                                                                </>
+                                                            )}
                                                         </div>
-                                                    </>
-                                                )}
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-white font-medium text-sm">{payment.users?.full_name || 'Sin Nombre'}</span>
-                                                <span className="text-zinc-500 text-xs">{payment.users?.phone_number || payment.users?.email}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="py-4 px-4 text-zinc-300 text-sm">
-                                        {formatDateMX(payment.created_at)}
-                                    </td>
-                                    <td className="py-4 px-4 text-zinc-300 text-sm font-semibold">
-                                        $524.00
-                                    </td>
-                                    <td className="py-4 px-4 text-right">
-                                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">
-                                            <Clock className="w-3 h-3 mr-1.5" /> Abierta
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
+                                                        <div className="flex flex-col">
+                                                            <span className="text-white font-medium text-sm group-hover/link:text-purple-400 transition-colors">{payment.users?.full_name || 'Sin Nombre'}</span>
+                                                            <span className="text-zinc-500 text-xs">{phone || payment.users?.email}</span>
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            ) : (
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-purple-500/10 flex flex-col justify-center items-center border border-purple-500/20 overflow-hidden relative">
+                                                        {payment.signed_photo_url || payment.users?.avatar_url ? (
+                                                            <img src={payment.signed_photo_url || payment.users?.avatar_url} alt="" className="h-full w-full object-cover" />
+                                                        ) : (
+                                                            <CreditCard className="h-4 w-4 text-purple-400" />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-white font-medium text-sm">{payment.users?.full_name || 'Sin Nombre'}</span>
+                                                        <span className="text-zinc-500 text-xs">{phone || payment.users?.email}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="py-4 px-4 text-zinc-300 text-sm">
+                                            {formatDateMX(payment.created_at)}
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            {payment.status === 'open' ? (
+                                                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-zinc-500/10 text-zinc-400 border border-zinc-500/20">
+                                                    <Clock className="w-3 h-3 mr-1.5" /> Abierta (Pendiente)
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
+                                                    <AlertTriangle className="w-3 h-3 mr-1.5" /> {payment.status === 'expired' ? 'Expirada' : 'Fallida'}
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="py-4 px-4 text-right">
+                                            {whatsappUrl ? (
+                                                <a
+                                                    href={whatsappUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20 transition-all active:scale-95"
+                                                >
+                                                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                                                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.29-4.143c1.559.925 3.197 1.413 4.885 1.415 5.4 0 9.792-4.392 9.795-9.793.002-2.618-1.019-5.074-2.876-6.931s-4.314-2.878-6.931-2.878c-5.401 0-9.794 4.392-9.796 9.795-.001 1.763.5 3.447 1.448 4.887l-1.042 3.804 3.903-1.024zm11.354-1.291c.311.17.653.246.994.246.401 0 .8-.104 1.156-.309l1.62-.958c.204-.12.338-.323.364-.56s-.066-.467-.251-.62l-3.321-2.736c-.195-.16-.464-.2-.693-.1s-4.484 1.956-6.529.432l2.365-2.839c.148-.178.196-.419.127-.639l-1.026-3.264c-.08-.255-.3-.443-.564-.481s-.528.055-.719.24l-1.543 1.493c-2.43 2.352-.803 7.854 3.327 12.235zm-2.585-11.106l.534 1.698-1.233 1.48c-.628.754-1.397.747-1.93.303-.532-.443-.654-1.21-.026-1.964s1.233-1.48 1.93-.303z" />
+                                                    </svg>
+                                                    WhatsApp
+                                                </a>
+                                            ) : (
+                                                <span className="text-xs text-zinc-500 italic">No Teléfono</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                )
+                            })}
                         </tbody>
                     </table>
                 )

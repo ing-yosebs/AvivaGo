@@ -75,6 +75,17 @@ export async function POST(req: Request) {
             });
 
             console.log('[CONFIRM] Membership activated for:', driver_profile_id);
+
+            // 3. Mark pending payment as completed
+            await supabase
+                .from('pending_payments')
+                .update({
+                    status: 'completed',
+                    payment_method: session.payment_method_types?.[0] || 'card',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('stripe_session_id', session_id);
+
             return NextResponse.json({ success: true });
         }
 

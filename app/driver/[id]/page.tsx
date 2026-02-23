@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Metadata } from 'next';
 import ProfileView from '../../components/ProfileView';
 import TrustFooter from '@/app/components/marketing/v1/TrustFooter';
@@ -192,6 +193,18 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
     const { data: { user } } = await supabase.auth.getUser();
     let hasAcceptedQuote = false;
 
+    // Fetch selfie if premium
+    let selfiePhoto = null;
+    if (hasActiveMembership) {
+        const adminSupabase = createAdminClient();
+        const { data: verification } = await adminSupabase
+            .from('identity_verifications')
+            .select('selfie_url')
+            .eq('user_id', driver.user_id)
+            .maybeSingle();
+        selfiePhoto = verification?.selfie_url;
+    }
+
     if (user) {
         // Fetch user profiles to check role
         const { data: userData } = await supabase
@@ -217,6 +230,31 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         }
     }
 
+    // --- Improved Profile Photos Logic ---
+    // Collect all potential photos
+    const allProfilePhotos = [
+        driver.profile_photo_url,
+        driver.user_avatar_url,
+        selfiePhoto
+    ].filter(url =>
+        url &&
+        url.length > 5 &&
+        url !== 'https://placehold.co/400' &&
+        url !== 'https://via.placeholder.com/150'
+    );
+
+    // Remove duplicates while maintaining order
+    const uniqueProfilePhotos = Array.from(new Set(allProfilePhotos)) as string[];
+
+    // Main photo is the first one found (usually the general avatar as you preferred)
+    const avatarPhoto = uniqueProfilePhotos[0] || "";
+    // If there's a second photo, we'll pass it as the selfie/alternate photo
+    const secondaryPhoto = uniqueProfilePhotos.length > 1 ? uniqueProfilePhotos[1] : undefined;
+
+    // Build hero photos (vehicle background) - Deduplicated
+    const rawHeroPhotos = hasActiveMembership ? (driver.vehicles?.[0]?.photos?.slice(0, 2) || []) : [];
+    const uniqueHeroPhotos = Array.from(new Set(rawHeroPhotos.filter(Boolean))) as string[];
+
     // Convert Supabase driver data to the format expected by ProfileView
     const formattedDriver = {
         is_verified: driver.is_verified,
@@ -227,7 +265,8 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         area: driver.user_address_state || driver.city,
         vehicle: driver.vehicles?.[0] ? `${driver.vehicles[0].brand} ${driver.vehicles[0].model}` : 'Vehículo Confort',
         year: driver.vehicles?.[0]?.year || 2022,
-        photo: driver.user_avatar_url || driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop',
+        photo: avatarPhoto,
+        profilePhotos: [], // We will move the logic to ProfileHeader
         rating: Number(driver.average_rating) || 5.0,
         reviews: driver.total_reviews || 0,
         price: 18.00,
@@ -251,8 +290,14 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         payment_methods: services?.payment_methods || [],
         payment_link: services?.payment_link || "",
         hasAcceptedQuote: hasAcceptedQuote,
-        vehicleSidePhoto: driver.vehicles?.[0]?.photos?.[2] || null,
-        vehiclePhotos: (hasActiveMembership ? driver.vehicles?.[0]?.photos : driver.vehicles?.[0]?.photos?.slice(0, 2)) || [],
+        heroPhotos: uniqueHeroPhotos,
+        selfiePhoto: secondaryPhoto,
+        vehicleSidePhoto: uniqueHeroPhotos[0] || undefined,
+        vehiclePhotos: (() => {
+            const allPhotos = (driver.vehicles?.[0]?.photos || []).filter(Boolean) as string[];
+            const unique = Array.from(new Set(allPhotos));
+            return hasActiveMembership ? unique : unique.slice(0, 2);
+        })(),
         passenger_capacity: driver.vehicles?.[0]?.passenger_capacity || 4,
         trunk_capacity: driver.vehicles?.[0]?.trunk_capacity || "",
         referral_code: driver.user_referral_code

@@ -34,7 +34,10 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
                     <div className="space-y-3">
                         <div>
                             <h4 className="font-bold text-amber-700">Tienes un pago pendiente</h4>
-                            <p className="text-sm text-amber-700/60">Detectamos un intento de pago por transferencia (SPEI) o efectivo que aún no se ha completado.</p>
+                            <p className="text-sm text-amber-700/60">
+                                Detectamos un intento de pago por transferencia (SPEI) o efectivo que aún no se ha completado.
+                                <span className="block mt-1 font-semibold">Recuerda que tienes hasta 3 días naturales para completar este pago antes de que el ticket expire.</span>
+                            </p>
                         </div>
                         <button
                             onClick={() => openStripeCheckout(pendingPayment.checkout_url)}

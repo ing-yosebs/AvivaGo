@@ -69,14 +69,18 @@ export default function VehicleInfo({ vehicle, vehicleDocs }: VehicleInfoProps) 
                         <div className="pt-4">
                             <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 text-center sm:text-left">Galería de Fotos</h4>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
-                                {vehicleDocs.photos.map((url: string, i: number) => (
-                                    <Link key={i} href={url} target="_blank" className="relative aspect-video rounded-xl overflow-hidden border border-white/10 hover:border-emerald-500/50 transition-all hover:scale-105 active:scale-95 group shadow-xl">
-                                        <Image src={url} alt={`Foto ${i + 1}`} fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2 hidden sm:block">
-                                            <span className="text-[8px] text-white font-bold uppercase">Foto {i + 1}</span>
-                                        </div>
-                                    </Link>
-                                ))}
+                                {vehicleDocs.photos.map((url: string, i: number) => {
+                                    const labels = ['Frente', 'Lateral', 'Trasera', 'Interior 1', 'Interior 2', 'Interior 3'];
+                                    const label = labels[i] || `Foto ${i + 1}`;
+                                    return (
+                                        <Link key={i} href={url} target="_blank" className="relative aspect-video rounded-xl overflow-hidden border border-white/10 hover:border-emerald-500/50 transition-all hover:scale-105 active:scale-95 group shadow-xl">
+                                            <Image src={url} alt={label} fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2 hidden sm:block">
+                                                <span className="text-[8px] text-white font-bold uppercase">{label}</span>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
