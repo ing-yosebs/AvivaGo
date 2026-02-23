@@ -4,10 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import AvivaLogo from '@/app/components/AvivaLogo';
 
 export default function Navbar() {
+    const pathname = usePathname();
+    const isHomePage = pathname === '/';
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [session, setSession] = useState<any>(null);
@@ -46,7 +49,10 @@ export default function Navbar() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, [supabase]);
 
-    if (isLoading || !session) return null;
+    if (isLoading) return null;
+
+    // Only hide if NOT on home page and NO session
+    if (!isHomePage && !session) return null;
 
     return (
         <>
