@@ -45,18 +45,26 @@ function RegisterForm() {
     useEffect(() => {
         const detectCountry = async () => {
             try {
-                const response = await fetch('https://ipapi.co/json/')
-                const data = await response.json()
-                if (data.country_code) {
-                    setUserCountry(data.country_code.toLowerCase())
+                // Using a more reliable way to fetch with a timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+                const response = await fetch('https://ipapi.co/json/', { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.country_code) {
+                        setUserCountry(data.country_code.toLowerCase());
+                    }
                 }
             } catch (err) {
-                console.error('Error detecting country:', err)
-                // Fallback is already 'mx'
+                // Silently fall back to 'mx' if anything fails (CORS, network, timeout)
+                console.warn('Silent fallback: Country detection failed.', err);
             }
-        }
-        detectCountry()
-    }, [])
+        };
+        detectCountry();
+    }, []);
 
     // Force role mode if specified in URL
     useEffect(() => {

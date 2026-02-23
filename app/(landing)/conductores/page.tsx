@@ -25,8 +25,9 @@ import {
     ThumbsUp
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MarketingKitPromo from '@/app/components/marketing/v1/MarketingKitPromo';
+import { createClient } from '@/lib/supabase/client';
 
 // --- Shared Components (Premium Styled) ---
 
@@ -121,6 +122,44 @@ function SocialTestimonial({ name, role, city, content, image, delay, likes = "1
 }
 
 export default function LandingConductores() {
+    const [user, setUser] = useState<any>(null);
+    const [profile, setProfile] = useState<any>(null);
+    const supabase = createClient();
+
+    useEffect(() => {
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                setUser(session.user);
+                const { data } = await supabase
+                    .from('users')
+                    .select('roles')
+                    .eq('id', session.user.id)
+                    .single();
+                setProfile(data);
+            }
+        };
+        checkSession();
+    }, []);
+
+    const roles = profile?.roles || [];
+    const isAdmin = Array.isArray(roles) ? roles.includes('admin') : roles === 'admin';
+    const isDriver = Array.isArray(roles) ? roles.includes('driver') : roles === 'driver';
+
+    let targetLink = '/dashboard';
+    let targetLabel = 'Entrar al Panel';
+
+    if (isAdmin) {
+        targetLink = '/admin';
+        targetLabel = 'Panel Admin';
+    } else if (isDriver) {
+        targetLink = '/perfil?tab=driver_dashboard';
+        targetLabel = 'Panel Conductor';
+    } else {
+        targetLink = '/dashboard';
+        targetLabel = 'Panel Pasajero';
+    }
+
     return (
         <div className="bg-white min-h-screen font-sans overflow-hidden">
             {/* Announcement Banner */}
@@ -187,9 +226,9 @@ export default function LandingConductores() {
                                 Obtén tu <span className="text-slate-950 font-bold underline decoration-blue-500">Perfil Digital Profesional GRATIS</span> y construye una cartera de pasajeros que sea tuya para siempre. Sin comisiones por viaje, sin algoritmos que te controlen.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start items-center">
-                                <Link href="/register?role=driver&redirect=/conductores" className="w-full sm:w-auto">
+                                <Link href={user ? targetLink : "/register?role=driver&redirect=/conductores"} className="w-full sm:w-auto">
                                     <button className="w-full sm:w-auto bg-blue-600 hover:bg-slate-950 text-white px-10 py-6 rounded-2xl text-xl font-black shadow-2xl shadow-blue-200 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3 group">
-                                        Empieza Gratis Ahora <ArrowRight size={24} className="group-hover:translate-x-1 transition-transform" />
+                                        {user ? targetLabel : "Empieza Gratis Ahora"} <ArrowRight size={24} className="group-hover:translate-x-1 transition-transform" />
                                     </button>
                                 </Link>
                                 <div className="text-center lg:text-left">
@@ -397,9 +436,9 @@ export default function LandingConductores() {
                                 </div>
                                 <div className="mt-12 pt-12 border-t border-white/10 text-center">
                                     <p className="text-blue-400 text-[10px] font-black uppercase tracking-[0.2em] mb-4">Exclusivo para Socios Fundadores</p>
-                                    <Link href="/register?role=driver&redirect=/conductores">
+                                    <Link href={user ? "/perfil?tab=marketing" : "/register?role=driver&redirect=/conductores"}>
                                         <button className="w-full bg-white text-slate-950 px-8 py-5 rounded-2xl text-lg font-black uppercase tracking-tighter hover:bg-blue-500 hover:text-white transition-colors">
-                                            Quiero mi enlace de referido
+                                            {user ? "Ir a mis Herramientas" : "Quiero mi enlace de referido"}
                                         </button>
                                     </Link>
                                     <p className="mt-6 text-slate-400 text-xs font-bold leading-relaxed px-4">
@@ -470,9 +509,9 @@ export default function LandingConductores() {
                         <p className="text-lg md:text-3xl text-slate-600 max-w-2xl mx-auto mb-12 font-medium leading-relaxed md:leading-tight">
                             Tu perfil digital profesional y herramientas de cartera están listos. <br /> <span className="text-slate-950 font-black italic underline decoration-blue-500">¿Qué esperas para registrarte?</span>
                         </p>
-                        <Link href="/register?role=driver&redirect=/conductores">
+                        <Link href={user ? targetLink : "/register?role=driver&redirect=/conductores"}>
                             <button className="bg-blue-600 hover:bg-slate-950 text-white px-12 py-8 rounded-[2rem] text-2xl md:text-3xl font-black shadow-2xl shadow-blue-300 transition-all hover:scale-110 flex items-center justify-center gap-5 mx-auto group">
-                                Crear mi Perfil GRATIS <ArrowRight size={32} className="group-hover:translate-x-2 transition-transform" />
+                                {user ? targetLabel : "Crear mi Perfil GRATIS"} <ArrowRight size={32} className="group-hover:translate-x-2 transition-transform" />
                             </button>
                         </Link>
                         <div className="mt-6 flex flex-col items-center gap-2">

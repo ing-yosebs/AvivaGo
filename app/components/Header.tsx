@@ -56,9 +56,23 @@ export default function Header() {
         router.push('/');
     };
 
-    const isAdmin = Array.isArray(profile?.roles) ? profile.roles.includes('admin') : profile?.roles === 'admin';
-    const targetLink = isAdmin ? '/admin' : '/dashboard';
-    const targetLabel = isAdmin ? 'Panel Admin' : 'Mi Perfil';
+    const roles = profile?.roles || [];
+    const isAdmin = Array.isArray(roles) ? roles.includes('admin') : roles === 'admin';
+    const isDriver = Array.isArray(roles) ? roles.includes('driver') : roles === 'driver';
+
+    let targetLink = '/dashboard';
+    let targetLabel = 'Mi Panel';
+
+    if (isAdmin) {
+        targetLink = '/admin';
+        targetLabel = 'Panel Admin';
+    } else if (isDriver) {
+        targetLink = '/perfil?tab=driver_dashboard';
+        targetLabel = 'Panel Conductor';
+    } else {
+        targetLink = '/dashboard';
+        targetLabel = 'Panel Pasajero';
+    }
 
     return (
         <header className="fixed w-full top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100 shadow-sm transition-all duration-300">
