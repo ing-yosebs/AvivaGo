@@ -34,11 +34,45 @@ export default function DashboardSidebar() {
     const [isOpen, setIsOpen] = useState(false)
     const [hasDriverRole, setHasDriverRole] = useState(false)
     const [userEmail, setUserEmail] = useState<string | null>(null)
+    const [unreadCount, setUnreadCount] = useState(0)
 
     useEffect(() => {
+        let channel: any = null;
+
         const checkRole = async () => {
             const { data: { user } } = await supabase.auth.getUser()
             if (!user) return
+
+            // Load unread messages count
+            const fetchUnread = async () => {
+                const { count } = await supabase
+                    .from('messages')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('receiver_id', user.id)
+                    .is('read_at', null)
+                setUnreadCount(count || 0)
+            }
+            fetchUnread()
+
+            // Subscribe to new messages
+            channel = supabase.channel('sidebar_unread')
+                .on(
+                    'postgres_changes',
+                    { event: 'INSERT', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` },
+                    (payload) => {
+                        setUnreadCount((current) => current + 1)
+                    }
+                )
+                .on(
+                    'postgres_changes',
+                    { event: 'UPDATE', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` },
+                    (payload) => {
+                        if (payload.new.read_at && !payload.old.read_at) {
+                            setUnreadCount((current) => Math.max(0, current - 1))
+                        }
+                    }
+                )
+                .subscribe()
 
             const { data: userData } = await supabase
                 .from('users')
@@ -56,6 +90,10 @@ export default function DashboardSidebar() {
             }
         }
         checkRole()
+
+        return () => {
+            if (channel) supabase.removeChannel(channel)
+        }
     }, [supabase])
 
     const menuItems = [
@@ -64,7 +102,7 @@ export default function DashboardSidebar() {
 
         { icon: FileText, label: 'Mis Solicitudes', href: '/mis-solicitudes' },
         { icon: Lock, label: 'Seguridad', href: '/perfil?tab=security' },
-        { icon: Heart, label: 'Mis Favoritos', href: '/favoritos' },
+        { icon: Heart, label: 'Conductores Favoritos', href: '/favoritos', badge: unreadCount },
         ...(hasDriverRole ? [
             {
                 icon: Briefcase,
@@ -77,6 +115,7 @@ export default function DashboardSidebar() {
                     { label: 'Marketing', href: '/perfil?tab=marketing' },
                     { label: 'Mis cotizaciones', href: '/perfil?tab=solicitudes' },
                     { label: 'Mis Invitados', href: '/invitados' },
+                    { label: 'Cartera de Pasajeros', href: '/cartera', badge: unreadCount },
                     { label: 'Membresía', href: '/perfil?tab=payments' }
                 ]
             }
@@ -169,7 +208,14 @@ export default function DashboardSidebar() {
                                         <item.icon className={`h-5 w-5 ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-blue-600 transition-colors'}`} />
                                         <span className="text-sm font-medium">{item.label}</span>
                                     </div>
-                                    {isActive && !hasSubItems && <ChevronRight className="h-4 w-4" />}
+                                    <div className="flex items-center gap-2">
+                                        {(item as any).badge > 0 && (
+                                            <span className="px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                                                {(item as any).badge > 9 ? '9+' : (item as any).badge}
+                                            </span>
+                                        )}
+                                        {isActive && !hasSubItems && <ChevronRight className="h-4 w-4" />}
+                                    </div>
                                 </Link>
 
                                 {hasSubItems && (
@@ -183,13 +229,20 @@ export default function DashboardSidebar() {
                                                     key={sub.label}
                                                     href={sub.href}
                                                     onClick={() => setIsOpen(false)}
-                                                    className={`flex items-center gap-3 p-2 rounded-lg text-xs font-medium transition-all ${isSubActive
+                                                    className={`flex items-center justify-between p-2 rounded-lg text-xs font-medium transition-all ${isSubActive
                                                         ? 'text-blue-600 bg-blue-50'
                                                         : 'text-gray-500 hover:text-[#0F2137] hover:bg-gray-50'
                                                         }`}
                                                 >
-                                                    <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isSubActive ? 'bg-blue-600' : 'bg-gray-300 group-hover:bg-gray-400'}`} />
-                                                    {sub.label}
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isSubActive ? 'bg-blue-600' : 'bg-gray-300 group-hover:bg-gray-400'}`} />
+                                                        {sub.label}
+                                                    </div>
+                                                    {(sub as any).badge > 0 && (
+                                                        <span className="px-2 py-0.5 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                                                            {(sub as any).badge > 9 ? '9+' : (sub as any).badge}
+                                                        </span>
+                                                    )}
                                                 </Link>
                                             )
                                         })}

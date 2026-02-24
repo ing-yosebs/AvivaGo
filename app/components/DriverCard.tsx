@@ -20,9 +20,11 @@ import {
 
 interface DriverCardProps {
     driver: any;
+    note?: string;
+    renderFooter?: (isMe: boolean) => React.ReactNode;
 }
 
-export default function DriverCard({ driver }: DriverCardProps) {
+export default function DriverCard({ driver, note, renderFooter }: DriverCardProps) {
     const userObj = Array.isArray(driver.users) ? driver.users[0] : driver.users;
     const fullName = driver.user_full_name || userObj?.full_name || 'Conductor AvivaGo';
     const avatarUrl = driver.user_avatar_url || userObj?.avatar_url || driver.profile_photo_url || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=800&auto=format&fit=crop';
@@ -144,9 +146,16 @@ export default function DriverCard({ driver }: DriverCardProps) {
             </div>
 
             {/* Bio */}
-            <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed mb-4 min-h-[40px]">
+            <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed mb-1 min-h-[40px]">
                 {bio}
             </p>
+
+            {/* User Note (if provided) */}
+            {note && (
+                <div className="mb-4 p-2.5 bg-indigo-50 rounded-xl border border-indigo-100">
+                    <p className="text-[11px] text-indigo-800 italic line-clamp-1">"{note}"</p>
+                </div>
+            )}
 
             {/* Tags Section */}
             <div className="space-y-3">
@@ -232,10 +241,13 @@ export default function DriverCard({ driver }: DriverCardProps) {
                     </span>
                     Disponible
                 </span>
-                <div className="flex items-center gap-1 text-aviva-primary text-xs font-bold bg-blue-50 px-3 py-1.5 rounded-full group-hover:bg-blue-600 group-hover:text-white transition-all">
-                    Ver Perfil
-                    <ArrowRight className="h-3 w-3" />
-                </div>
+
+                {renderFooter ? renderFooter(false) : (
+                    <div className="flex items-center gap-1 text-aviva-primary text-xs font-bold bg-blue-50 px-3 py-1.5 rounded-full group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        Ver Perfil
+                        <ArrowRight className="h-3 w-3" />
+                    </div>
+                )}
             </div>
         </Link>
     );

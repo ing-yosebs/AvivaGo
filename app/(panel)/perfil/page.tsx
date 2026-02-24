@@ -222,6 +222,10 @@ function ProfileContent() {
             const countryCode = userFormData.country_code
             delete userFormData.country_code // Remove from users table update
 
+            // Email is managed exclusively via an OTP flow (ChangeEmailModal)
+            // Prevent empty string emails from triggering a unique constraint violation
+            delete userFormData.email
+
             if (userFormData.birthday === '') userFormData.birthday = null
             if (userFormData.education_level === '') userFormData.education_level = null
 
