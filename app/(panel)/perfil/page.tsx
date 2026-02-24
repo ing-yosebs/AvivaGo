@@ -318,30 +318,30 @@ function ProfileContent() {
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight mb-2 text-[#0F2137]">
-                    {tabs.find(t => t.id === activeTab)?.label || 'Configuración'}
-                </h1>
-                <p className="text-gray-500">
-                    {activeTab === 'payments'
-                        ? 'Gestiona tu suscripción y consulta tu historial de pagos.'
-                        : activeTab === 'services'
-                            ? 'Administra tus servicios de transporte y configuraciones.'
-                            : activeTab === 'driver_dashboard'
-                                ? 'Resumen de tu actividad y métricas como conductor.'
-                                : activeTab === 'solicitudes'
-                                    ? 'Administra las cotizaciones recibidas de pasajeros interesados.'
-                                    : activeTab === 'marketing'
-                                        ? 'Descarga herramientas profesionales para promocionar tus servicios.'
+            {activeTab !== 'marketing' && (
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight mb-2 text-[#0F2137]">
+                        {tabs.find(t => t.id === activeTab)?.label || 'Configuración'}
+                    </h1>
+                    <p className="text-gray-500">
+                        {activeTab === 'payments'
+                            ? 'Gestiona tu suscripción y consulta tu historial de pagos.'
+                            : activeTab === 'services'
+                                ? 'Administra tus servicios de transporte y configuraciones.'
+                                : activeTab === 'driver_dashboard'
+                                    ? 'Resumen de tu actividad y métricas como conductor.'
+                                    : activeTab === 'solicitudes'
+                                        ? 'Administra las cotizaciones recibidas de pasajeros interesados.'
                                         : 'Gestiona tu información personal y preferencias de la cuenta.'}
-                </p>
+                    </p>
 
-                {!isDriver && !loading && (
-                    <div className="mt-6">
-                        <BecomeDriverButton />
-                    </div>
-                )}
-            </div>
+                    {!isDriver && !loading && (
+                        <div className="mt-6">
+                            <BecomeDriverButton />
+                        </div>
+                    )}
+                </div>
+            )}
 
 
             {/* Error/Success Messages */}
