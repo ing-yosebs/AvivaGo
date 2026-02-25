@@ -76,9 +76,9 @@ export function DriverProfileCard({ driverProfileId }: DriverProfileCardProps) {
                         </button>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2.5 rounded-2xl border border-white/20 whitespace-nowrap self-center lg:self-auto">
-                        <span className="text-base">✅</span>
-                        <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-blue-50">Tu perfil personal será siempre visible gratis</span>
+                    <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2.5 rounded-2xl border border-white/20 self-center lg:self-auto text-center sm:text-left">
+                        <span className="text-base shrink-0">✅</span>
+                        <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-blue-50 leading-tight">Tu perfil personal será siempre visible gratis</span>
                     </div>
                 </div>
             </div>
