@@ -367,6 +367,7 @@ function ProfileContent() {
                 <div className="relative z-10 transition-all duration-300">
                     {activeTab === 'personal' && (
                         <PersonalDataSection
+                            key={profile?.id}
                             profile={profile}
                             onSave={handleSaveProfile}
                             saving={saving}
@@ -377,6 +378,7 @@ function ProfileContent() {
 
                     {isDriver && activeTab === 'services' && (
                         <ServicesSection
+                            key={profile?.id}
                             services={driverServices}
                             onSave={handleSaveServices}
                             saving={saving}
@@ -388,6 +390,7 @@ function ProfileContent() {
 
                     {isDriver && activeTab === 'vehicles' && (
                         <VehiclesSection
+                            key={profile?.id}
                             vehicles={vehicles}
                             onAdd={() => loadVehicles(user.id)}
                             hasMembership={hasMembership}
@@ -399,6 +402,7 @@ function ProfileContent() {
 
                     {activeTab === 'payments' && (
                         <PaymentsSection
+                            key={profile?.id}
                             isDriver={isDriver}
                             hasMembership={hasMembership}
                             pendingPayment={pendingPayment}
@@ -412,7 +416,7 @@ function ProfileContent() {
                     )}
 
                     {activeTab === 'security' && (
-                        <SecuritySection profile={profile} />
+                        <SecuritySection key={profile?.id} profile={profile} />
                     )}
 
                     {isDriver && activeTab === 'solicitudes' && (

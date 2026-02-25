@@ -265,8 +265,8 @@ export function IdentityPanel({
                         </div>
                     )}
 
-                    {/* Extracted Address */}
-                    {formData.address_text && (
+                    {/* Extracted Address (Only if verified) */}
+                    {isVerified && formData.address_text && (
                         <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl flex items-start gap-3">
                             <FileText className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
                             <div>
