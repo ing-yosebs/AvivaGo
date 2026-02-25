@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Users, CreditCard, Activity, Settings, LogOut, Menu, X, FileText } from 'lucide-react'
+import { LayoutDashboard, Users, CreditCard, Activity, Settings, LogOut, Menu, X, FileText, Target } from 'lucide-react'
 import AvivaLogo from '../AvivaLogo'
 
 const navigation = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
     { name: 'Usuarios', href: '/admin/users', icon: Users },
+    { name: 'Progreso', href: '/admin/onboarding', icon: Target },
     { name: 'Finanzas', href: '/admin/financials', icon: CreditCard },
     { name: 'Sistema', href: '/admin/system', icon: Activity },
     { name: 'Documentación', href: '/admin/docs/user-flow', icon: FileText },
