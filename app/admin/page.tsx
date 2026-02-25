@@ -40,26 +40,33 @@ async function getDashboardData(view?: string) {
         { count: totalUsers },
         { count: activeDrivers },
         { count: pendingDrivers },
-        { data: revenueData },
+        { count: paidMembershipsCount },
+        { count: monthlyMembershipsCount },
         { count: pendingPaymentsCount },
         { count: abandonedPaymentsCount },
-        { data: historicalRevenue },
+        { data: historicalMemberships },
         { data: recentUsersForChart },
         { data: recentDriversForChart }
     ] = await Promise.all([
         supabase.from('users').select('*', { count: 'exact', head: true }),
         supabase.from('driver_profiles').select('*', { count: 'exact', head: true }).eq('status', 'active'),
         supabase.from('driver_profiles').select('*', { count: 'exact', head: true }).eq('status', 'pending_approval'),
-        supabase.from('unlocks').select('amount_paid').eq('status', 'completed').gte('created_at', firstDayOfMonth),
+        // KPI: Total active paid memberships
+        supabase.from('driver_memberships').select('*', { count: 'exact', head: true }).eq('status', 'active').eq('origin', 'paid'),
+        // Revenue: Memberships created/renewed this month
+        supabase.from('driver_memberships').select('*', { count: 'exact', head: true }).eq('status', 'active').eq('origin', 'paid').gte('created_at', firstDayOfMonth),
         supabase.from('pending_payments').select('*', { count: 'exact', head: true }).eq('status', 'open'),
         supabase.from('pending_payments').select('*', { count: 'exact', head: true }).in('status', ['expired', 'failed']),
-        supabase.from('unlocks').select('amount_paid, created_at').eq('status', 'completed').gte('created_at', sixMonthsAgo.toISOString()),
+        // Historical Revenue: Memberships over last 6 months
+        supabase.from('driver_memberships').select('created_at').eq('status', 'active').eq('origin', 'paid').gte('created_at', sixMonthsAgo.toISOString()),
         supabase.from('users').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
         supabase.from('driver_profiles').select('created_at').gte('created_at', sixMonthsAgo.toISOString())
     ])
 
-    const monthlyRevenue = revenueData?.reduce((acc, curr) => acc + Number(curr.amount_paid), 0) || 0
-    const estimatedPendingRevenue = (pendingPaymentsCount || 0) * 524
+    // Math: $524 MXN per membership
+    const PRICE_PER_MEMBERSHIP = 524;
+    const monthlyRevenue = (monthlyMembershipsCount || 0) * PRICE_PER_MEMBERSHIP;
+    const estimatedPendingRevenue = (pendingPaymentsCount || 0) * PRICE_PER_MEMBERSHIP;
 
     // Chart Formatting
     const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
@@ -69,13 +76,17 @@ async function getDashboardData(view?: string) {
         return { month: d.getMonth(), year: d.getFullYear(), name: monthNames[d.getMonth()] }
     }).reverse()
 
-    const revenueChartData = range.map(r => ({
-        ...r,
-        total: historicalRevenue?.filter(rev => {
-            const d = new Date(rev.created_at)
+    const revenueChartData = range.map(r => {
+        const countForMonth = historicalMemberships?.filter(mem => {
+            const d = new Date(mem.created_at)
             return d.getMonth() === r.month && d.getFullYear() === r.year
-        }).reduce((acc, curr) => acc + Number(curr.amount_paid), 0) || 0
-    }))
+        }).length || 0;
+
+        return {
+            ...r,
+            total: countForMonth * PRICE_PER_MEMBERSHIP
+        }
+    })
 
     const activityChartData = range.map(r => ({
         ...r,
@@ -116,12 +127,18 @@ async function getDashboardData(view?: string) {
         viewData = data || []
         // Batch sign
         viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (u) => (Array.isArray(u.driver_profiles) ? u.driver_profiles[0]?.profile_photo_url : u.driver_profiles?.profile_photo_url) || u.avatar_url)
+    } else if (view === 'paid_memberships') {
+        const { data } = await supabase.from('driver_memberships').select('*, driver_profiles(*, users(full_name, email, phone_number, avatar_url))').eq('status', 'active').eq('origin', 'paid').limit(50).order('created_at', { ascending: false })
+        viewData = data || []
+        // Optional batch join:
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (m) => m.driver_profiles?.profile_photo_url || m.driver_profiles?.users?.avatar_url)
     }
 
     return {
         totalUsers: totalUsers || 0,
         activeDrivers: activeDrivers || 0,
         pendingDrivers: pendingDrivers || 0,
+        paidMembershipsCount: paidMembershipsCount || 0,
         monthlyRevenue,
         pendingPaymentsCount: pendingPaymentsCount || 0,
         abandonedPaymentsCount: abandonedPaymentsCount || 0,
@@ -158,7 +175,7 @@ export default async function AdminDashboard({
             </div>
 
             {/* KPI Grid - Interactive */}
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {/* Total Users KPI */}
                 <Link href="/admin?view=recent_users" scroll={false} className={`block backdrop-blur-xl border rounded-[2rem] p-6 shadow-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 ${view === 'recent_users' ? 'bg-blue-500/10 border-blue-500/50 scale-[1.02]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
                     <div className="flex items-center gap-4 relative z-10">
@@ -181,6 +198,19 @@ export default async function AdminDashboard({
                         <div>
                             <p className="text-sm font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors">Conductores Activos</p>
                             <p className="text-3xl font-black text-white tracking-tight">{stats.activeDrivers}</p>
+                        </div>
+                    </div>
+                </Link>
+
+                {/* Paid Memberships KPI */}
+                <Link href="/admin?view=paid_memberships" scroll={false} className={`block backdrop-blur-xl border rounded-[2rem] p-6 shadow-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 ${view === 'paid_memberships' ? 'bg-amber-500/10 border-amber-500/50 scale-[1.02]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
+                    <div className="flex items-center gap-4 relative z-10">
+                        <div className={`p-4 rounded-2xl border transition-colors ${view === 'paid_memberships' ? 'bg-amber-500/20 border-amber-400/30' : 'bg-amber-500/10 border-amber-500/20 group-hover:bg-amber-500/20'}`}>
+                            <DollarSign className="h-7 w-7 text-amber-400" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors">Membresías Pagadas</p>
+                            <p className="text-3xl font-black text-white tracking-tight">{stats.paidMembershipsCount}</p>
                         </div>
                     </div>
                 </Link>

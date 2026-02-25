@@ -227,6 +227,49 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                     </table>
                 )
 
+            case 'paid_memberships':
+                return (
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-white/10 text-zinc-500 text-xs uppercase tracking-wider">
+                                <th className="pb-4 font-semibold px-4">Conductor</th>
+                                <th className="pb-4 font-semibold px-4">Vigencia</th>
+                                <th className="pb-4 font-semibold px-4 text-right">Membresía</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {data.map((membership) => (
+                                <tr key={membership.id} className="hover:bg-white/5 transition-colors group">
+                                    <td className="py-4 px-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-amber-500/10 flex flex-col justify-center items-center border border-amber-500/20 overflow-hidden relative">
+                                                {membership.signed_photo_url || membership.driver_profiles?.profile_photo_url || membership.driver_profiles?.users?.avatar_url ? (
+                                                    <img src={membership.signed_photo_url || membership.driver_profiles?.profile_photo_url || membership.driver_profiles?.users?.avatar_url} alt="" className="h-full w-full object-cover" />
+                                                ) : (
+                                                    <User className="h-4 w-4 text-amber-400" />
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-white font-medium text-sm">{membership.driver_profiles?.users?.full_name || 'Sin Nombre'}</span>
+                                                <span className="text-zinc-500 text-xs">{membership.driver_profiles?.users?.phone_number || membership.driver_profiles?.users?.email}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="py-4 px-4 text-sm">
+                                        <span className="text-zinc-300 block">{formatDateMX(membership.started_at)}</span>
+                                        <span className="text-zinc-500 text-xs">Expiración: {formatDateMX(membership.expires_at)}</span>
+                                    </td>
+                                    <td className="py-4 px-4 text-right">
+                                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                            Activa (Pagada)
+                                        </span>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )
+
             case 'recent_users':
                 return (
                     <table className="w-full text-left">
@@ -309,6 +352,7 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                 {view === 'pending_drivers' && <Link href="/admin/users?filter=pending" className="text-sm text-blue-400 hover:text-blue-300">Ver Todos →</Link>}
                 {view === 'recent_users' && <Link href="/admin/users" className="text-sm text-blue-400 hover:text-blue-300">Ver Todos →</Link>}
                 {view === 'pending_payments' && <Link href="/admin/financials" className="text-sm text-blue-400 hover:text-blue-300">Ir a Finanzas →</Link>}
+                {view === 'paid_memberships' && <Link href="/admin/users?filter=drivers" className="text-sm text-blue-400 hover:text-blue-300">Ver Conductores →</Link>}
             </div>
 
             <div className="px-2">
