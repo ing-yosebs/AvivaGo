@@ -74,7 +74,7 @@ export default function VehicleInfo({ vehicle, vehicleDocs }: VehicleInfoProps) 
                                     const label = labels[i] || `Foto ${i + 1}`;
                                     return (
                                         <Link key={i} href={url} target="_blank" className="relative aspect-video rounded-xl overflow-hidden border border-white/10 hover:border-emerald-500/50 transition-all hover:scale-105 active:scale-95 group shadow-xl">
-                                            <Image src={url} alt={label} fill className="object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                            <img src={url} alt={label} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" referrerPolicy="no-referrer" />
                                             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2 hidden sm:block">
                                                 <span className="text-[8px] text-white font-bold uppercase">{label}</span>
                                             </div>

@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
-import { Users, Search, MessageSquare, Save, Car, BookOpen, Clock, Loader2 } from 'lucide-react'
+import { Users, Search, MessageSquare, Save, Car, BookOpen, Clock, Loader2, Download } from 'lucide-react'
 import Link from 'next/link'
 
 export default function CarteraPage() {
@@ -143,6 +143,43 @@ export default function CarteraPage() {
         fetchPassengers()
     }, [supabase])
 
+    const handleDownloadCSV = () => {
+        if (passengers.length === 0) return
+
+        // Create CSV Header
+        const headers = ['Nombre', 'Ubicación', 'Origen', 'Fecha de Registro', 'Observaciones']
+
+        // Map passengers to rows
+        const rows = passengers.map(p => {
+            const date = new Date(p.created_at).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })
+            // Escape quotes inside notes and wrap in quotes to handle commas
+            const note = p.note ? `"${p.note.replace(/"/g, '""')}"` : ''
+            const location = p.address_state ? `"${p.address_state.replace(/"/g, '""')}"` : ''
+            const name = p.full_name ? `"${p.full_name.replace(/"/g, '""')}"` : ''
+
+            return [name, location, p.source || 'N/A', date, note].join(',')
+        })
+
+        // Combine headers and rows
+        const csvContent = [headers.join(','), ...rows].join('\n')
+
+        // Add UTF-8 BOM for Excel
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+        const url = URL.createObjectURL(blob)
+
+        // Create download link
+        const link = document.createElement('a')
+        const dateString = new Date().toISOString().split('T')[0]
+        link.href = url
+        link.setAttribute('download', `cartera_pasajeros_${dateString}.csv`)
+        document.body.appendChild(link)
+        link.click()
+
+        // Cleanup
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+    }
+
     const handleSaveNote = async () => {
         if (!selectedPassenger) return
         setSavingNote(true)
@@ -182,7 +219,7 @@ export default function CarteraPage() {
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto p-4 md:p-8">
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <header className="space-y-6">
                 <div>
                     <h1 className="text-3xl font-black flex items-center gap-3 text-[#0F2137]">
                         <BookOpen className="h-10 w-10 text-blue-600" />
@@ -190,15 +227,27 @@ export default function CarteraPage() {
                     </h1>
                     <p className="text-gray-500 mt-2">Gestiona y comunícate con los pasajeros que has invitado a AvivaGo.</p>
                 </div>
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder="Buscar pasajero o ciudad..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-2xl w-full md:w-80 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
-                    />
+
+                <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    <div className="relative flex-1 md:max-w-md">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                        <input
+                            type="text"
+                            placeholder="Buscar pasajero o ciudad..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-2xl w-full shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                        />
+                    </div>
+                    <button
+                        onClick={handleDownloadCSV}
+                        disabled={passengers.length === 0}
+                        className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-2xl shadow-lg shadow-emerald-600/20 transition-all whitespace-nowrap justify-center"
+                        title="Exportar a CSV"
+                    >
+                        <Download className="h-5 w-5" />
+                        Descargar Cartera de Pasajeros
+                    </button>
                 </div>
             </header>
 

@@ -14,7 +14,7 @@ export default function ServicesSection({ services, onSave, saving, hasMembershi
     const indigenousLanguagesList = ['Náhuatl', 'Maya', 'Tseltal', 'Tsotsil', 'Mixteco', 'Zapoteco', 'Otomí']
 
     // Visibility State
-    const [isVisible, setIsVisible] = useState(initialIsVisible)
+    const [isVisible, setIsVisible] = useState(hasMembership ? initialIsVisible : false)
     const [updatingVisibility, setUpdatingVisibility] = useState(false)
     const supabase = createClient()
 
@@ -42,7 +42,7 @@ export default function ServicesSection({ services, onSave, saving, hasMembershi
 
     const handleToggleVisibility = async (visible: boolean) => {
         if (!hasMembership && visible) {
-            triggerPremiumModal("Visibilidad en Catálogo", "Para aparecer en el catálogo público de conductores y que los pasajeros te encuentren directamente, activa tu Membresía Premium.")
+            triggerPremiumModal("Aparecer en Catálogo Nacional", "Únete a Premium para ser descubierto por pasajeros en tu ciudad que pronto usarán AvivaGo. ¡Tu perfil y enlace personal gratuito funcionarán siempre!")
             return;
         }
         setUpdatingVisibility(true)
@@ -60,6 +60,10 @@ export default function ServicesSection({ services, onSave, saving, hasMembershi
             setUpdatingVisibility(false)
         }
     }
+
+    useEffect(() => {
+        setIsVisible(hasMembership ? initialIsVisible : false)
+    }, [hasMembership, initialIsVisible])
 
     useEffect(() => {
         if (services) {
@@ -111,32 +115,6 @@ export default function ServicesSection({ services, onSave, saving, hasMembershi
                         Tu Enlace Público
                     </h4>
                     <DriverProfileCard driverProfileId={driverProfileId} />
-                </div>
-
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest">Visibilidad del Perfil</h4>
-                        {!hasMembership && <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-full uppercase tracking-wider flex items-center gap-1"><BadgeCheck className="h-3 w-3" /> Premium</span>}
-                    </div>
-
-                    <div
-                        className={`relative rounded-3xl overflow-hidden ${!hasMembership ? 'opacity-50 cursor-pointer select-none grayscale' : ''}`}
-                        onClick={() => !hasMembership && triggerPremiumModal("Visibilidad en Catálogo", "Para aparecer en el catálogo público de conductores y que los pasajeros te encuentren directamente, activa tu Membresía Premium.")}
-                    >
-                        {!hasMembership && (
-                            <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/10 backdrop-blur-[1px]">
-                                <Lock className="h-8 w-8 text-gray-400" />
-                            </div>
-                        )}
-                        <div className={!hasMembership ? 'pointer-events-none' : ''}>
-                            <ProfileVisibilityCard
-                                isVisible={isVisible}
-                                onToggleVisibility={handleToggleVisibility}
-                                updating={updatingVisibility}
-                            />
-                        </div>
-                    </div>
-                    {!hasMembership && <p className="text-xs text-amber-600 font-medium">Actualiza a Premium para controlar tu visibilidad.</p>}
                 </div>
             </div>
 
@@ -483,6 +461,43 @@ export default function ServicesSection({ services, onSave, saving, hasMembershi
                             )}
                         </div>
                     )}
+                </div>
+            </div>
+
+            <div className="w-full h-px bg-gray-100" />
+
+            <div className="space-y-6 bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-soft">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="space-y-1 w-full">
+                        <h4 className="text-sm font-bold text-amber-700 uppercase tracking-widest flex items-center gap-1.5 justify-center sm:justify-start">
+                            <BadgeCheck className="h-4 w-4" />
+                            <span>El catálogo público es un potenciador Premium</span>
+                        </h4>
+                        <p className="text-xs text-gray-400 text-center sm:text-left w-full">
+                            Muy pronto los pasajeros de tu ciudad entrarán a AvivaGo para buscar conductores como tú. Activa esta opción para destacar en nuestro catálogo general y captar clientes nuevos.
+                        </p>
+                    </div>
+                    {!hasMembership && (
+                        <div className="flex justify-center sm:justify-end">
+                            <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1 shrink-0">
+                                <BadgeCheck className="h-3 w-3" /> Premium
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+                <div
+                    className="relative rounded-3xl overflow-hidden cursor-pointer"
+                    onClick={() => !hasMembership && triggerPremiumModal("Aparecer en Catálogo Nacional", "Únete a Premium para ser descubierto por pasajeros en tu ciudad que pronto usarán AvivaGo. ¡Tu perfil y enlace personal gratuito funcionarán siempre!")}
+                >
+                    <div className={!hasMembership ? 'pointer-events-none' : ''}>
+                        <ProfileVisibilityCard
+                            isVisible={isVisible}
+                            onToggleVisibility={handleToggleVisibility}
+                            updating={updatingVisibility}
+                            disabled={!hasMembership}
+                        />
+                    </div>
                 </div>
             </div>
 

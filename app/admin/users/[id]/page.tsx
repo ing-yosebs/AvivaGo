@@ -11,16 +11,41 @@ import ServiceInfo from '@/app/components/admin/user-detail/ServiceInfo'
 import ReferralStats from '@/app/components/admin/user-detail/ReferralStats'
 import UserDetailSidebar from '@/app/components/admin/user-detail/UserDetailSidebar'
 
-async function getSignedUrl(supabase: any, publicUrl: string | null, bucket: string) {
-    if (!publicUrl) return null;
+async function getSignedUrl(supabase: any, pathOrUrl: string | null, fallbackBucket: string) {
+    if (!pathOrUrl) return null;
+
+    // Quick escape for standard placeholders
+    if (pathOrUrl.includes('placehold.co') || pathOrUrl.includes('via.placeholder')) return pathOrUrl;
+
     try {
-        if (!publicUrl.includes(`/storage/v1/object/public/${bucket}/`)) return publicUrl;
-        const path = publicUrl.split(`/storage/v1/object/public/${bucket}/`)[1];
-        if (!path) return publicUrl;
-        const { data } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
-        return data?.signedUrl || publicUrl;
+        let path = pathOrUrl;
+        let bucket = fallbackBucket;
+
+        // Auto-detect bucket from Supabase URLs
+        if (pathOrUrl.startsWith('http') && pathOrUrl.includes('/storage/v1/object/')) {
+            const urlObj = new URL(pathOrUrl);
+            const segments = urlObj.pathname.split('/');
+            // Expected segments for Supabase storage: ["", "storage", "v1", "object", "type", "bucketName", "path1", "path2"...]
+            if (segments.length > 6) {
+                bucket = segments[5];
+                path = decodeURIComponent(segments.slice(6).join('/'));
+                // console.log(`[Admin-Storage] Detected Bucket: ${bucket}, Path: ${path}`);
+            }
+        }
+
+        // Try to generate a signed URL using the admin client
+        const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
+
+        if (error) {
+            console.error(`[Admin-Storage] Error for ${bucket}/${path}:`, error.message);
+            // If it's a full URL, fallback to it (might be public)
+            return pathOrUrl.startsWith('http') ? pathOrUrl : null;
+        }
+
+        return data?.signedUrl || pathOrUrl;
     } catch (e) {
-        return publicUrl;
+        console.error('[Admin-Storage] Fatal Exception:', e);
+        return pathOrUrl;
     }
 }
 
@@ -83,9 +108,27 @@ export default async function UserDetailPage({
         photos: await Promise.all((vehicle.photos || []).map((p: string) => getSignedUrl(supabase, p, 'vehicles')))
     } : null;
 
-    const rawPhotoUrl = isDriver ? driverProfile.profile_photo_url : user.avatar_url;
-    const isPlaceholder = !rawPhotoUrl || rawPhotoUrl.includes('placehold') || rawPhotoUrl === '/images/socio-avivago.png';
-    const profilePhotoUrl = isPlaceholder ? null : await getSignedUrl(supabase, rawPhotoUrl, 'avatars');
+    // Aggressive Photo Selection for Admin
+    const dpPhoto = driverProfile?.profile_photo_url;
+    const uAvatar = user.avatar_url;
+    const vSelfie = identityVerification?.selfie_url;
+
+    const rawPhotoUrl = (dpPhoto && dpPhoto !== '' && !dpPhoto.includes('placehold')) ? dpPhoto :
+        (uAvatar && uAvatar !== '' && !uAvatar.includes('placehold')) ? uAvatar :
+            (vSelfie && vSelfie !== '' && !vSelfie.includes('placehold')) ? vSelfie : null;
+
+    const isPlaceholder = !rawPhotoUrl ||
+        rawPhotoUrl === '' ||
+        rawPhotoUrl.includes('placehold') ||
+        rawPhotoUrl === '/images/socio-avivago.png';
+
+    let profilePhotoUrl = null;
+    if (!isPlaceholder && rawPhotoUrl) {
+        profilePhotoUrl = await getSignedUrl(supabase, rawPhotoUrl, 'avatars');
+        // console.log(`[Admin-Debug] Raw: ${rawPhotoUrl.substring(0, 50)}... -> Signed: ${profilePhotoUrl?.substring(0, 50)}...`);
+    } else {
+        // console.log(`[Admin-Debug] Photo is placeholder or null. DP: ${!!dpPhoto}, UA: ${!!uAvatar}, VS: ${!!vSelfie}`);
+    }
 
     // Logs and Referrals
     let logs: any[] = []

@@ -34,28 +34,57 @@ const translateStatus = (status: string | undefined) => {
     }
 }
 
-async function getSignedUrlsBatch(supabase: any, items: any[], bucket: string, photoKey: (item: any) => string | null) {
-    const validItems = items.filter(item => {
+async function getSignedUrlsBatch(supabase: any, items: any[], fallbackBucket: string, photoKey: (item: any) => string | null) {
+    // Map items to their detected bucket and path
+    const itemsToSign = items.map(item => {
         const url = photoKey(item);
-        const isPlaceholder = !url || url.includes('placehold') || url.includes('placeholder') || url.includes('default') || url === '/images/socio-avivago.png';
-        return url && !isPlaceholder && url.includes(`/storage/v1/object/public/${bucket}/`);
+        if (!url || url.includes('placehold') || url.includes('placeholder')) {
+            return { item, url: null, bucket: null, path: null };
+        }
+
+        let path = url;
+        let bucket = fallbackBucket;
+
+        if (url.startsWith('http') && url.includes('/storage/v1/object/')) {
+            try {
+                const urlObj = new URL(url);
+                const segments = urlObj.pathname.split('/');
+                if (segments.length > 6) {
+                    bucket = segments[5];
+                    path = decodeURIComponent(segments.slice(6).join('/'));
+                }
+            } catch (e) {
+                // Not a valid URL, use fallbacks
+            }
+        }
+        return { item, url, bucket, path };
     });
 
-    if (validItems.length === 0) {
-        return items.map(item => ({ ...item, signed_photo_url: null }));
-    }
+    // Group by bucket for batch processing
+    const buckets = [...new Set(itemsToSign.map(i => i.bucket).filter(Boolean))] as string[];
 
-    const paths = validItems.map(item => photoKey(item)!.split(`/storage/v1/object/public/${bucket}/`)[1]);
-    const { data } = await supabase.storage.from(bucket).createSignedUrls(paths, 3600);
+    // Create a map to store results
+    const signedUrlsMap = new Map<string, string>();
+
+    await Promise.all(buckets.map(async (bucketName) => {
+        const bucketItems = itemsToSign.filter(i => i.bucket === bucketName && i.path);
+        const paths = bucketItems.map(i => i.path as string);
+
+        if (paths.length > 0) {
+            const { data, error } = await supabase.storage.from(bucketName).createSignedUrls(paths, 3600);
+            if (!error && data) {
+                data.forEach((d: any) => {
+                    if (d.signedUrl) signedUrlsMap.set(`${bucketName}:${d.path}`, d.signedUrl);
+                });
+            }
+        }
+    }));
 
     return items.map(item => {
-        const url = photoKey(item);
-        const isPlaceholder = !url || url.includes('placehold') || url.includes('placeholder') || url.includes('default') || url === '/images/socio-avivago.png';
-
-        if (!isPlaceholder && url && url.includes(`/storage/v1/object/public/${bucket}/`)) {
-            const path = url.split(`/storage/v1/object/public/${bucket}/`)[1];
-            const signed = data?.find((d: any) => d.path === path);
-            return { ...item, signed_photo_url: signed?.signedUrl || null };
+        const info = itemsToSign.find(i => i.item === item);
+        if (info?.url && info.bucket && info.path) {
+            const signed = signedUrlsMap.get(`${info.bucket}:${info.path}`);
+            return { ...item, signed_photo_url: signed || (info.url.startsWith('http') ? info.url : null) };
         }
         return { ...item, signed_photo_url: null };
     });
@@ -92,7 +121,8 @@ export default async function UsersPage({
                 status,
                 expires_at
             )
-        )
+        ),
+        identity_verifications ( selfie_url )
     `;
 
     // Advanced Filtering Strategy
@@ -115,7 +145,8 @@ export default async function UsersPage({
                     status,
                     expires_at
                 )
-            )
+            ),
+            identity_verifications ( selfie_url )
         `;
     }
 
@@ -183,7 +214,15 @@ export default async function UsersPage({
         'avatars',
         (u) => {
             const driverProfile = Array.isArray(u.driver_profiles) ? u.driver_profiles[0] : u.driver_profiles;
-            return driverProfile?.profile_photo_url || u.avatar_url;
+            const identityVerification = Array.isArray(u.identity_verifications) ? u.identity_verifications[0] : u.identity_verifications;
+
+            const dpPhoto = driverProfile?.profile_photo_url;
+            const uAvatar = u.avatar_url;
+            const vSelfie = identityVerification?.selfie_url;
+
+            return (dpPhoto && dpPhoto !== '' && !dpPhoto.includes('placehold')) ? dpPhoto :
+                (uAvatar && uAvatar !== '' && !uAvatar.includes('placehold')) ? uAvatar :
+                    (vSelfie && vSelfie !== '' && !vSelfie.includes('placehold')) ? vSelfie : null;
         }
     );
 
@@ -301,7 +340,7 @@ export default async function UsersPage({
                                                 <div className="flex items-center gap-4">
                                                     <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center group/photo relative">
                                                         {user.signed_photo_url ? (
-                                                            <img src={user.signed_photo_url} alt="" className="h-full w-full object-cover" />
+                                                            <img src={user.signed_photo_url} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
                                                         ) : (
                                                             <>
                                                                 <User className="h-6 w-6 text-zinc-600" />

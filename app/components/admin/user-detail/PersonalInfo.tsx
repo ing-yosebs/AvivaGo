@@ -22,13 +22,13 @@ export default function PersonalInfo({ user, driverProfile, profilePhotoUrl }: P
                 <div className="flex-shrink-0 space-y-4">
                     {profilePhotoUrl ? (
                         <div className="w-full md:w-48 aspect-square relative rounded-xl overflow-hidden border border-white/10 bg-black/20 group">
-                            <Image
+                            <img
                                 src={profilePhotoUrl}
                                 alt="Profile"
-                                fill
-                                className="object-cover"
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
                             />
-                            <div className="absolute bottom-0 left-0 w-full bg-black/60 p-2 text-xs text-center text-white">Foto de Perfil</div>
+                            <div className="absolute bottom-0 left-0 w-full bg-black/60 p-2 text-[10px] text-center text-white uppercase font-bold">Foto de Perfil</div>
                         </div>
                     ) : (
                         <div className="w-full md:w-48 aspect-square flex flex-col items-center justify-center bg-white/5 rounded-xl border border-white/10 text-zinc-500 text-sm p-4 text-center gap-3">
@@ -46,27 +46,54 @@ export default function PersonalInfo({ user, driverProfile, profilePhotoUrl }: P
                             <label className="block text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Nombre Completo</label>
                             <p className="text-white font-bold text-xl sm:text-2xl leading-tight">{user.full_name}</p>
                         </div>
-                        <div className="space-y-1">
-                            <label className="block text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Correo Electrónico</label>
-                            <p className="text-white font-medium text-sm sm:text-base break-all">{user.email}</p>
-                        </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div className="space-y-1">
+                                <label className="block text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Correo Electrónico</label>
+                                <p className="text-white font-medium text-sm sm:text-base break-all">{user.email}</p>
+                            </div>
                             <div className="space-y-1">
                                 <label className="block text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Teléfono</label>
                                 <p className="text-white font-bold text-base">
                                     {(() => {
                                         const phone = user.phone_number || driverProfile?.whatsapp_number;
                                         if (!phone) return 'No registrado';
-                                        if (phone.length < 4) return phone;
-                                        return `${'*'.repeat(Math.max(0, phone.length - 4))}${phone.slice(-4)}`;
+                                        return phone; // Muestra el teléfono completo para el administrador
                                     })()}
                                 </p>
                             </div>
+                        </div>
+
+                        {/* Datos de Identidad */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-4 border-t border-white/5">
                             <div className="space-y-1">
-                                <label className="block text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Fecha de Registro</label>
-                                <p className="text-white font-medium text-sm sm:text-base">
-                                    {formatDateMX(user.created_at)}
+                                <label className="block text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Fecha Nacimiento</label>
+                                <p className="text-white font-medium text-sm">{user.birthday ? formatDateMX(user.birthday) : 'No registrada'}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="block text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Nacionalidad</label>
+                                <p className="text-white font-medium text-sm">{user.nationality || 'No registrada'}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="block text-zinc-500 text-[10px] uppercase font-bold tracking-widest">CURP / ID</label>
+                                <p className="text-white font-mono text-sm tracking-wider">{user.curp || 'No especificada'}</p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-4 border-t border-white/5">
+                            <div className="space-y-1">
+                                <label className="block text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Nivel de Estudios</label>
+                                <p className="text-white font-medium text-sm">{user.education_level || 'No especificado'}</p>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="block text-zinc-500 text-[10px] uppercase font-bold tracking-widest">Contacto Emergencia</label>
+                                <p className="text-white font-medium text-sm">
+                                    {user.emergency_contact_name ? (
+                                        <>
+                                            {user.emergency_contact_name} ({user.emergency_contact_relationship}) <br />
+                                            <span className="text-xs text-zinc-400">{user.emergency_contact_phone}</span>
+                                        </>
+                                    ) : 'No especificado'}
                                 </p>
                             </div>
                         </div>

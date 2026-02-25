@@ -1,6 +1,7 @@
+export const revalidate = 0
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
-import { Search, Filter, Shield, User, Users, Settings, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, CheckCircle2, XCircle, Smartphone, Car, Share2, Tag, Gift, Award, HelpCircle } from 'lucide-react'
+import { Search, Filter, Shield, User, Users, Settings, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, CheckCircle2, XCircle, Smartphone, Car, Share2, Tag, Gift, Award, HelpCircle, FileText } from 'lucide-react'
 import { formatDateMX, formatTimeMX } from '@/lib/dateUtils'
 
 // Helper for WhatsApp link
@@ -18,7 +19,7 @@ export default async function OnboardingPage({
 }) {
     const params = await searchParams
     const search = params.search as string | undefined
-    const sortBy = (params.sortBy as string) || 'created_at'
+    const sortBy = (params.sortBy as string) || 'onboarding_progress_score'
     const sortOrder = (params.order as 'asc' | 'desc') || 'desc'
 
     const supabase = createAdminClient()
@@ -39,6 +40,7 @@ export default async function OnboardingPage({
             avatar_url,
             created_at,
             email_confirmed_at,
+            onboarding_progress_score,
             driver_profiles!inner (
                 id,
                 status,
@@ -46,11 +48,16 @@ export default async function OnboardingPage({
                 b2c_referral_count,
                 referral_count,
                 vehicles ( id ),
-                driver_service_tags ( tag_id )
+                driver_services ( personal_bio, professional_questionnaire )
             )
         `, { count: 'exact' })
         .order(sortBy, { ascending: sortOrder === 'asc' })
         .range(from, to)
+
+    // Secondary sort by created_at if progress is equal
+    if (sortBy === 'onboarding_progress_score') {
+        query = query.order('created_at', { ascending: false })
+    }
 
     // Apply Search (Name, Email, Phone)
     if (search) {
@@ -125,6 +132,15 @@ export default async function OnboardingPage({
                             <tr className="bg-white/5 border-b border-white/10">
                                 <th className="px-6 py-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
                                     <Link
+                                        href={`/admin/onboarding?sortBy=onboarding_progress_score&order=${sortBy === 'onboarding_progress_score' && sortOrder === 'desc' ? 'asc' : 'desc'}${search ? `&search=${search}` : ''}`}
+                                        className="flex items-center gap-1 hover:text-white transition-colors"
+                                    >
+                                        Nivel
+                                        {sortBy === 'onboarding_progress_score' && (sortOrder === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
+                                    </Link>
+                                </th>
+                                <th className="px-6 py-6 text-[11px] font-bold text-zinc-500 uppercase tracking-widest">
+                                    <Link
                                         href={`/admin/onboarding?sortBy=created_at&order=${sortBy === 'created_at' && sortOrder === 'asc' ? 'desc' : 'asc'}${search ? `&search=${search}` : ''}`}
                                         className="flex items-center gap-1 hover:text-white transition-colors"
                                     >
@@ -153,17 +169,34 @@ export default async function OnboardingPage({
                             {filteredUsers.map((user) => {
                                 const driverProfile = Array.isArray(user.driver_profiles) ? user.driver_profiles[0] : user.driver_profiles;
 
-                                // Contact OK logic
-                                const hasConfirmedEmail = !!user.email_confirmed_at;
+                                // Contact OK logic (Strict: must have email AND confirmed_at)
+                                const hasConfirmedEmail = !!user.email && !!user.email_confirmed_at;
                                 const hasPhone = !!user.phone_number;
                                 const isContactOk = hasConfirmedEmail && hasPhone;
 
-                                // Photo logic
-                                const photoUrl = driverProfile?.profile_photo_url;
-                                const hasCustomPhoto = photoUrl && !photoUrl.includes('placeholder') && !photoUrl.includes('default') && photoUrl !== '/images/socio-avivago.png';
+                                // Photo logic (Consistency: Check both avatar_url and profile_photo_url)
+                                const rawPhotoUrl = driverProfile?.profile_photo_url || user.avatar_url;
+                                const hasCustomPhoto = rawPhotoUrl &&
+                                    !rawPhotoUrl.includes('placeholder') &&
+                                    !rawPhotoUrl.includes('placehold') &&
+                                    !rawPhotoUrl.includes('default') &&
+                                    rawPhotoUrl !== '/images/socio-avivago.png';
 
-                                // Services logic
-                                const servicesCount = driverProfile?.driver_service_tags?.length || 0;
+                                // Services logic (Strict: Both bio and questionnaire captured with real content)
+                                const driverService = Array.isArray(driverProfile?.driver_services) ? driverProfile?.driver_services[0] : driverProfile?.driver_services;
+
+                                const hasBio = !!driverService?.personal_bio &&
+                                    driverService.personal_bio.length > 20 &&
+                                    !driverService.personal_bio.includes('no ha redactado');
+
+                                const professionalBio = driverService?.professional_questionnaire?.bio || '';
+                                const hasProfessional = !!professionalBio &&
+                                    professionalBio.length > 20 &&
+                                    !professionalBio.includes('no ha redactado') &&
+                                    !professionalBio.includes('reseña profesional') &&
+                                    !professionalBio.includes('Escribe aquí');
+
+                                const hasServicesInfo = hasBio && hasProfessional;
 
                                 // Vehicle logic
                                 const vehiclesCount = driverProfile?.vehicles?.length || 0;
@@ -176,7 +209,16 @@ export default async function OnboardingPage({
 
                                 return (
                                     <tr key={user.id} className="hover:bg-white/5 transition-all group">
-
+                                        <td className="px-6 py-5 whitespace-nowrap">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black border ${(user.onboarding_progress_score as number) >= 5 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                                                    (user.onboarding_progress_score as number) >= 3 ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                                        'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                                                    }`}>
+                                                    {user.onboarding_progress_score}/5
+                                                </div>
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-5 whitespace-nowrap">
                                             <div className="flex flex-col">
                                                 <span className="text-zinc-300 font-medium text-sm leading-tight">
@@ -222,15 +264,27 @@ export default async function OnboardingPage({
                                         </td>
 
                                         <td className="px-6 py-5 text-center">
-                                            <div className="flex justify-center">
-                                                {servicesCount > 0 ? (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                                                        {servicesCount}
+                                            <div className="flex justify-center flex-col items-center gap-1">
+                                                {hasServicesInfo ? (
+                                                    <span
+                                                        className="inline-flex items-center justify-center p-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 shadow-sm cursor-help"
+                                                        title={`Bio Personal: ${driverService?.personal_bio}\n\nBio Prof: ${professionalBio}`}
+                                                    >
+                                                        <FileText className="h-4 w-4" />
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-zinc-500/10 text-zinc-500 border border-zinc-500/20">
-                                                        0
-                                                    </span>
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <span
+                                                            className="inline-flex items-center justify-center p-1.5 rounded-lg bg-zinc-500/10 text-zinc-500 border border-zinc-500/20 shadow-sm cursor-help"
+                                                            title={`Pendiente - Bio: ${driverService?.personal_bio || 'Vacía'}\nEXP: ${professionalBio || 'Vacía'}`}
+                                                        >
+                                                            <FileText className="h-4 w-4 opacity-50" />
+                                                        </span>
+                                                        <div className="flex gap-1">
+                                                            {!hasBio && <span className="text-[7px] text-zinc-500 bg-white/5 px-1 rounded font-bold">Sin BIO</span>}
+                                                            {!hasProfessional && <span className="text-[7px] text-zinc-500 bg-white/5 px-1 rounded font-bold">Sin EXP</span>}
+                                                        </div>
+                                                    </div>
                                                 )}
                                             </div>
                                         </td>
