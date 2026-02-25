@@ -263,16 +263,24 @@ export default async function OnboardingPage({
                                         <td className="px-6 py-5 text-right whitespace-nowrap">
                                             <div className="flex items-center justify-end gap-2">
                                                 {/* WhatsApp Contact Action */}
-                                                <a
-                                                    href={getWhatsAppUrl(user.phone_number, user.full_name)}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className={`inline-flex items-center justify-center w-8 h-8 rounded-lg border transition-all shadow-lg active:scale-95 ${user.phone_number ? 'bg-[#25D366]/10 border-[#25D366]/20 text-[#25D366] hover:bg-[#25D366] hover:text-white' : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-600 cursor-not-allowed'}`}
-                                                    title={user.phone_number ? "Contactar por WhatsApp" : "Sin teléfono"}
-                                                    onClick={(e) => !user.phone_number && e.preventDefault()}
-                                                >
-                                                    <Smartphone className="w-4 h-4" />
-                                                </a>
+                                                {user.phone_number ? (
+                                                    <a
+                                                        href={getWhatsAppUrl(user.phone_number, user.full_name)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg border transition-all shadow-lg active:scale-95 bg-[#25D366]/10 border-[#25D366]/20 text-[#25D366] hover:bg-[#25D366] hover:text-white"
+                                                        title="Contactar por WhatsApp"
+                                                    >
+                                                        <Smartphone className="w-4 h-4" />
+                                                    </a>
+                                                ) : (
+                                                    <span
+                                                        className="inline-flex items-center justify-center w-8 h-8 rounded-lg border bg-zinc-800/50 border-zinc-700/50 text-zinc-600 cursor-not-allowed"
+                                                        title="Sin teléfono"
+                                                    >
+                                                        <Smartphone className="w-4 h-4" />
+                                                    </span>
+                                                )}
 
                                                 {/* Go to Profile Detail */}
                                                 <Link
