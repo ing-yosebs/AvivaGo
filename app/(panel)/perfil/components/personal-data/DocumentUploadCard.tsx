@@ -20,13 +20,18 @@ export function DocumentUploadCard({
     verified,
     onUpload,
     previewText = "Subir Documento",
-    accept = "image/*,application/pdf"
+    accept = ".jpg, .jpeg, .png, application/pdf"
 }: DocumentUploadCardProps) {
     const inputRef = useRef<HTMLInputElement>(null)
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
+            // Basic validation if it's an image
+            if (file.type.startsWith('image/') && !['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+                alert('Por favor, sube solo imágenes en formato JPG o PNG.');
+                return;
+            }
             onUpload(file)
         }
     }

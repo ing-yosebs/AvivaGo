@@ -225,6 +225,12 @@ export default function PersonalDataSection({ profile, onSave, saving, hasMember
         const file = e.target.files?.[0]
         if (!file) return
 
+        // Validar tipos de archivo para imágenes
+        if (file.type.startsWith('image/') && !['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+            alert('Por favor, selecciona solo imágenes PNG o JPG para asegurar un mejor rendimiento.');
+            return
+        }
+
         setUploading(field)
         try {
             const path = `${profile.id}/${Date.now()}_${file.name}`

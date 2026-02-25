@@ -9,12 +9,12 @@ import AvivaLogo from '@/app/components/AvivaLogo';
 
 import { User } from 'lucide-react';
 
-export default function Navbar() {
+export default function Navbar({ initialSession = null, initialProfile = null }: { initialSession?: any; initialProfile?: any }) {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [session, setSession] = useState<any>(null);
-    const [profile, setProfile] = useState<any>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const [session, setSession] = useState<any>(initialSession);
+    const [profile, setProfile] = useState<any>(initialProfile);
+    const [isLoading, setIsLoading] = useState(!initialSession && !initialProfile);
     const supabase = createClient();
 
     useEffect(() => {
@@ -23,32 +23,34 @@ export default function Navbar() {
         };
         window.addEventListener('scroll', handleScroll);
 
-        // Check session and fetch profile
-        const checkSession = async () => {
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                setSession(session);
+        // Check session and fetch profile ONLY if we don't have initial data
+        if (!initialSession) {
+            const checkSession = async () => {
+                try {
+                    const { data: { session: currentSession } } = await supabase.auth.getSession();
+                    setSession(currentSession);
 
-                if (session?.user) {
-                    const { data } = await supabase
-                        .from('users')
-                        .select('full_name, avatar_url, roles')
-                        .eq('id', session.user.id)
-                        .single();
-                    setProfile(data);
+                    if (currentSession?.user) {
+                        const { data } = await supabase
+                            .from('users')
+                            .select('full_name, avatar_url, roles')
+                            .eq('id', currentSession.user.id)
+                            .single();
+                        setProfile(data);
+                    }
+                } catch (error) {
+                    console.error('Error checking session:', error);
+                } finally {
+                    setIsLoading(false);
                 }
-            } catch (error) {
-                console.error('Error checking session:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        checkSession();
+            };
+            checkSession();
+        } else {
+            setIsLoading(false);
+        }
 
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [supabase]);
-
-    if (isLoading || !session) return null;
+    }, [supabase, initialSession]);
 
     const navLinks: { name: string; href: string }[] = [];
 
@@ -59,12 +61,12 @@ export default function Navbar() {
                     <div className="flex justify-between items-center h-14 sm:h-16 gap-4">
                         {/* Logo */}
                         <Link href="/" className="flex items-center gap-2 flex-shrink-0 group">
-                            <AvivaLogo className="h-8 sm:h-9 w-auto" showText={true} />
+                            <AvivaLogo className="h-8 sm:h-9 w-auto" showText={false} />
                         </Link>
 
                         {/* Desktop Navigation */}
                         <div className="hidden md:flex items-center gap-8">
-                            {navLinks.map((link) => (
+                            {!isLoading && navLinks.map((link) => (
                                 <Link
                                     key={link.name}
                                     href={link.href}
@@ -77,84 +79,102 @@ export default function Navbar() {
 
                         {/* Right side Actions */}
                         <div className="flex items-center gap-3">
-                            {/* Desktop CTA */}
-                            <div className="hidden md:flex items-center gap-4">
-                                {session ? (
-                                    (() => {
-                                        const roles = profile?.roles || [];
-                                        const isAdmin = Array.isArray(roles) ? roles.includes('admin') : roles === 'admin';
-                                        const isDriver = Array.isArray(roles) ? roles.includes('driver') : roles === 'driver';
+                            {isLoading ? (
+                                <div className="hidden md:flex items-center gap-4">
+                                    <div className="w-24 h-8 bg-gray-100 animate-pulse rounded-xl" />
+                                    <div className="w-24 h-10 bg-gray-100 animate-pulse rounded-xl" />
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Profile Button (Always visible when logged in - Desktop and Mobile) */}
+                                    {session && (
+                                        <div className="flex items-center gap-4">
+                                            {(() => {
+                                                const roles = profile?.roles || [];
+                                                const isAdmin = Array.isArray(roles) ? roles.includes('admin') : roles === 'admin';
+                                                const isDriver = Array.isArray(roles) ? roles.includes('driver') : roles === 'driver';
 
-                                        let targetLink = '/dashboard';
-                                        let targetLabel = 'Mi Panel';
+                                                let targetLink = '/dashboard';
+                                                let targetLabel = 'Mi Panel';
 
-                                        if (isAdmin) {
-                                            targetLink = '/admin';
-                                            targetLabel = 'Panel Admin';
-                                        } else if (isDriver) {
-                                            targetLink = '/perfil?tab=driver_dashboard';
-                                            targetLabel = 'Panel Conductor';
-                                        } else {
-                                            targetLink = '/dashboard';
-                                            targetLabel = 'Panel Pasajero';
-                                        }
+                                                if (isAdmin) {
+                                                    targetLink = '/admin';
+                                                    targetLabel = 'Panel Admin';
+                                                } else if (isDriver) {
+                                                    targetLink = '/perfil?tab=driver_dashboard';
+                                                    targetLabel = 'Panel Conductor';
+                                                } else {
+                                                    targetLink = '/dashboard';
+                                                    targetLabel = 'Panel Pasajero';
+                                                }
 
-                                        return (
+                                                return (
+                                                    <Link
+                                                        href={targetLink}
+                                                        className="flex items-center gap-2 sm:gap-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 pl-1 pr-3 sm:pl-1.5 sm:pr-4 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl transition-all hover:shadow-soft active:scale-95 group"
+                                                    >
+                                                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-blue-100 flex items-center justify-center border border-blue-200 text-blue-600 overflow-hidden shrink-0">
+                                                            {profile?.avatar_url ? (
+                                                                <img
+                                                                    src={profile.avatar_url}
+                                                                    alt="Profile"
+                                                                    className="w-full h-full object-cover"
+                                                                    decoding="async"
+                                                                    fetchPriority="high"
+                                                                />
+                                                            ) : (
+                                                                <User className="h-4 w-4" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex flex-col text-left max-w-[120px] sm:max-w-[180px]">
+                                                            <span className="text-[11px] sm:text-xs font-bold text-gray-900 leading-none mb-0.5 truncate">
+                                                                {profile?.full_name || session.user.email?.split('@')[0]}
+                                                            </span>
+                                                            <span className="text-[9px] sm:text-[10px] font-medium text-gray-400 leading-none">{targetLabel}</span>
+                                                        </div>
+                                                    </Link>
+                                                );
+                                            })()}
+                                        </div>
+                                    )}
+
+                                    {/* Desktop CTA (Logged Out) */}
+                                    {!session && (
+                                        <div className="hidden md:flex items-center gap-4">
                                             <Link
-                                                href={targetLink}
-                                                className="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 pl-1.5 pr-4 py-1.5 rounded-2xl transition-all hover:shadow-soft active:scale-95 group"
+                                                href="/auth/login"
+                                                className="text-sm font-medium text-aviva-primary hover:text-aviva-primary/80 transition-colors px-4"
                                             >
-                                                <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center border border-blue-200 text-blue-600 overflow-hidden shrink-0">
-                                                    {profile?.avatar_url ? (
-                                                        <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <User className="h-4 w-4" />
-                                                    )}
-                                                </div>
-                                                <div className="flex flex-col text-left">
-                                                    <span className="text-xs font-bold text-gray-900 leading-none mb-0.5">
-                                                        {profile?.full_name?.split(' ')[0] || session.user.email?.split('@')[0]}
-                                                    </span>
-                                                    <span className="text-[10px] font-medium text-gray-400 leading-none">{targetLabel}</span>
-                                                </div>
+                                                Iniciar Sesión
                                             </Link>
-                                        );
-                                    })()
-                                ) : (
-                                    <>
-                                        <Link
-                                            href="/auth/login"
-                                            className="text-sm font-medium text-aviva-primary hover:text-aviva-primary/80 transition-colors px-4"
-                                        >
-                                            Iniciar Sesión
-                                        </Link>
-                                        <Link
-                                            href="/register?role=driver"
-                                            onClick={() => {
-                                                if (typeof window.fbq !== 'undefined') {
-                                                    window.fbq('track', 'Lead', {
-                                                        content_name: 'Navbar CTA - Registration',
-                                                        content_category: 'Drivers'
-                                                    });
-                                                }
-                                                if (typeof window.ttq !== 'undefined') {
-                                                    window.ttq.track('Lead', {
-                                                        content_name: 'Navbar CTA - Registration',
-                                                        content_category: 'Drivers'
-                                                    });
-                                                }
-                                            }}
-                                            className="bg-aviva-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-aviva-primary/90 transition-all shadow-lg shadow-aviva-primary/20 hover:-translate-y-0.5"
-                                        >
-                                            Regístrate Ya
-                                        </Link>
-                                    </>
-                                )}
-                            </div>
+                                            <Link
+                                                href="/register?role=driver"
+                                                onClick={() => {
+                                                    if (typeof window.fbq !== 'undefined') {
+                                                        window.fbq('track', 'Lead', {
+                                                            content_name: 'Navbar CTA - Registration',
+                                                            content_category: 'Drivers'
+                                                        });
+                                                    }
+                                                    if (typeof window.ttq !== 'undefined') {
+                                                        window.ttq.track('Lead', {
+                                                            content_name: 'Navbar CTA - Registration',
+                                                            content_category: 'Drivers'
+                                                        });
+                                                    }
+                                                }}
+                                                className="bg-aviva-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-aviva-primary/90 transition-all shadow-lg shadow-aviva-primary/20 hover:-translate-y-0.5"
+                                            >
+                                                Regístrate Ya
+                                            </Link>
+                                        </div>
+                                    )}
+                                </>
+                            )}
 
                             {/* Mobile Menu Button */}
                             <button
-                                className="md:hidden p-2 text-gray-600 hover:text-aviva-primary hover:bg-blue-50 rounded-lg transition-colors"
+                                className="md:hidden p-2 text-gray-600 hover:text-aviva-primary hover:bg-blue-50 rounded-lg transition-colors border border-gray-100"
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                             >
                                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -213,7 +233,13 @@ export default function Navbar() {
                                                 >
                                                     <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center border border-blue-200 text-blue-600 overflow-hidden shrink-0">
                                                         {profile?.avatar_url ? (
-                                                            <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                                                            <img
+                                                                src={profile.avatar_url}
+                                                                alt="Profile"
+                                                                className="w-full h-full object-cover"
+                                                                decoding="async"
+                                                                fetchPriority="high"
+                                                            />
                                                         ) : (
                                                             <User className="h-6 w-6" />
                                                         )}

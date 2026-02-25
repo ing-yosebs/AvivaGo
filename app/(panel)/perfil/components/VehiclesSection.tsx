@@ -108,6 +108,12 @@ export default function VehiclesSection({ vehicles, onAdd, hasMembership }: any)
         const originalFile = e.target.files?.[0]
         if (!originalFile) return
 
+        // Validar tipos de archivo para imágenes
+        if (originalFile.type.startsWith('image/') && !['image/jpeg', 'image/png', 'image/jpg'].includes(originalFile.type)) {
+            alert('Por favor, selecciona solo imágenes PNG o JPG para asegurar un mejor rendimiento.');
+            return
+        }
+
         // Validación de PDF (Max 5MB)
         if (originalFile.type === 'application/pdf') {
             if (originalFile.size > 5 * 1024 * 1024) {
@@ -413,7 +419,7 @@ export default function VehiclesSection({ vehicles, onAdd, hasMembership }: any)
                                                     type="file"
                                                     ref={doc.ref}
                                                     className="hidden"
-                                                    accept="image/*,application/pdf"
+                                                    accept=".jpg, .jpeg, .png, application/pdf"
                                                     onChange={(e) => handleFile(e, doc.id)}
                                                 />
                                                 <div
@@ -473,7 +479,7 @@ export default function VehiclesSection({ vehicles, onAdd, hasMembership }: any)
                                             <input
                                                 type="file"
                                                 ref={el => { photoRefs.current[idx] = el }}
-                                                className="hidden"
+                                                accept=".jpg, .jpeg, .png"
                                                 onChange={(e) => handleFile(e, 'photos', true, idx)}
                                             />
                                             <button

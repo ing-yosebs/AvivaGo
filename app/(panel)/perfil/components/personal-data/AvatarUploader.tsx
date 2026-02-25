@@ -15,6 +15,11 @@ export function AvatarUploader({ avatarUrl, onUpload, uploading, readOnly }: Ava
         if (readOnly) return
         const file = e.target.files?.[0]
         if (file) {
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                alert('Por favor, sube solo imágenes en formato JPG o PNG para asegurar una carga rápida.');
+                return;
+            }
             onUpload(file)
         }
     }
@@ -41,7 +46,7 @@ export function AvatarUploader({ avatarUrl, onUpload, uploading, readOnly }: Ava
                         type="file"
                         ref={inputRef}
                         className="hidden"
-                        accept="image/*"
+                        accept=".jpg, .jpeg, .png"
                         onChange={handleChange}
                     />
                     <button
