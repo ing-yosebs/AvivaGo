@@ -12,6 +12,41 @@ const getWhatsAppUrl = (phone: string | null | undefined, name: string | null) =
     return `https://wa.me/${cleanPhone}?text=${msg}`;
 }
 
+async function getSignedUrl(supabase: any, pathOrUrl: string | null, fallbackBucket: string) {
+    if (!pathOrUrl) return null;
+
+    // Quick escape for standard placeholders
+    if (pathOrUrl.includes('placehold.co') || pathOrUrl.includes('via.placeholder')) return pathOrUrl;
+
+    try {
+        let path = pathOrUrl;
+        let bucket = fallbackBucket;
+
+        // Auto-detect bucket from Supabase URLs
+        if (pathOrUrl.startsWith('http') && pathOrUrl.includes('/storage/v1/object/')) {
+            const urlObj = new URL(pathOrUrl);
+            const segments = urlObj.pathname.split('/');
+            // Expected segments for Supabase storage: ["", "storage", "v1", "object", "type", "bucketName", "path1", "path2"...]
+            if (segments.length > 6) {
+                bucket = segments[5];
+                path = decodeURIComponent(segments.slice(6).join('/'));
+            }
+        }
+
+        // Try to generate a signed URL using the admin client
+        const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
+
+        if (error) {
+            // If it's a full URL, fallback to it (might be public)
+            return pathOrUrl.startsWith('http') ? pathOrUrl : null;
+        }
+
+        return data?.signedUrl || pathOrUrl;
+    } catch (e) {
+        return pathOrUrl;
+    }
+}
+
 export default async function OnboardingPage({
     searchParams,
 }: {
@@ -49,7 +84,8 @@ export default async function OnboardingPage({
                 referral_count,
                 vehicles ( id ),
                 driver_services ( personal_bio, professional_questionnaire )
-            )
+            ),
+            identity_verifications ( selfie_url )
         `, { count: 'exact' })
         .order(sortBy, { ascending: sortOrder === 'asc' })
         .range(from, to)
@@ -77,10 +113,41 @@ export default async function OnboardingPage({
     const totalCount = count || 0
     const totalPages = Math.ceil(totalCount / pageSize)
 
-    // Calculate global stats (for the header)
-    // Note: To be perfectly accurate these should be aggregated on the DB side, 
-    // but for the MVP, calculating them based on the current page or a separate fast query is okay.
-    // For now we'll just show the total drivers as the global stat.
+    // Parallelly fetch signed URLs for all users in the current page with aggressive selection
+    const usersWithPhotos = await Promise.all(filteredUsers.map(async (user) => {
+        const driverProfile = Array.isArray(user.driver_profiles) ? user.driver_profiles[0] : user.driver_profiles;
+        const identityVerification = Array.isArray(user.identity_verifications) ? user.identity_verifications[0] : user.identity_verifications;
+
+        const dpPhoto = driverProfile?.profile_photo_url;
+        const uAvatar = user.avatar_url;
+        const vSelfie = identityVerification?.selfie_url;
+
+        // Aggressive selection: Driver Profile Photo > User Avatar > Verification Selfie
+        const rawPhotoUrl = (dpPhoto && dpPhoto !== '' && !dpPhoto.includes('placehold')) ? dpPhoto :
+            (uAvatar && uAvatar !== '' && !uAvatar.includes('placehold')) ? uAvatar :
+                (vSelfie && vSelfie !== '' && !vSelfie.includes('placehold')) ? vSelfie : null;
+
+        const hasCustomPhoto = rawPhotoUrl &&
+            !rawPhotoUrl.includes('placeholder') &&
+            !rawPhotoUrl.includes('placehold') &&
+            !rawPhotoUrl.includes('default') &&
+            rawPhotoUrl !== '/images/socio-avivago.png';
+
+        let signedPhotoUrl = null;
+        if (hasCustomPhoto) {
+            // Determine bucket based on source
+            const bucket = (rawPhotoUrl === vSelfie) ? 'avatars' :
+                (rawPhotoUrl === uAvatar) ? 'avatars' : 'avatars'; // Most photos are in avatars or public
+
+            signedPhotoUrl = await getSignedUrl(supabase, rawPhotoUrl, bucket);
+        }
+
+        return {
+            ...user,
+            signedPhotoUrl,
+            hasCustomPhoto
+        };
+    }));
 
     return (
         <div className="max-w-[1600px] mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -126,7 +193,8 @@ export default async function OnboardingPage({
             <div className="backdrop-blur-2xl bg-white/[0.02] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl relative">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-amber-600/5 rounded-full blur-[120px] pointer-events-none" />
 
-                <div className="w-full overflow-x-auto">
+                {/* Desktop Table View */}
+                <div className="hidden lg:block w-full overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[1000px]">
                         <thead>
                             <tr className="bg-white/5 border-b border-white/10">
@@ -166,7 +234,7 @@ export default async function OnboardingPage({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5 relative z-10">
-                            {filteredUsers.map((user) => {
+                            {usersWithPhotos.map((user) => {
                                 const driverProfile = Array.isArray(user.driver_profiles) ? user.driver_profiles[0] : user.driver_profiles;
 
                                 // Contact OK logic (Strict: must have email AND confirmed_at)
@@ -174,13 +242,9 @@ export default async function OnboardingPage({
                                 const hasPhone = !!user.phone_number;
                                 const isContactOk = hasConfirmedEmail && hasPhone;
 
-                                // Photo logic (Consistency: Check both avatar_url and profile_photo_url)
-                                const rawPhotoUrl = driverProfile?.profile_photo_url || user.avatar_url;
-                                const hasCustomPhoto = rawPhotoUrl &&
-                                    !rawPhotoUrl.includes('placeholder') &&
-                                    !rawPhotoUrl.includes('placehold') &&
-                                    !rawPhotoUrl.includes('default') &&
-                                    rawPhotoUrl !== '/images/socio-avivago.png';
+                                // Photo logic (Using pre-fetched signed URL)
+                                const hasCustomPhoto = user.hasCustomPhoto;
+                                const photoUrl = user.signedPhotoUrl;
 
                                 // Services logic (Strict: Both bio and questionnaire captured with real content)
                                 const driverService = Array.isArray(driverProfile?.driver_services) ? driverProfile?.driver_services[0] : driverProfile?.driver_services;
@@ -205,7 +269,6 @@ export default async function OnboardingPage({
                                 // Referrals logic
                                 const b2cRefs = driverProfile?.b2c_referral_count || 0;
                                 const b2bRefs = driverProfile?.referral_count || 0;
-                                const totalRefs = b2cRefs + b2bRefs;
 
                                 return (
                                     <tr key={user.id} className="hover:bg-white/5 transition-all group">
@@ -251,12 +314,16 @@ export default async function OnboardingPage({
 
                                         <td className="px-6 py-5 text-center">
                                             <div className="flex justify-center">
-                                                {hasCustomPhoto ? (
-                                                    <span className="inline-flex items-center justify-center p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-sm" title="Foto subida">
-                                                        <User className="h-4 w-4" />
-                                                    </span>
+                                                {hasCustomPhoto && photoUrl ? (
+                                                    <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-emerald-500/30 shadow-lg group-hover:scale-110 transition-transform">
+                                                        <img
+                                                            src={photoUrl}
+                                                            alt={user.full_name || 'Usuario'}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
                                                 ) : (
-                                                    <span className="inline-flex items-center justify-center p-1.5 rounded-lg bg-zinc-500/10 text-zinc-500 border border-zinc-500/20 shadow-sm" title="Foto default">
+                                                    <span className="inline-flex items-center justify-center p-1.5 rounded-lg bg-zinc-500/10 text-zinc-500 border border-zinc-500/20 shadow-sm" title="Sin foto personalizada">
                                                         <User className="h-4 w-4 opacity-50" />
                                                     </span>
                                                 )}
@@ -349,68 +416,187 @@ export default async function OnboardingPage({
                                     </tr>
                                 )
                             })}
-
-                            {filteredUsers.length === 0 && (
-                                <tr>
-                                    <td colSpan={8} className="px-8 py-24 text-center">
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/5">
-                                                <HelpCircle className="h-6 w-6 text-zinc-700" />
-                                            </div>
-                                            <p className="text-zinc-500 font-medium">No se encontraron resultados para tu búsqueda.</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
                         </tbody>
                     </table>
                 </div>
 
+                {/* Mobile Cards View */}
+                <div className="lg:hidden flex flex-col divide-y divide-white/5">
+                    {usersWithPhotos.map((user) => {
+                        const driverProfile = Array.isArray(user.driver_profiles) ? user.driver_profiles[0] : user.driver_profiles;
+                        const hasConfirmedEmail = !!user.email && !!user.email_confirmed_at;
+                        const hasPhone = !!user.phone_number;
+                        const isContactOk = hasConfirmedEmail && hasPhone;
+                        const photoUrl = user.signedPhotoUrl;
+                        const hasCustomPhoto = user.hasCustomPhoto;
+
+                        const driverService = Array.isArray(driverProfile?.driver_services) ? driverProfile?.driver_services[0] : driverProfile?.driver_services;
+                        const hasBio = !!driverService?.personal_bio && driverService.personal_bio.length > 20;
+                        const professionalBio = driverService?.professional_questionnaire?.bio || '';
+                        const hasProfessional = !!professionalBio && professionalBio.length > 20;
+                        const hasServicesInfo = hasBio && hasProfessional;
+
+                        const vehiclesCount = driverProfile?.vehicles?.length || 0;
+                        const b2cRefs = driverProfile?.b2c_referral_count || 0;
+                        const b2bRefs = driverProfile?.referral_count || 0;
+
+                        return (
+                            <div key={user.id} className="p-6 space-y-4">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative w-12 h-12 rounded-2xl overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center shadow-2xl">
+                                            {hasCustomPhoto && photoUrl ? (
+                                                <img src={photoUrl} className="w-full h-full object-cover" alt="" />
+                                            ) : (
+                                                <User className="h-6 w-6 text-zinc-600" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-white text-base leading-tight">{user.full_name || 'Sin Nombre'}</p>
+                                            <p className="text-zinc-500 text-[10px] font-mono leading-relaxed mt-0.5">{user.email || 'Sin correo'}</p>
+                                        </div>
+                                    </div>
+                                    <div className={`px-3 py-1 rounded-full text-[10px] font-black border ${(user.onboarding_progress_score as number) >= 5 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                                        (user.onboarding_progress_score as number) >= 3 ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                            'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+                                        }`}>
+                                        {user.onboarding_progress_score}/5
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col gap-1">
+                                        <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest">Contacto</span>
+                                        <div className="flex items-center gap-1.5">
+                                            {isContactOk ? (
+                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                                            ) : (
+                                                <XCircle className="w-3.5 h-3.5 text-red-500/50" />
+                                            )}
+                                            <span className="text-[10px] text-zinc-300 font-medium">
+                                                {isContactOk ? 'Validado' : !hasPhone ? 'Sin Tel.' : 'Correo Pend.'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col gap-1">
+                                        <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest">Vehículo</span>
+                                        <div className="flex items-center gap-1.5 text-zinc-300">
+                                            <Car className={`w-3.5 h-3.5 ${vehiclesCount > 0 ? 'text-indigo-400' : 'text-zinc-600'}`} />
+                                            <span className="text-[10px] font-medium">{vehiclesCount} {vehiclesCount === 1 ? 'Auto' : 'Autos'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col gap-1">
+                                        <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest">Servicios</span>
+                                        <div className="flex items-center gap-1.5 text-zinc-300">
+                                            <FileText className={`w-3.5 h-3.5 ${hasServicesInfo ? 'text-blue-400' : 'text-zinc-600'}`} />
+                                            <span className="text-[10px] font-medium">{hasServicesInfo ? 'Configurado' : 'Pendiente'}</span>
+                                        </div>
+                                    </div>
+                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col gap-1">
+                                        <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-widest">Referidos</span>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1 text-pink-400 text-[9px] font-bold">
+                                                <User className="w-2.5 h-2.5" /> {b2cRefs}
+                                            </div>
+                                            <div className="flex items-center gap-1 text-amber-400 text-[9px] font-bold">
+                                                <Car className="w-2.5 h-2.5" /> {b2bRefs}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 pt-2">
+                                    <Link
+                                        href={`/admin/users/${user.id}`}
+                                        className="flex-1 bg-white/10 border border-white/10 py-3 rounded-xl text-center text-xs font-bold text-white active:scale-95 transition-all"
+                                    >
+                                        Ver Expediente
+                                    </Link>
+                                    {user.phone_number && (
+                                        <a
+                                            href={getWhatsAppUrl(user.phone_number, user.full_name)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-12 h-11 bg-[#25D366]/10 border border-[#25D366]/20 rounded-xl flex items-center justify-center text-[#25D366] active:scale-95 transition-all"
+                                        >
+                                            <Smartphone className="w-5 h-5" />
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+                        )
+                    })}
+                </div>
+
+                {usersWithPhotos.length === 0 && (
+                    <div className="px-8 py-24 text-center">
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/5">
+                                <HelpCircle className="h-6 w-6 text-zinc-700" />
+                            </div>
+                            <p className="text-zinc-500 font-medium">No se encontraron resultados para tu búsqueda.</p>
+                        </div>
+                    </div>
+                )}
                 {/* 4. Pagination Section */}
                 {totalPages > 1 && (
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-8 py-6 border-t border-white/5 bg-white/[0.01]">
-                        <p className="text-zinc-500 text-[10px] font-medium">
-                            Mostrando <span className="text-white">{from + 1}</span> a <span className="text-white">{Math.min(to + 1, totalCount)}</span> de <span className="text-white">{totalCount}</span> {search ? 'resultados filtrados' : 'usuarios'}
-                        </p>
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-8 py-8 border-t border-zinc-800/50 bg-white/[0.01]">
+                        <div className="flex flex-col items-center md:items-start gap-1">
+                            <p className="text-zinc-500 text-xs font-medium">
+                                Mostrando <span className="text-white font-bold">{from + 1}</span> a <span className="text-white font-bold">{Math.min(to + 1, totalCount)}</span>
+                            </p>
+                            <p className="text-zinc-600 text-[10px] uppercase tracking-widest font-bold">
+                                de <span className="text-zinc-400">{totalCount}</span> {search ? 'resultados filtrados' : 'usuarios totales'}
+                            </p>
+                        </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                             <Link
                                 href={`/admin/onboarding?page=${page - 1}${search ? `&search=${search}` : ''}&sortBy=${sortBy}&order=${sortOrder}`}
-                                className={`p-2 rounded-xl border border-white/10 transition-all ${page <= 1 ? 'opacity-30 pointer-events-none' : 'hover:bg-white/5 hover:border-white/20'}`}
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 text-xs font-bold transition-all ${page <= 1 ? 'opacity-20 pointer-events-none' : 'text-zinc-400 hover:bg-white/5 hover:border-white/20 hover:text-white active:scale-95'}`}
                             >
-                                <ChevronLeft className="w-4 h-4 text-zinc-400" />
+                                <ChevronLeft className="w-4 h-4" />
+                                <span className="hidden sm:inline">Anterior</span>
                             </Link>
 
-                            <div className="flex items-center gap-1">
+                            <div className="hidden sm:flex items-center gap-1.5">
                                 {[...Array(totalPages)].map((_, i) => {
                                     const p = i + 1;
-                                    const isVisible = p === 1 || p === totalPages || (p >= page - 1 && p <= page + 1);
+                                    const isVisible = p === 1 || p === totalPages || (p >= page - 2 && p <= page + 2);
 
                                     if (isVisible) {
                                         return (
                                             <Link
                                                 key={p}
                                                 href={`/admin/onboarding?page=${p}${search ? `&search=${search}` : ''}&sortBy=${sortBy}&order=${sortOrder}`}
-                                                className={`w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all border ${p === page
-                                                    ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-600/20'
-                                                    : 'border-white/10 text-zinc-500 hover:border-white/20 hover:text-white hover:bg-white/5'}`}
+                                                className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black transition-all border ${p === page
+                                                    ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-600/40 relative z-10 scale-110'
+                                                    : 'border-white/5 text-zinc-500 hover:border-white/20 hover:text-white hover:bg-white/5'}`}
                                             >
                                                 {p}
                                             </Link>
                                         );
                                     }
-                                    if (p === page - 2 || p === page + 2) {
-                                        return <span key={p} className="text-zinc-700 px-0.5 text-[10px]">...</span>;
+                                    if (p === page - 3 || p === page + 3) {
+                                        return <span key={p} className="text-zinc-700 px-1 font-black">...</span>;
                                     }
                                     return null;
                                 })}
                             </div>
 
+                            {/* Mobile Simple Page Indicator */}
+                            <div className="sm:hidden flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10">
+                                <span className="text-xs font-black text-amber-500">{page}</span>
+                                <span className="text-zinc-600 text-[10px]">/</span>
+                                <span className="text-xs font-bold text-zinc-500">{totalPages}</span>
+                            </div>
+
                             <Link
                                 href={`/admin/onboarding?page=${page + 1}${search ? `&search=${search}` : ''}&sortBy=${sortBy}&order=${sortOrder}`}
-                                className={`p-2 rounded-xl border border-white/10 transition-all ${page >= totalPages ? 'opacity-30 pointer-events-none' : 'hover:bg-white/5 hover:border-white/20'}`}
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/10 text-xs font-bold transition-all ${page >= totalPages ? 'opacity-20 pointer-events-none' : 'text-zinc-400 hover:bg-white/5 hover:border-white/20 hover:text-white active:scale-95'}`}
                             >
-                                <ChevronRight className="w-4 h-4 text-zinc-400" />
+                                <span className="hidden sm:inline">Siguiente</span>
+                                <ChevronRight className="w-4 h-4" />
                             </Link>
                         </div>
                     </div>
