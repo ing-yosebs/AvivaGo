@@ -130,8 +130,8 @@ export default function VehiclesSection({ vehicles, onAdd, hasMembership }: any)
             // Compresión de Imágenes
             if (originalFile.type.startsWith('image/')) {
                 const options = {
-                    maxSizeMB: 1,
-                    maxWidthOrHeight: 1920,
+                    maxSizeMB: 0.8,
+                    maxWidthOrHeight: 1200,
                     useWebWorker: true
                 }
                 try {

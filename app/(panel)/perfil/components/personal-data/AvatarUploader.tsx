@@ -17,7 +17,7 @@ export function AvatarUploader({ avatarUrl, onUpload, uploading, readOnly }: Ava
         if (file) {
             const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
             if (!validTypes.includes(file.type)) {
-                alert('Por favor, sube solo imágenes en formato JPG o PNG para asegurar una carga rápida.');
+                alert('Por favor, sube solo imágenes en formato JPG o PNG para asegurar una carga rápida y un perfil ligero.');
                 return;
             }
             onUpload(file)

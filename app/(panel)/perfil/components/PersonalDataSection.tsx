@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Save, CheckCircle2 } from 'lucide-react'
 import { uploadFile } from '@/lib/supabase/storage'
 import { createClient } from '@/lib/supabase/client'
+import imageCompression from 'browser-image-compression'
 
 import { AvatarUploader } from './personal-data/AvatarUploader'
 import { IdentityPanel } from './personal-data/IdentityPanel'
@@ -222,19 +223,35 @@ export default function PersonalDataSection({ profile, onSave, saving, hasMember
     }
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, field: string, bucket: string) => {
-        const file = e.target.files?.[0]
-        if (!file) return
+        const originalFile = e.target.files?.[0]
+        if (!originalFile) return
 
         // Validar tipos de archivo para imágenes
-        if (file.type.startsWith('image/') && !['image/jpeg', 'image/png', 'image/jpg'].includes(file.type)) {
+        if (originalFile.type.startsWith('image/') && !['image/jpeg', 'image/png', 'image/jpg'].includes(originalFile.type)) {
             alert('Por favor, selecciona solo imágenes PNG o JPG para asegurar un mejor rendimiento.');
             return
         }
 
         setUploading(field)
+        let fileToUpload = originalFile
+
         try {
-            const path = `${profile.id}/${Date.now()}_${file.name}`
-            const url = await uploadFile(bucket, path, file)
+            // Compresión de Imágenes (Solo si es imagen)
+            if (originalFile.type.startsWith('image/')) {
+                const options = {
+                    maxSizeMB: 0.8,
+                    maxWidthOrHeight: 1200,
+                    useWebWorker: true
+                }
+                try {
+                    fileToUpload = await imageCompression(originalFile, options)
+                } catch (error) {
+                    console.error('Error al comprimir imagen:', error)
+                }
+            }
+
+            const path = `${profile.id}/${Date.now()}_${fileToUpload.name}`
+            const url = await uploadFile(bucket, path, fileToUpload)
             setFormData(prev => ({ ...prev, [field]: url }))
         } catch (error: any) {
             alert('Error al subir archivo: ' + error.message)

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Upload, CheckCircle, AlertCircle, Loader2, ScanLine, FileText, Camera, User, Globe, Shield, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import * as faceapi from 'face-api.js';
+import imageCompression from 'browser-image-compression';
 
 interface VehicleInfo {
     make: string;
@@ -142,15 +143,34 @@ export default function IdVerificationFlow() {
     }, [step, modelsLoaded]);
 
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'front' | 'back') => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'front' | 'back') => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                if (type === 'front') setFrontImage(reader.result as string);
-                else setBackImage(reader.result as string);
+            // Comprimir antes de procesar para evitar lag en el navegador y subida lenta
+            const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1600,
+                useWebWorker: true
             };
-            reader.readAsDataURL(file);
+
+            try {
+                const compressedFile = await imageCompression(file, options);
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    if (type === 'front') setFrontImage(reader.result as string);
+                    else setBackImage(reader.result as string);
+                };
+                reader.readAsDataURL(compressedFile);
+            } catch (err) {
+                console.error("Error al comprimir identificación:", err);
+                // Fallback a original si falla
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    if (type === 'front') setFrontImage(reader.result as string);
+                    else setBackImage(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+            }
         }
     };
 

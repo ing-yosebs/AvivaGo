@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Upload, CheckCircle, AlertCircle, Loader2, ScanLine, FileText } from 'lucide-react';
 import Image from 'next/image';
+import imageCompression from 'browser-image-compression';
 
 interface VerificationResult {
     name: string;
@@ -18,16 +19,34 @@ export default function IdVerification() {
     const [error, setError] = useState<string | null>(null);
     const [rawText, setRawText] = useState<string | null>(null);
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImage(reader.result as string);
-                setResult(null);
-                setError(null);
+            const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1600,
+                useWebWorker: true
             };
-            reader.readAsDataURL(file);
+
+            try {
+                const compressedFile = await imageCompression(file, options);
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setImage(reader.result as string);
+                    setResult(null);
+                    setError(null);
+                };
+                reader.readAsDataURL(compressedFile);
+            } catch (err) {
+                console.error("Error al comprimir:", err);
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setImage(reader.result as string);
+                    setResult(null);
+                    setError(null);
+                };
+                reader.readAsDataURL(file);
+            }
         }
     };
 
