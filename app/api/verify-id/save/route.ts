@@ -154,11 +154,8 @@ export async function POST(request: NextRequest) {
 
         // 2. Update public.users (Legacy/UI compatibility)
         const updateData: any = {
-            full_name: data.name,
             address_text: data.address,
-            curp: data.curp, // Keep syncing for now
-            birthday: data.birthDate,
-            nationality: data.nationality
+            curp: data.curp // Keep syncing for now
         };
 
         if (idUrl) updateData.id_document_url = idUrl;

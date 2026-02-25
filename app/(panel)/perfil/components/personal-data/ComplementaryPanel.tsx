@@ -20,6 +20,8 @@ interface ComplementaryPanelProps {
     uploading: string | null
     signedUrls: { id: string | null, idBack: string | null, address: string | null }
     onFileUpload: (e: any, field: string, bucket: string) => void
+    savingPartial?: string | null
+    onPartialSave?: (section: string, keys: string[]) => void
 }
 
 export function ComplementaryPanel({
@@ -34,7 +36,9 @@ export function ComplementaryPanel({
     onAddressUpdate,
     uploading,
     signedUrls,
-    onFileUpload
+    onFileUpload,
+    savingPartial,
+    onPartialSave
 }: ComplementaryPanelProps) {
     const isVerified = !!profile?.driver_profile?.verified_at
 
@@ -167,6 +171,17 @@ export function ComplementaryPanel({
                         </div>
                     </div>
                 </div>
+                {onPartialSave && (
+                    <div className="flex justify-end pt-3">
+                        <button
+                            onClick={() => onPartialSave('emergency', ['emergency_contact_name', 'emergency_contact_relationship', 'emergency_contact_phone'])}
+                            disabled={savingPartial === 'emergency'}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg shadow-blue-600/10"
+                        >
+                            {savingPartial === 'emergency' ? 'Guardando...' : 'Guardar Contacto'}
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Address Editable Section */}
@@ -289,6 +304,18 @@ export function ComplementaryPanel({
                                 </p>
                             )}
                         </div>
+
+                        {onPartialSave && (
+                            <div className="col-span-1 lg:col-span-2 flex justify-end pt-4 border-t border-gray-100 mt-4">
+                                <button
+                                    onClick={() => onPartialSave('address', ['address_street', 'address_number_ext', 'address_number_int', 'address_suburb', 'address_postal_code', 'address_state', 'address_country', 'address_references', 'address_map_lat', 'address_map_lng'])}
+                                    disabled={savingPartial === 'address'}
+                                    className="px-6 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg shadow-blue-600/10"
+                                >
+                                    {savingPartial === 'address' ? 'Guardando...' : 'Guardar Residencia'}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

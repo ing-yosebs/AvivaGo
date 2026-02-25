@@ -20,6 +20,8 @@ interface IdentityPanelProps {
     selectedCountry: any
     hasMembership?: boolean
     isDriver?: boolean
+    savingPartial?: string | null
+    onPartialSave?: (section: string, keys: string[]) => void
 }
 
 export function IdentityPanel({
@@ -35,10 +37,13 @@ export function IdentityPanel({
     signedUrls,
     selectedCountry,
     hasMembership,
-    isDriver
+    isDriver,
+    savingPartial,
+    onPartialSave
 }: IdentityPanelProps) {
     const router = useRouter()
     const isVerified = !!profile?.driver_profile?.verified_at
+    const [isEditingName, setIsEditingName] = useState(false)
 
     return (
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-8">
@@ -125,6 +130,52 @@ export function IdentityPanel({
                 {/* Personal Info Column */}
                 <div className="space-y-6">
                     <div className="space-y-2">
+                        <div className="flex items-center justify-between px-1">
+                            <label className="text-[10px] font-bold uppercase text-gray-500">Nombre Completo</label>
+                            {!isVerified && !isEditingName && (
+                                <button
+                                    onClick={() => setIsEditingName(true)}
+                                    className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[9px] font-bold border border-blue-100 hover:bg-blue-100 transition-colors uppercase tracking-tight"
+                                >
+                                    <Pencil className="h-2.5 w-2.5" />
+                                    Editar
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex gap-2">
+                            <div className="relative flex-1">
+                                <input
+                                    name="full_name"
+                                    value={formData.full_name}
+                                    onChange={onChange}
+                                    readOnly={isVerified || !isEditingName}
+                                    placeholder="Tu nombre completo"
+                                    className={`w-full border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 ${(isVerified || !isEditingName) ? 'bg-gray-50 cursor-not-allowed opacity-70' : 'bg-white shadow-sm border-blue-200'}`}
+                                />
+                                {isVerified && (
+                                    <Shield className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300 opacity-50 pointer-events-none" />
+                                )}
+                            </div>
+                            {isEditingName && onPartialSave && (
+                                <button
+                                    onClick={async () => {
+                                        await onPartialSave('name', ['full_name'])
+                                        setIsEditingName(false)
+                                    }}
+                                    disabled={savingPartial === 'name'}
+                                    className="px-4 bg-blue-600 text-white rounded-xl font-bold flex flex-col justify-center items-center hover:bg-blue-700 transition-colors disabled:opacity-50 text-[10px] uppercase tracking-wider h-[46px] min-w-[80px]"
+                                >
+                                    {savingPartial === 'name' ? (
+                                        <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <>Guardar</>
+                                    )}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
                         <div className="flex items-center gap-2 px-1">
                             <label className="text-[10px] font-bold uppercase text-gray-500">Correo Electrónico</label>
                             <button
@@ -142,7 +193,6 @@ export function IdentityPanel({
                             </div>
                         </div>
                     </div>
-
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 px-1">
                             <label className="text-[10px] font-bold uppercase text-gray-500">Teléfono (WhatsApp)</label>
@@ -180,37 +230,77 @@ export function IdentityPanel({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase text-gray-500">Fecha Nacimiento</label>
-                            <div className="relative">
-                                {isVerified ? (
-                                    <input
-                                        readOnly
-                                        value={formData.birthday ? formData.birthday.split('-').reverse().join('/') : ''}
-                                        className="w-full border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 bg-gray-50 cursor-not-allowed opacity-70 font-mono"
-                                    />
-                                ) : (
-                                    <input
-                                        name="birthday"
-                                        type="date"
-                                        value={formData.birthday}
-                                        onChange={onChange}
-                                        className="w-full border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 bg-white"
-                                    />
-                                )}
+                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 space-y-4 mt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Fecha Nacimiento</label>
+                                <div className="relative">
+                                    {isVerified ? (
+                                        <input
+                                            readOnly
+                                            value={formData.birthday ? formData.birthday.split('-').reverse().join('/') : ''}
+                                            className="w-full border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 bg-gray-50 cursor-not-allowed opacity-70 font-mono"
+                                        />
+                                    ) : (
+                                        <input
+                                            name="birthday"
+                                            type="date"
+                                            value={formData.birthday}
+                                            onChange={onChange}
+                                            className="w-full border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 bg-white"
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase text-gray-500">Nacionalidad</label>
+                                <input
+                                    name="nationality"
+                                    value={formData.nationality}
+                                    onChange={onChange}
+                                    readOnly={isVerified}
+                                    className={`w-full border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 ${isVerified ? 'bg-gray-50 cursor-not-allowed opacity-70' : 'bg-white'}`}
+                                />
                             </div>
                         </div>
+
                         <div className="space-y-2">
-                            <label className="text-[10px] font-bold uppercase text-gray-500">Nacionalidad</label>
-                            <input
-                                name="nationality"
-                                value={formData.nationality}
-                                onChange={onChange}
-                                readOnly={isVerified}
-                                className={`w-full border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 ${isVerified ? 'bg-gray-50 cursor-not-allowed opacity-70' : 'bg-white'}`}
-                            />
+                            <label className="text-[10px] font-bold uppercase text-gray-500">Nivel Educativo</label>
+                            <div className="relative">
+                                <select
+                                    name="education_level"
+                                    value={formData.education_level}
+                                    onChange={onChange}
+                                    className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 appearance-none pr-10"
+                                >
+                                    <option value="">Seleccionar...</option>
+                                    {[
+                                        { value: 'Ninguno', label: 'Ninguno' },
+                                        { value: 'Primaria', label: 'Primaria' },
+                                        { value: 'Secundaria', label: 'Secundaria' },
+                                        { value: 'Medio superior', label: 'Medio superior' },
+                                        { value: 'Superior', label: 'Superior (Licenciatura, Ingeniería)' },
+                                        { value: 'Maestría', label: 'Maestría' },
+                                        { value: 'Doctorado', label: 'Doctorado' }
+                                    ].map(lvl => <option key={lvl.value} value={lvl.value}>{lvl.label}</option>)}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                    <ChevronDown className="h-4 w-4" />
+                                </div>
+                            </div>
                         </div>
+
+                        {onPartialSave && (
+                            <div className="flex justify-end pt-2">
+                                <button
+                                    onClick={() => onPartialSave('demographics', ['birthday', 'nationality', 'education_level'])}
+                                    disabled={savingPartial === 'demographics'}
+                                    className="px-6 py-2 bg-blue-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-lg shadow-blue-600/10"
+                                >
+                                    {savingPartial === 'demographics' ? 'Guardando...' : 'Guardar Datos'}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -275,34 +365,8 @@ export function IdentityPanel({
                             </div>
                         </div>
                     )}
-
-                    <div className="space-y-2 mt-4">
-                        <label className="text-[10px] font-bold uppercase text-gray-500">Nivel Educativo</label>
-                        <div className="relative">
-                            <select
-                                name="education_level"
-                                value={formData.education_level}
-                                onChange={onChange}
-                                className="w-full bg-white border border-gray-200 text-[#0F2137] rounded-xl px-4 py-2.5 focus:outline-none focus:border-blue-500 appearance-none pr-10"
-                            >
-                                <option value="">Seleccionar...</option>
-                                {[
-                                    { value: 'Ninguno', label: 'Ninguno' },
-                                    { value: 'Primaria', label: 'Primaria' },
-                                    { value: 'Secundaria', label: 'Secundaria' },
-                                    { value: 'Medio superior', label: 'Medio superior' },
-                                    { value: 'Superior', label: 'Superior (Licenciatura, Ingeniería)' },
-                                    { value: 'Maestría', label: 'Maestría' },
-                                    { value: 'Doctorado', label: 'Doctorado' }
-                                ].map(lvl => <option key={lvl.value} value={lvl.value}>{lvl.label}</option>)}
-                            </select>
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                                <ChevronDown className="h-4 w-4" />
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
-        </div >
+        </div>
     )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save, CheckCircle2 } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 import { uploadFile } from '@/lib/supabase/storage'
 import { createClient } from '@/lib/supabase/client'
 import imageCompression from 'browser-image-compression'
@@ -15,6 +15,23 @@ import { ChangeEmailModal } from './personal-data/ChangeEmailModal'
 export default function PersonalDataSection({ profile, onSave, saving, hasMembership, isDriver }: any) {
     const supabase = createClient()
     const [uploading, setUploading] = useState<string | null>(null)
+    const [savingPartial, setSavingPartial] = useState<string | null>(null)
+
+    const handlePartialSave = async (section: string, keys: string[]) => {
+        setSavingPartial(section)
+        const partialData: any = {}
+        for (const key of keys) {
+            if (key === 'phone_number') {
+                partialData.phone_number = `+${phoneCode}${formData.phone_number}`
+            } else if (key === 'emergency_contact_phone') {
+                partialData.emergency_contact_phone = `+${emergencyPhoneCode}${formData.emergency_contact_phone}`
+            } else {
+                partialData[key] = (formData as any)[key]
+            }
+        }
+        await onSave(partialData)
+        setSavingPartial(null)
+    }
     const [signedUrls, setSignedUrls] = useState<{ id: string | null, idBack: string | null, address: string | null }>({
         id: null, idBack: null, address: null
     })
@@ -247,6 +264,7 @@ export default function PersonalDataSection({ profile, onSave, saving, hasMember
             const path = `${profile.id}/${Date.now()}_${fileToUpload.name}`
             const url = await uploadFile(bucket, path, fileToUpload)
             setFormData(prev => ({ ...prev, [field]: url }))
+            await onSave({ [field]: url })
         } catch (error: any) {
             alert('Error al subir archivo: ' + error.message)
         } finally {
@@ -279,6 +297,8 @@ export default function PersonalDataSection({ profile, onSave, saving, hasMember
                     selectedCountry={selectedCountry}
                     hasMembership={hasMembership}
                     isDriver={isDriver}
+                    savingPartial={savingPartial}
+                    onPartialSave={handlePartialSave}
                 />
 
                 <ComplementaryPanel
@@ -294,24 +314,9 @@ export default function PersonalDataSection({ profile, onSave, saving, hasMember
                     uploading={uploading}
                     signedUrls={signedUrls}
                     onFileUpload={handleFileChange}
+                    savingPartial={savingPartial}
+                    onPartialSave={handlePartialSave}
                 />
-            </div>
-
-            <div className="flex justify-end pt-4">
-                <button
-                    onClick={() => {
-                        onSave({
-                            ...formData,
-                            phone_number: `+${phoneCode}${formData.phone_number}`,
-                            emergency_contact_phone: `+${emergencyPhoneCode}${formData.emergency_contact_phone}`
-                        })
-                    }}
-                    disabled={saving}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all disabled:opacity-50 shadow-xl shadow-blue-600/20"
-                >
-                    <Save className="h-4 w-4" />
-                    {saving ? 'Guardando...' : 'Guardar Información Personal'}
-                </button>
             </div>
 
             <ChangePhoneModal
