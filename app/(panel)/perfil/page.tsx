@@ -61,27 +61,24 @@ function ProfileContent() {
 
     const supabase = createClient()
 
-    const loadProfile = async () => {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return
-        setUser(user)
+    const loadProfile = async (userId?: string) => {
+        let currentUserId = userId
+        if (!currentUserId) {
+            const { data: { user } } = await supabase.auth.getUser()
+            if (!user) return
+            currentUserId = user.id
+            setUser(user)
+        }
 
         const { data: userData } = await supabase
             .from('users')
-            .select('*')
-            .eq('id', user.id)
+            .select('*, driver_profiles(*)')
+            .eq('id', currentUserId)
             .single()
 
         if (userData) {
-            let drvData = null
-            if (userData.roles?.includes('driver')) {
-                const { data } = await supabase
-                    .from('driver_profiles')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .single()
-                drvData = data
-            }
+            const drvData = userData.driver_profiles
+            delete userData.driver_profiles
 
             const enriched = { ...userData, driver_profile: drvData }
             setProfile(enriched)
@@ -90,97 +87,57 @@ function ProfileContent() {
         }
     }
 
-    const loadVehicles = async (userId: string) => {
-        const { data: drvProfile } = await supabase
-            .from('driver_profiles')
-            .select('id')
-            .eq('user_id', userId)
-            .single()
-
-        if (drvProfile) {
-            const { data: vhls } = await supabase
-                .from('vehicles')
-                .select('*')
-                .eq('driver_profile_id', drvProfile.id)
-            setVehicles(vhls || [])
-        }
+    const loadVehicles = async (driverProfileId: string) => {
+        const { data: vhls } = await supabase
+            .from('vehicles')
+            .select('*')
+            .eq('driver_profile_id', driverProfileId)
+        setVehicles(vhls || [])
     }
 
-    const loadServices = async (userId: string) => {
-        const { data: drvProfile } = await supabase
-            .from('driver_profiles')
-            .select('id')
-            .eq('user_id', userId)
+    const loadServices = async (driverProfileId: string) => {
+        const { data: services } = await supabase
+            .from('driver_services')
+            .select('*')
+            .eq('driver_profile_id', driverProfileId)
             .single()
 
-        if (drvProfile) {
-            const { data: services } = await supabase
-                .from('driver_services')
-                .select('*')
-                .eq('driver_profile_id', drvProfile.id)
-                .single()
-
-            setDriverServices(services || {
-                driver_profile_id: drvProfile.id,
-                work_schedule: {},
-                preferred_zones: [],
-                languages: [],
-                indigenous_languages: [],
-                professional_questionnaire: {}
-            })
-        }
+        setDriverServices(services || {
+            driver_profile_id: driverProfileId,
+            work_schedule: {},
+            preferred_zones: [],
+            languages: [],
+            indigenous_languages: [],
+            professional_questionnaire: {}
+        })
     }
 
     useEffect(() => {
         const init = async () => {
             const userData = await loadProfile()
+            if (!userData) {
+                setLoading(false)
+                return
+            }
+
             const isUserDriver = userData?.roles?.includes('driver')
+            const driverProfileId = userData.driver_profile?.id
 
-            if (isUserDriver) {
-                await loadVehicles(userData.id)
-                await loadServices(userData.id)
-
-                // Check membership
-                const { data: membershipData } = await supabase
-                    .from('driver_memberships')
-                    .select('status, expires_at, created_at')
-                    .eq('driver_profile_id', userData.driver_profile?.id)
-                    .eq('status', 'active')
-                    .gt('expires_at', new Date().toISOString())
-                    .maybeSingle()
-
-                if (membershipData) {
-                    setHasMembership(true)
-
-                    // Calculate Level for restrictions (Marketing Kit)
-                    const mDate = membershipData.created_at
-                    /* 
-                    // Temporarily disabled to prevent 400 Bad Request
-                    if (userData.referral_code) {
-                        try {
-                            const { count, error: countError } = await supabase
-                                .from('users')
-                                .select('*', { count: 'exact', head: true })
-                                .eq('referred_by', userData.referral_code)
-                                .gt('created_at', mDate)
-                                .contains('roles', ['driver'])
-
-                            if (!countError) {
-                                const referralCount = count || 0
-                                const dbLevel = userData.driver_profile?.affiliate_level
-
-                                if (referralCount >= 11 || dbLevel === 'silver' || dbLevel === 'gold' || referralCount >= 51) {
-                                    setIsPlataOrHigher(true)
-                                }
-                            }
-                        } catch (err) {
-                            console.warn('Error calculating referral level', err)
-                        }
-                    }
-                    */
-                } else {
-                    // Check for pending payments (SPEI/OXXO instructions)
-                    const { data: pending } = await supabase
+            if (isUserDriver && driverProfileId) {
+                // Parallelize secondary fetches
+                const promises = [
+                    loadVehicles(driverProfileId),
+                    loadServices(driverProfileId),
+                    // Check membership
+                    supabase
+                        .from('driver_memberships')
+                        .select('status, expires_at, created_at')
+                        .eq('driver_profile_id', driverProfileId)
+                        .eq('status', 'active')
+                        .gt('expires_at', new Date().toISOString())
+                        .maybeSingle(),
+                    // Check pending payments
+                    supabase
                         .from('pending_payments')
                         .select('*')
                         .eq('user_id', userData.id)
@@ -188,10 +145,16 @@ function ProfileContent() {
                         .order('created_at', { ascending: false })
                         .limit(1)
                         .maybeSingle()
+                ]
 
-                    if (pending) {
-                        setPendingPayment(pending)
-                    }
+                const results = await Promise.all(promises)
+                const membershipData = (results[2] as any)?.data
+                const pendingPaymentData = (results[3] as any)?.data
+
+                if (membershipData) {
+                    setHasMembership(true)
+                } else if (pendingPaymentData) {
+                    setPendingPayment(pendingPaymentData)
                 }
 
                 if (urlTab) setActiveTab(urlTab)
@@ -208,7 +171,6 @@ function ProfileContent() {
     }, [supabase, urlTab])
 
     const handleSaveProfile = async (formData: any) => {
-        // Security Check: Ban Status
         if (profile?.is_banned) {
             setMessage({ type: 'error', text: 'Tu cuenta está suspendida. No puedes realizar cambios.' })
             return
@@ -218,45 +180,39 @@ function ProfileContent() {
         setMessage(null)
         try {
             const userFormData = { ...formData }
-            // Extract driver_profile specific fields
             const countryCode = userFormData.country_code
-            delete userFormData.country_code // Remove from users table update
-
-            // Email is managed exclusively via an OTP flow (ChangeEmailModal)
-            // Prevent empty string emails from triggering a unique constraint violation
+            delete userFormData.country_code
             delete userFormData.email
 
             if (userFormData.birthday === '') userFormData.birthday = null
             if (userFormData.education_level === '') userFormData.education_level = null
 
-            const { error: userError } = await supabase
-                .from('users')
-                .update(userFormData)
-                .eq('id', user.id)
+            const updatePromises = []
 
-            if (userError) throw userError
+            // Update users table
+            updatePromises.push(
+                supabase
+                    .from('users')
+                    .update(userFormData)
+                    .eq('id', user.id)
+            )
 
-            // Update detailed driver profile info if exists (country_code)
+            // Update driver_profiles if country_code changed
             if (countryCode && profile?.driver_profile?.id) {
-                const { error: driverError } = await supabase
-                    .from('driver_profiles')
-                    .update({ country_code: countryCode })
-                    .eq('id', profile.driver_profile.id)
-
-                if (driverError) throw driverError
-            } else if (countryCode && isDriver) {
-                // Try to find driver profile if we didn't have it in state but user is driver? 
-                // Usually profile.driver_profile should be populated if isDriver.
-                const { error: driverError } = await supabase
-                    .from('driver_profiles')
-                    .update({ country_code: countryCode })
-                    .eq('user_id', user.id)
-                if (driverError) console.error("Error updating driver country", driverError)
+                updatePromises.push(
+                    supabase
+                        .from('driver_profiles')
+                        .update({ country_code: countryCode })
+                        .eq('id', profile.driver_profile.id)
+                )
             }
 
-            if (userError) throw userError
+            const results = await Promise.all(updatePromises)
+            for (const res of results) {
+                if (res.error) throw res.error
+            }
 
-            await loadProfile()
+            await loadProfile(user.id)
             setMessage({ type: 'success', text: 'Perfil actualizado correctamente' })
         } catch (error: any) {
             setMessage({ type: 'error', text: error.message })

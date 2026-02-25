@@ -71,16 +71,10 @@ export default function PersonalDataSection({ profile, onSave, saving, hasMember
 
             if (data) {
                 setCountries(data)
-                // Set initial selected country
-                const initialCode = profile?.driver_profile?.country_code || ''
-                const current = data.find(c => c.code === initialCode)
-                if (current) {
-                    setSelectedCountry(current)
-                }
             }
         }
         fetchCountries()
-    }, [supabase, profile])
+    }, [supabase])
 
     // Update selected country when formData changes
     useEffect(() => {
