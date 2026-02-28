@@ -212,14 +212,19 @@ export default function TerminosCondicionesPage() {
 
                 <hr className="border-gray-200" />
 
-                {/* 10. MODIFICACIONES */}
+                {/* 10. OBLIGACIONES FISCALES */}
                 <section>
                     <h2 className="text-xl font-semibold text-[#0F2137] mb-4">
-                        10. MODIFICACIONES A LOS TÉRMINOS
+                        10. OBLIGACIONES FISCALES Y RETENCIÓN DE IMPUESTOS
                     </h2>
-                    <p>
-                        AvivaGo se reserva el derecho de modificar estos Términos y Condiciones en cualquier momento. Las modificaciones entrarán en vigor inmediatamente después de su publicación en la plataforma.
+                    <p className="mb-4">
+                        AvivaGo opera bajo estricto apego a las leyes fiscales vigentes en los Estados Unidos Mexicanos.
                     </p>
+                    <ul className="list-disc pl-5 space-y-2">
+                        <li><strong>Impuestos Generados:</strong> Todos los ingresos, bonos y comisiones generados a través de nuestro programa de afiliados u otras actividades dentro de la plataforma causarán el pago de los impuestos correspondientes.</li>
+                        <li><strong>Retenciones Legales:</strong> AvivaGo realizará la retención de los impuestos aplicables conforme a la Ley del Impuesto Sobre la Renta (ISR), la Ley del Impuesto al Valor Agregado (IVA) y las disposiciones relativas de la Resolución Miscelánea Fiscal vigente en México.</li>
+                        <li><strong>Responsabilidad del Usuario:</strong> El usuario o afiliado es el único responsable de cumplir con sus obligaciones fiscales personales derivadas de los ingresos obtenidos a través de la plataforma, así como de proporcionar la información fiscal (como RFC y Constancia de Situación Fiscal) cuando se le sea requerida para efectos de facturación y retención.</li>
+                    </ul>
                 </section>
 
                 <hr className="border-gray-200" />
@@ -230,7 +235,19 @@ export default function TerminosCondicionesPage() {
                         11. LEGISLACIÓN APLICABLE Y JURISDICCIÓN
                     </h2>
                     <p>
-                        Para la interpretación y cumplimiento de los presentes términos, las partes se someten a las leyes aplicables y a los tribunales competentes de la Ciudad de México, renunciando a cualquier otro fuero que pudiera corresponderles por razón de sus domicilios presentes o futuros.
+                        Para la interpretación y cumplimiento de los presentes términos, las partes se someten a las leyes aplicables en los Estados Unidos Mexicanos y a los tribunales competentes de la Ciudad de México, renunciando a cualquier otro fuero legal que pudiera corresponderles por razón de sus domicilios presentes o futuros.
+                    </p>
+                </section>
+
+                <hr className="border-gray-200" />
+
+                {/* 12. MODIFICACIONES */}
+                <section>
+                    <h2 className="text-xl font-semibold text-[#0F2137] mb-4">
+                        12. MODIFICACIONES A LOS TÉRMINOS
+                    </h2>
+                    <p>
+                        AvivaGo se reserva el derecho de modificar estos Términos y Condiciones en cualquier momento. Las modificaciones entrarán en vigor inmediatamente después de su publicación en la plataforma.
                     </p>
                 </section>
 

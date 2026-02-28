@@ -36,11 +36,11 @@ export default function PersonalDocs({
                                     <span className="text-[10px] font-bold uppercase tracking-wider">Documento PDF</span>
                                 </div>
                             ) : (
-                                <img
+                                <Image
                                     src={idDocumentSignedUrl}
                                     alt="ID Frente"
-                                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                                    referrerPolicy="no-referrer"
+                                    className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                    fill sizes="(max-width: 768px) 100vw, 50vw"
                                 />
                             )}
                             <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent translate-y-full group-hover:translate-y-0 transition-transform hidden sm:block">
@@ -68,11 +68,11 @@ export default function PersonalDocs({
                                     <span className="text-[10px] font-bold uppercase tracking-wider">Documento PDF</span>
                                 </div>
                             ) : (
-                                <img
+                                <Image
                                     src={idDocumentBackSignedUrl}
                                     alt="ID Reverso"
-                                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                                    referrerPolicy="no-referrer"
+                                    className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                    fill sizes="(max-width: 768px) 100vw, 50vw"
                                 />
                             )}
                             <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent translate-y-full group-hover:translate-y-0 transition-transform hidden sm:block">
@@ -94,11 +94,11 @@ export default function PersonalDocs({
                     <label className="block text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em]">Selfie de Validación</label>
                     {verificationSelfieSignedUrl ? (
                         <Link href={verificationSelfieSignedUrl} target="_blank" className="block group relative aspect-[1.6/1] bg-black/40 rounded-xl overflow-hidden border border-white/10 hover:border-blue-500/50 transition-all shadow-lg active:scale-[0.98]">
-                            <img
+                            <Image
                                 src={verificationSelfieSignedUrl}
                                 alt="Selfie"
-                                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                                referrerPolicy="no-referrer"
+                                className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                fill sizes="(max-width: 768px) 100vw, 50vw"
                             />
                             <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent translate-y-full group-hover:translate-y-0 transition-transform hidden sm:block">
                                 <span className="text-[10px] text-white font-bold uppercase block text-center">Abrir foto</span>
@@ -125,11 +125,11 @@ export default function PersonalDocs({
                                     <span className="text-[10px] font-bold uppercase tracking-wider">Documento PDF</span>
                                 </div>
                             ) : (
-                                <img
+                                <Image
                                     src={addressProofSignedUrl}
                                     alt="Comprobante"
-                                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                                    referrerPolicy="no-referrer"
+                                    className="object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                    fill sizes="(max-width: 768px) 100vw, 50vw"
                                 />
                             )}
                             <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent translate-y-full group-hover:translate-y-0 transition-transform hidden sm:block">

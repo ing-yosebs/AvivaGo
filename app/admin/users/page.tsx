@@ -1,6 +1,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Search, Filter, MoreHorizontal, Shield, Car, User, Users, Settings, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react'
 import { formatDateMX, formatTimeMX } from '@/lib/dateUtils'
 
@@ -340,7 +341,7 @@ export default async function UsersPage({
                                                 <div className="flex items-center gap-4">
                                                     <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 overflow-hidden flex-shrink-0 flex items-center justify-center group/photo relative">
                                                         {user.signed_photo_url ? (
-                                                            <img src={user.signed_photo_url} alt="" className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+                                                            <Image src={user.signed_photo_url} alt="" fill sizes="48px" className="object-cover" />
                                                         ) : (
                                                             <>
                                                                 <User className="h-6 w-6 text-zinc-600" />

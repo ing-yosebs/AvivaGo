@@ -1,6 +1,7 @@
 export const revalidate = 0
 import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Search, Filter, Shield, User, Users, Settings, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, CheckCircle2, XCircle, Smartphone, Car, Share2, Tag, Gift, Award, HelpCircle, FileText } from 'lucide-react'
 import { formatDateMX, formatTimeMX } from '@/lib/dateUtils'
 
@@ -316,10 +317,11 @@ export default async function OnboardingPage({
                                             <div className="flex justify-center">
                                                 {hasCustomPhoto && photoUrl ? (
                                                     <div className="relative w-10 h-10 rounded-xl overflow-hidden border border-emerald-500/30 shadow-lg group-hover:scale-110 transition-transform">
-                                                        <img
+                                                        <Image
                                                             src={photoUrl}
                                                             alt={user.full_name || 'Usuario'}
-                                                            className="w-full h-full object-cover"
+                                                            className="object-cover"
+                                                            fill sizes="40px"
                                                         />
                                                     </div>
                                                 ) : (
@@ -446,7 +448,7 @@ export default async function OnboardingPage({
                                     <div className="flex items-center gap-3">
                                         <div className="relative w-12 h-12 rounded-2xl overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center shadow-2xl">
                                             {hasCustomPhoto && photoUrl ? (
-                                                <img src={photoUrl} className="w-full h-full object-cover" alt="" />
+                                                <Image src={photoUrl} className="object-cover" alt="" fill sizes="48px" />
                                             ) : (
                                                 <User className="h-6 w-6 text-zinc-600" />
                                             )}

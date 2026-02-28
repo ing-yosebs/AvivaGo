@@ -22,11 +22,11 @@ export default function PersonalInfo({ user, driverProfile, profilePhotoUrl }: P
                 <div className="flex-shrink-0 space-y-4">
                     {profilePhotoUrl ? (
                         <div className="w-full md:w-48 aspect-square relative rounded-xl overflow-hidden border border-white/10 bg-black/20 group">
-                            <img
+                            <Image
                                 src={profilePhotoUrl}
                                 alt="Profile"
-                                className="w-full h-full object-cover"
-                                referrerPolicy="no-referrer"
+                                className="object-cover"
+                                fill sizes="(max-width: 768px) 100vw, 300px"
                             />
                             <div className="absolute bottom-0 left-0 w-full bg-black/60 p-2 text-[10px] text-center text-white uppercase font-bold">Foto de Perfil</div>
                         </div>

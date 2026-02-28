@@ -5,25 +5,57 @@ import RevenueChart from '@/app/components/admin/RevenueChart'
 import ActivityChart from '@/app/components/admin/ActivityChart'
 import DashboardTables from '@/app/components/admin/DashboardTables'
 
-async function getSignedUrlsBatch(supabase: any, items: any[], bucket: string, photoKey: (item: any) => string | null) {
-    const validItems = items.filter(item => {
+async function getSignedUrlsBatch(supabase: any, items: any[], fallbackBucket: string, photoKey: (item: any) => string | null) {
+    if (!items || items.length === 0) return items;
+
+    const pathsToSign: string[] = [];
+    const itemPathMapping = new Map<any, { path: string, original: string }>();
+
+    items.forEach(item => {
         const url = photoKey(item);
-        return url && url.includes(`/storage/v1/object/public/${bucket}/`);
+        if (!url || url.includes('placehold.co') || url.includes('via.placeholder') || url.includes('socio-avivago.png')) {
+            return;
+        }
+
+        let path = url;
+        let bucket = fallbackBucket;
+
+        // Auto-detect bucket from Supabase URLs
+        if (url.startsWith('http') && url.includes('/storage/v1/object/')) {
+            try {
+                const urlObj = new URL(url);
+                const segments = urlObj.pathname.split('/');
+                if (segments.length > 6) {
+                    bucket = segments[5];
+                    path = decodeURIComponent(segments.slice(6).join('/'));
+                }
+            } catch (e) {
+                console.error("Error parsing URL:", url);
+            }
+        }
+
+        // We only sign batch items that belong to the fallbackBucket 
+        // to use a single createSignedUrls call for efficiency
+        if (bucket === fallbackBucket && path) {
+            pathsToSign.push(path);
+            itemPathMapping.set(item, { path, original: url });
+        }
     });
 
-    if (validItems.length === 0) return items;
+    if (pathsToSign.length === 0) {
+        return items.map(item => ({ ...item, signed_photo_url: photoKey(item) }));
+    }
 
-    const paths = validItems.map(item => photoKey(item)!.split(`/storage/v1/object/public/${bucket}/`)[1]);
-    const { data } = await supabase.storage.from(bucket).createSignedUrls(paths, 3600);
+    const { data } = await supabase.storage.from(fallbackBucket).createSignedUrls(pathsToSign, 3600);
 
     return items.map(item => {
-        const url = photoKey(item);
-        if (url && url.includes(`/storage/v1/object/public/${bucket}/`)) {
-            const path = url.split(`/storage/v1/object/public/${bucket}/`)[1];
-            const signed = data?.find((d: any) => d.path === path);
-            return { ...item, signed_photo_url: signed?.signedUrl || url };
+        const mapped = itemPathMapping.get(item);
+        if (mapped) {
+            const signed = data?.find((d: any) => d.path === mapped.path);
+            // Si la firma falla por alguna razón pero tenemos URL original que sirva, se usa
+            return { ...item, signed_photo_url: signed?.signedUrl || mapped.original };
         }
-        return { ...item, signed_photo_url: url };
+        return { ...item, signed_photo_url: photoKey(item) };
     });
 }
 
@@ -42,11 +74,12 @@ async function getDashboardData(view?: string) {
         { count: pendingDrivers },
         { count: paidMembershipsCount },
         { count: monthlyMembershipsCount },
-        { count: pendingPaymentsCount },
-        { count: abandonedPaymentsCount },
+        { data: pendingPaymentsData },
+        { data: abandonedPaymentsData },
         { data: historicalMemberships },
         { data: recentUsersForChart },
-        { data: recentDriversForChart }
+        { data: recentDriversForChart },
+        { count: totalHistoricalMembershipsCount }
     ] = await Promise.all([
         supabase.from('users').select('*', { count: 'exact', head: true }),
         supabase.from('driver_profiles').select('*', { count: 'exact', head: true }).eq('status', 'active'),
@@ -55,18 +88,31 @@ async function getDashboardData(view?: string) {
         supabase.from('driver_memberships').select('*', { count: 'exact', head: true }).eq('status', 'active').eq('origin', 'paid'),
         // Revenue: Memberships created/renewed this month
         supabase.from('driver_memberships').select('*', { count: 'exact', head: true }).eq('status', 'active').eq('origin', 'paid').gte('created_at', firstDayOfMonth),
-        supabase.from('pending_payments').select('*', { count: 'exact', head: true }).eq('status', 'open'),
-        supabase.from('pending_payments').select('*', { count: 'exact', head: true }).in('status', ['expired', 'failed']),
+        supabase.from('pending_payments').select('user_id').eq('status', 'open'),
+        supabase.from('pending_payments').select('user_id').in('status', ['expired', 'failed']),
         // Historical Revenue: Memberships over last 6 months
         supabase.from('driver_memberships').select('created_at').eq('status', 'active').eq('origin', 'paid').gte('created_at', sixMonthsAgo.toISOString()),
         supabase.from('users').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
-        supabase.from('driver_profiles').select('created_at').gte('created_at', sixMonthsAgo.toISOString())
+        supabase.from('driver_profiles').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
+        // All Historical Total Memberships Paid
+        supabase.from('driver_memberships').select('*', { count: 'exact', head: true }).eq('origin', 'paid')
     ])
 
     // Math: $524 MXN per membership
     const PRICE_PER_MEMBERSHIP = 524;
     const monthlyRevenue = (monthlyMembershipsCount || 0) * PRICE_PER_MEMBERSHIP;
-    const estimatedPendingRevenue = (pendingPaymentsCount || 0) * PRICE_PER_MEMBERSHIP;
+    const totalRevenue = (totalHistoricalMembershipsCount || 0) * PRICE_PER_MEMBERSHIP;
+
+    // Deduplicate pending payments counters by user_id
+    const openUserIds = new Set((pendingPaymentsData || []).map((p: any) => p.user_id));
+    const abandonedUserIds = new Set((abandonedPaymentsData || []).map((p: any) => p.user_id));
+
+    // Remove users from abandoned if they have an open payment (optional but clean)
+    // or simply just count unique user_ids
+    const uniquePendingCount = openUserIds.size;
+    const uniqueAbandonedCount = abandonedUserIds.size;
+
+    const estimatedPendingRevenue = uniquePendingCount * PRICE_PER_MEMBERSHIP;
 
     // Chart Formatting
     const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
@@ -100,38 +146,70 @@ async function getDashboardData(view?: string) {
         }).length || 0
     }))
 
+    // Helper para extraer la selfie del objeto identity_verifications si existe
+    const getSelfie = (u: any) => {
+        if (!u || !u.identity_verifications) return null;
+        return Array.isArray(u.identity_verifications) ? u.identity_verifications[0]?.selfie_url : u.identity_verifications.selfie_url;
+    };
+
+    const getValidPhoto = (...urls: any[]) => {
+        for (const url of urls) {
+            if (url && typeof url === 'string' && !url.includes('placehold.co') && !url.includes('via.placeholder') && !url.includes('socio-avivago.png') && url.trim() !== '') {
+                return url;
+            }
+        }
+        return null;
+    };
+
     // 6. Conditional View Data fetching
     let viewData = []
     if (view === 'active_drivers') {
-        const { data } = await supabase.from('driver_profiles').select('*, users(full_name, email, phone_number, avatar_url)').eq('status', 'active').limit(50).order('created_at', { ascending: false })
+        const { data } = await supabase.from('driver_profiles').select('*, users(full_name, email, phone_number, avatar_url, identity_verifications(selfie_url))').eq('status', 'active').limit(50).order('created_at', { ascending: false })
         viewData = data || []
         // Batch sign
-        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (d) => d.profile_photo_url || d.users?.avatar_url)
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (d) => getValidPhoto(d.profile_photo_url, d.users?.avatar_url, getSelfie(d.users)))
     } else if (view === 'pending_drivers') {
-        const { data } = await supabase.from('driver_profiles').select('*, users(full_name, email, phone_number, avatar_url)').eq('status', 'pending_approval').limit(50).order('created_at', { ascending: false })
+        const { data } = await supabase.from('driver_profiles').select('*, users(full_name, email, phone_number, avatar_url, identity_verifications(selfie_url))').eq('status', 'pending_approval').limit(50).order('created_at', { ascending: false })
         viewData = data || []
         // Batch sign
-        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (d) => d.profile_photo_url || d.users?.avatar_url)
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (d) => getValidPhoto(d.profile_photo_url, d.users?.avatar_url, getSelfie(d.users)))
     } else if (view === 'pending_payments') {
-        const { data } = await supabase.from('pending_payments').select('*, users(full_name, email, phone_number, avatar_url)').eq('status', 'open').limit(50).order('created_at', { ascending: false })
+        const { data } = await supabase.from('pending_payments').select('*, users(full_name, email, phone_number, avatar_url, identity_verifications(selfie_url))').in('status', ['open', 'expired', 'failed']).limit(200).order('created_at', { ascending: false })
+
+        // Deduplicate by user_id to avoid showing the same user's multiple attempts
+        const uniquePayments: any[] = [];
+        const seenUsers = new Map();
+        if (data) {
+            data.forEach((payment) => {
+                if (!seenUsers.has(payment.user_id)) {
+                    payment.attempts_count = 1;
+                    seenUsers.set(payment.user_id, payment);
+                    uniquePayments.push(payment);
+                } else {
+                    const existing = seenUsers.get(payment.user_id);
+                    existing.attempts_count = (existing.attempts_count || 1) + 1;
+                }
+            });
+        }
+
+        viewData = uniquePayments.slice(0, 50); // Keep only the latest 50 distinct attempts
+        // Batch sign
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (p) => getValidPhoto(p.users?.avatar_url, getSelfie(p.users)))
+    } else if (view === 'monthly_revenue') {
+        const { data } = await supabase.from('driver_memberships').select('*, driver_profiles(id, status, profile_photo_url, users(full_name, email, phone_number, avatar_url, identity_verifications(selfie_url)))').eq('origin', 'paid').limit(50).order('created_at', { ascending: false })
         viewData = data || []
         // Batch sign
-        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (p) => p.users?.avatar_url)
-    } else if (view === 'abandoned_payments') {
-        const { data } = await supabase.from('pending_payments').select('*, users(full_name, email, phone_number, avatar_url)').in('status', ['expired', 'failed']).limit(50).order('created_at', { ascending: false })
-        viewData = data || []
-        // Batch sign
-        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (p) => p.users?.avatar_url)
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (m) => getValidPhoto(m.driver_profiles?.profile_photo_url, m.driver_profiles?.users?.avatar_url, getSelfie(m.driver_profiles?.users)))
     } else if (view === 'recent_users') {
-        const { data } = await supabase.from('users').select('*, driver_profiles(status, profile_photo_url)').limit(20).order('created_at', { ascending: false })
+        const { data } = await supabase.from('users').select('*, driver_profiles(id, status, profile_photo_url), identity_verifications(selfie_url)').limit(20).order('created_at', { ascending: false })
         viewData = data || []
         // Batch sign
-        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (u) => (Array.isArray(u.driver_profiles) ? u.driver_profiles[0]?.profile_photo_url : u.driver_profiles?.profile_photo_url) || u.avatar_url)
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (u) => getValidPhoto(Array.isArray(u.driver_profiles) ? u.driver_profiles[0]?.profile_photo_url : u.driver_profiles?.profile_photo_url, u.avatar_url, getSelfie(u)))
     } else if (view === 'paid_memberships') {
-        const { data } = await supabase.from('driver_memberships').select('*, driver_profiles(*, users(full_name, email, phone_number, avatar_url))').eq('status', 'active').eq('origin', 'paid').limit(50).order('created_at', { ascending: false })
+        const { data } = await supabase.from('driver_memberships').select('*, driver_profiles(*, users(full_name, email, phone_number, avatar_url, identity_verifications(selfie_url)))').eq('status', 'active').eq('origin', 'paid').limit(50).order('created_at', { ascending: false })
         viewData = data || []
         // Optional batch join:
-        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (m) => m.driver_profiles?.profile_photo_url || m.driver_profiles?.users?.avatar_url)
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (m) => getValidPhoto(m.driver_profiles?.profile_photo_url, m.driver_profiles?.users?.avatar_url, getSelfie(m.driver_profiles?.users)))
     }
 
     return {
@@ -140,8 +218,9 @@ async function getDashboardData(view?: string) {
         pendingDrivers: pendingDrivers || 0,
         paidMembershipsCount: paidMembershipsCount || 0,
         monthlyRevenue,
-        pendingPaymentsCount: pendingPaymentsCount || 0,
-        abandonedPaymentsCount: abandonedPaymentsCount || 0,
+        totalRevenue,
+        pendingPaymentsCount: uniquePendingCount || 0,
+        abandonedPaymentsCount: uniqueAbandonedCount || 0,
         estimatedPendingRevenue,
         revenueChartData,
         activityChartData,
@@ -215,39 +294,42 @@ export default async function AdminDashboard({
                     </div>
                 </Link>
 
-                {/* Revenue & Pending Payments KPI */}
-                <Link href="/admin?view=pending_payments" scroll={false} className={`block backdrop-blur-xl border rounded-[2rem] p-6 shadow-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 ${view === 'pending_payments' ? 'bg-purple-500/10 border-purple-500/50 scale-[1.02]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
-                    <div className={`absolute inset-0 transition-opacity ${stats.pendingPaymentsCount > 0 && view !== 'pending_payments' ? 'bg-purple-500/5 opacity-100' : 'opacity-0'}`} />
+                {/* Revenue KPI */}
+                <Link href="/admin?view=monthly_revenue" scroll={false} className={`block backdrop-blur-xl border rounded-[2rem] p-6 shadow-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 ${view === 'monthly_revenue' ? 'bg-purple-500/10 border-purple-500/50 scale-[1.02]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
                     <div className="flex items-center gap-4 relative z-10">
-                        <div className={`p-4 rounded-2xl border transition-colors ${view === 'pending_payments' ? 'bg-purple-500/20 border-purple-400/30' : 'bg-purple-500/10 border-purple-500/20 group-hover:bg-purple-500/20'}`}>
+                        <div className={`p-4 rounded-2xl border transition-colors ${view === 'monthly_revenue' ? 'bg-purple-500/20 border-purple-400/30' : 'bg-purple-500/10 border-purple-500/20 group-hover:bg-purple-500/20'}`}>
                             <DollarSign className="h-7 w-7 text-purple-400" />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors">Ingresos Mensuales</p>
+                            <p className="text-sm font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors">Ingresos</p>
                             <div className="flex items-baseline gap-2">
-                                <p className="text-2xl font-black text-white tracking-tight">
-                                    ${stats.monthlyRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
+                                <p className="text-3xl font-black text-white tracking-tight">
+                                    ${stats.totalRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 })}
                                 </p>
                             </div>
-                            {stats.pendingPaymentsCount > 0 && (
-                                <p className="text-[11px] text-zinc-500 font-medium mt-1">
-                                    <span className="text-purple-400 font-bold">{stats.pendingPaymentsCount}</span> pendientes (~${stats.estimatedPendingRevenue})
-                                </p>
-                            )}
+                            <p className="text-[12px] text-zinc-500 font-medium mt-1">
+                                <span className="text-purple-400 font-bold">${stats.monthlyRevenue.toLocaleString('es-MX', { minimumFractionDigits: 2 })}</span> este mes
+                            </p>
                         </div>
                     </div>
                 </Link>
 
-                {/* Pending Approvals KPI */}
-                <Link href="/admin?view=abandoned_payments" scroll={false} className={`block backdrop-blur-xl border rounded-[2rem] p-6 shadow-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 ${view === 'abandoned_payments' ? 'bg-red-500/10 border-red-500/50 scale-[1.02]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
-                    <div className={`absolute inset-0 transition-opacity ${stats.abandonedPaymentsCount > 0 && view !== 'abandoned_payments' ? 'bg-red-500/5 opacity-100' : 'opacity-0'}`} />
+                {/* All Pending & Abandoned Payments KPI */}
+                <Link href="/admin?view=pending_payments" scroll={false} className={`block backdrop-blur-xl border rounded-[2rem] p-6 shadow-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 ${view === 'pending_payments' ? 'bg-red-500/10 border-red-500/50 scale-[1.02]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
+                    <div className={`absolute inset-0 transition-opacity ${(stats.abandonedPaymentsCount + stats.pendingPaymentsCount) > 0 && view !== 'pending_payments' ? 'bg-red-500/5 opacity-100' : 'opacity-0'}`} />
                     <div className="flex items-center gap-4 relative z-10">
-                        <div className={`p-4 rounded-2xl border transition-colors ${view === 'abandoned_payments' ? 'bg-red-500/20 border-red-400/30' : 'bg-red-500/10 border-red-500/20 group-hover:bg-red-500/20'}`}>
+                        <div className={`p-4 rounded-2xl border transition-colors ${view === 'pending_payments' ? 'bg-red-500/20 border-red-400/30' : 'bg-red-500/10 border-red-500/20 group-hover:bg-red-500/20'}`}>
                             <AlertTriangle className="h-7 w-7 text-red-400" />
                         </div>
                         <div>
-                            <p className="text-sm font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors">Pagos Abandonados</p>
-                            <p className="text-3xl font-black text-white tracking-tight">{stats.abandonedPaymentsCount}</p>
+                            <p className="text-sm font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors">Alertas de Pagos</p>
+                            <div className="flex items-baseline gap-2">
+                                <p className="text-3xl font-black text-white tracking-tight">{stats.abandonedPaymentsCount + stats.pendingPaymentsCount}</p>
+                                <span className="text-xs text-zinc-500 font-medium">personas</span>
+                            </div>
+                            <p className="text-[12px] text-zinc-500 font-medium mt-1">
+                                <span className="text-zinc-300 font-bold">{stats.pendingPaymentsCount}</span> pendientes • <span className="text-red-400 font-bold">{stats.abandonedPaymentsCount}</span> expiraron
+                            </p>
                         </div>
                     </div>
                 </Link>
