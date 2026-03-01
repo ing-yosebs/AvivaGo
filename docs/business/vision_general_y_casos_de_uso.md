@@ -12,12 +12,15 @@ Transformamos la dinámica del transporte:
 
 ## Modelo de Negocio
 
-### Para el Conductor (Suscripción)
-El conductor paga una **Membresía Mensual** accesible (o usa un plan gratuito limitado) que le da derecho a:
+### Para el Conductor (Modelo Freemium)
+El conductor accede a una plataforma profesional con dos niveles de acceso:
+*   **Plan Gratuito:** Acceso básico al perfil y **4 usos mensuales** de la Calculadora Inteligente de Costos.
+*   **Membresía Profesional:** Pago anual accesible ($524 MXN o equivalente local) que desbloquea:
 1.  **Visibilidad:** Aparecer en el directorio público (ya sea con enlace directo o búsqueda). Perfiles "Born Public".
 2.  **Herramientas de Marketing:** Generación automática de publicidad (Flyers, QR) para atraer clientes.
 3.  **Gestión:** Panel de control de ingresos, solicitudes y servicios.
 4.  **Libertad:** Trato directo con el pasajero.
+5.  **Calculadora Inteligente Premium:** Uso ilimitado o ampliado (según nivel de red) de la herramienta de cálculo de costos, peajes y rentabilidad por viaje.
 
 ### Para el Pasajero (Gratuito)
 El pasajero usa AvivaGo para encontrar **seguridad y confianza**.
@@ -35,6 +38,7 @@ Juan está cansado de dejar el 40% de sus ganancias en apps tradicionales. Se re
 *   Descarga su **Flyer con QR** desde la sección de **Marketing**.
 *   Lo comparte en sus redes. Sus clientes escanean el QR, ven su perfil profesional en AvivaGo y lo contactan directo.
 *   Juan fideliza a sus clientes y gestiona su agenda.
+*   **Rentabilidad:** Antes de aceptar un viaje largo, Juan usa la **Calculadora de Costos** para saber exactamente cuánto gastará en gasolina y peajes (según su país), asegurándose de cobrar un precio que le deje ganancias reales.
 
 ### 2. El Viaje Familiar Seguro
 María busca transporte para sus hijos. No confía en asignaciones aleatorias.

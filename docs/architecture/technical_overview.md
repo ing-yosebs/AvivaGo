@@ -16,6 +16,7 @@ La aplicación está construida sobre un stack moderno y escalable:
 *   **Base de Datos**: PostgreSQL (alojado en [Supabase](https://supabase.com/)).
 *   **Autenticación**: Supabase Auth (Integrado con tabla `public.users`).
 *   **Pagos**: Stripe (Suscripciones para conductores).
+*   **APIs Externas**: Google Maps & Routes API V2 (Geocodificación, Rutas y Peajes dinámicos).
 *   **Infraestructura**: Despliegue compatible con Vercel/Edge Functions.
 
 ## 3. Arquitectura del Proyecto
@@ -74,10 +75,15 @@ El esquema de base de datos (`supabase_schema.sql`) está diseñado alrededor de
 *   Para contactar, el pasajero realiza un **"Unlock"** (Desbloqueo).
 *   Esto revela el WhatsApp y teléfono del conductor.
 
-### 5.5 Sistema de Cotizaciones (Solicitudes)
-*   Implementado en `app/(panel)/solicitudes`.
-*   Permite a los pasajeros solicitar viajes específicos.
 *   Los conductores reciben y pueden aceptar/rechazar estas solicitudes.
+
+### 5.6 Calculadora Inteligente de Costos y Rentabilidad
+*   **Internacionalización**: Detección dinámica de país (`country_code`) desde el perfil del conductor para ajustar moneda (MXN, COP), unidades (Litros, Galones) y centro del mapa.
+*   **Integración de Peajes**: Consulta a Google Routes API V2 para obtener costos de casetas/peajes según la ruta y paradas intermedias.
+*   **Sistema de Cuotas (Monthly Quota)**: 
+    *   **Usuarios Free**: 4 usos de cortesía por mes.
+    *   **Usuarios Premium**: Cuota base de 30 usos, escalable hasta **ilimitado** según el nivel de afiliados (`Gold`).
+    *   **Persistencia**: Seguimiento de uso almacenado en la tabla `calculator_usage` vinculada al ID del usuario y mes/año.
 
 ### 5.6 Sistema de Afiliados y Billetera (Wallet)
 *   **Códigos de Referido**: Se generan automáticamente para cada usuario al registrarse.

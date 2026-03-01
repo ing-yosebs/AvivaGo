@@ -111,9 +111,9 @@ export default function DashboardSidebar() {
                 subItems: [
                     { label: 'Mis Servicios', href: '/perfil?tab=services' },
                     { label: 'Mis Vehículos', href: '/perfil?tab=vehicles' },
-
                     { label: 'Marketing', href: '/perfil?tab=marketing' },
                     { label: 'Mis cotizaciones', href: '/perfil?tab=solicitudes' },
+                    { label: 'Calculadora de viajes', href: '/driver/calculadora' },
                     { label: 'Mis Invitados', href: '/invitados' },
                     { label: 'Cartera de Pasajeros', href: '/cartera', badge: unreadCount },
                     { label: 'Membresía', href: '/perfil?tab=payments' }

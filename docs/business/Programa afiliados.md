@@ -17,11 +17,12 @@ Ambos modelos se integran mediante un sistema único de atribución, monedero di
 ________________________________________
 3. AFILIACIÓN DE CONDUCTORES – MODELO B2B
 El programa de afiliación de conductores se estructura en niveles jerárquicos, definidos por el número de conductores referidos activos, certificados y con anualidad pagada.
-3.1 Niveles y Compensaciones
-Nivel	Conductores Referidos Activos	Bono de Activación (Año 1)	Comisión de Renovación (Anual)
-Bronce	1 a 10	$80 MXN	$40 MXN
-Plata	11 a 50	$100 MXN	$50 MXN
-Oro	51 o más / Influencers	$120 MXN	$60 MXN
+3.1 Niveles y Beneficios
+Nivel	Referidos Activos	Bono Activación	Calculadora Inteligente
+Sin Membresía	0	$0	4 usos / mes (Prueba)
+Bronce	1 a 10	$80 MXN	50 usos / mes
+Plata	11 a 50	$100 MXN	100 usos / mes
+Oro	51+ / Influencer	$120 MXN	ILIMITADA
 3.2 Reglas Clave
 •	Regla de Salto: El nuevo nivel aplica a partir del siguiente referido (N+1).
 •	No Retroactividad: Las comisiones previas no se ajustan por cambio de nivel.
@@ -56,7 +57,7 @@ ________________________________________
 6.2 Uso del Saldo Aviva
 •	Autopago: Cobertura de la membresía anual del propio socio.
 •	Retiro de Efectivo: Monto mínimo de $500 MXN.
-•	Servicios Internos: Publicidad, posicionamiento en ranking y certificaciones avanzadas.
+•	Servicios Internos: Acceso a herramientas avanzadas para optimizar el negocio (Calculadora de Rentabilidad).
 6.3 Corte de Pagos
 •	Corte Mensual: Día 5 de cada mes.
 ________________________________________
