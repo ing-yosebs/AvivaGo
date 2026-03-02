@@ -205,7 +205,6 @@ export default function VehiclesSection({ vehicles, onAdd, hasMembership, userId
             insurance_policy_url: '',
             plate_photo_url: '',
             circulation_card_url: '',
-            photos: [],
             passenger_capacity: 4,
             trunk_capacity: '',
             ...vehicle,
