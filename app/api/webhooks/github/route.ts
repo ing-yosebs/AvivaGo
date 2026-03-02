@@ -36,7 +36,8 @@ export async function POST(req: Request) {
         const { error: versionError } = await supabase.from('system_versions').insert({
             version_tag,
             changes_description: commit_message,
-            type
+            type,
+            release_date: new Date().toISOString()
         });
 
         if (versionError) {
@@ -58,7 +59,8 @@ export async function POST(req: Request) {
             await supabase.from('system_versions').insert({
                 version_tag: `v-ping-${Date.now().toString().slice(-4)}`,
                 changes_description: 'Validación manual del Webhook / Ping de Github.',
-                type: 'bugfix'
+                type: 'bugfix',
+                release_date: new Date().toISOString()
             })
             return NextResponse.json({ success: true, message: 'Manual Deployment logged without payload' })
         } catch (fallbackError) {
