@@ -14,7 +14,9 @@ import {
     LayoutDashboard,
     FileText,
     Eye,
-    Tag
+    Tag,
+    CheckCircle2,
+    AlertCircle
 } from 'lucide-react'
 
 // Sub-components
@@ -29,7 +31,8 @@ import BecomeDriverButton from './components/BecomeDriverButton'
 import QuoteRequestsSection from './components/QuoteRequestsSection'
 import MarketingSection from './components/MarketingSection'
 import DriverDashboardSection from './components/DriverDashboardSection'
-
+import { OnboardingTracker } from '@/components/Onboarding/OnboardingTracker'
+import { getDriverOnboardingProgress, type OnboardingProgressResult } from '@/lib/actions/onboarding'
 export default function ProfilePage() {
     return (
         <Suspense fallback={
@@ -58,6 +61,7 @@ function ProfileContent() {
     const [isPlataOrHigher, setIsPlataOrHigher] = useState(false)
     const [pendingPayment, setPendingPayment] = useState<any>(null)
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+    const [onboardingProgress, setOnboardingProgress] = useState<OnboardingProgressResult | null>(null)
 
     const supabase = createClient()
 
@@ -144,12 +148,19 @@ function ProfileContent() {
                         .eq('status', 'open')
                         .order('created_at', { ascending: false })
                         .limit(1)
-                        .maybeSingle()
+                        .maybeSingle(),
+                    // Load onboarding progress
+                    getDriverOnboardingProgress(driverProfileId)
                 ]
 
                 const results = await Promise.all(promises)
                 const membershipData = (results[2] as any)?.data
                 const pendingPaymentData = (results[3] as any)?.data
+                const onboardingRes = results[4] as OnboardingProgressResult
+
+                if (onboardingRes) {
+                    setOnboardingProgress(onboardingRes)
+                }
 
                 if (membershipData) {
                     setHasMembership(true)
@@ -299,18 +310,32 @@ function ProfileContent() {
                 </div>
             )}
 
-
-            {/* Error/Success Messages */}
+            {/* Error/Success Modal */}
             {message && (
-                <div className={`p-4 rounded-2xl border flex items-center gap-3 animate-in slide-in-from-top-4 duration-300 ${message.type === 'success'
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
-                    : 'bg-red-50 border-red-200 text-red-700'
-                    }`}>
-                    <div className={`p-1 rounded-full ${message.type === 'success' ? 'bg-emerald-100' : 'bg-red-100'}`}>
-                        {message.type === 'success' ? <Check className="h-4 w-4" /> : <Shield className="h-4 w-4" />}
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white border border-gray-100 rounded-[2.5rem] p-10 max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95 duration-300">
+                        <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${message.type === 'success'
+                            ? 'bg-emerald-50 text-emerald-500'
+                            : 'bg-red-50 text-red-500'
+                            }`}>
+                            {message.type === 'success' ? <CheckCircle2 className="h-10 w-10 text-emerald-500" /> : <AlertCircle className="h-10 w-10 text-red-500" />}
+                        </div>
+                        <h3 className="text-2xl font-bold text-[#0F2137] mb-2 uppercase tracking-tight">
+                            {message.type === 'success' ? '¡Excelente!' : 'Hubo un problema'}
+                        </h3>
+                        <p className="text-gray-500 font-medium mb-8">
+                            {message.text}
+                        </p>
+                        <button
+                            onClick={() => setMessage(null)}
+                            className={`w-full py-4 rounded-xl font-bold transition-all ${message.type === 'success'
+                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20'
+                                : 'bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20'
+                                }`}
+                        >
+                            {message.type === 'success' ? 'Entendido' : 'Intentar de nuevo'}
+                        </button>
                     </div>
-                    <p className="font-medium text-sm">{message.text}</p>
-                    <button onClick={() => setMessage(null)} className="ml-auto opacity-50 hover:opacity-100">✕</button>
                 </div>
             )}
 
@@ -350,6 +375,7 @@ function ProfileContent() {
                             vehicles={vehicles}
                             onAdd={() => loadVehicles(user.id)}
                             hasMembership={hasMembership}
+                            userId={user?.id}
                         />
                     )}
 
@@ -380,7 +406,13 @@ function ProfileContent() {
                     )}
 
                     {isDriver && activeTab === 'driver_dashboard' && (
-                        <DriverDashboardSection userId={profile?.id} />
+                        <div className="space-y-8">
+                            <DriverDashboardSection userId={profile?.id} />
+
+                            {onboardingProgress && profile?.driver_profile?.id && (
+                                <OnboardingTracker progress={onboardingProgress} driverId={profile.driver_profile.id} />
+                            )}
+                        </div>
                     )}
 
                     {isDriver && activeTab === 'marketing' && (

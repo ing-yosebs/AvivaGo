@@ -9,7 +9,7 @@ import imageCompression from 'browser-image-compression'
 import Link from 'next/link'
 import PremiumUpsellModal from '@/app/components/PremiumUpsellModal'
 
-export default function VehiclesSection({ vehicles, onAdd, hasMembership }: any) {
+export default function VehiclesSection({ vehicles, onAdd, hasMembership, userId }: any) {
     const supabase = createClient()
     const [isAdding, setIsAdding] = useState(false)
     const [saving, setSaving] = useState(false)
@@ -127,27 +127,28 @@ export default function VehiclesSection({ vehicles, onAdd, hasMembership }: any)
         let fileToUpload = originalFile
 
         try {
-            // Compresión de Imágenes
-            if (originalFile.type.startsWith('image/')) {
+            // Optimization: Skip compression if file is already small (under 0.5MB)
+            if (originalFile.type.startsWith('image/') && originalFile.size > 0.5 * 1024 * 1024) {
                 const options = {
-                    maxSizeMB: 0.8,
-                    maxWidthOrHeight: 1200,
-                    useWebWorker: true
+                    maxSizeMB: 0.4,
+                    maxWidthOrHeight: 1000,
+                    useWebWorker: true,
+                    initialQuality: 0.6
                 }
                 try {
-                    const compressedFile = await imageCompression(originalFile, options)
-                    fileToUpload = compressedFile
+                    fileToUpload = await imageCompression(originalFile, options)
                 } catch (error) {
-                    console.error('Error al comprimir imagen, se usará la original:', error)
+                    console.error('Error al comprimir imagen:', error)
                 }
             }
 
-            const { data: { user } } = await supabase.auth.getUser()
-            const path = `${user?.id}/vehicles/${Date.now()}_${fileToUpload.name}`
+            const currentUserId = userId || (await supabase.auth.getUser()).data.user?.id
+            const path = `${currentUserId}/vehicles/${Date.now()}_${fileToUpload.name}`
             const url = await uploadFile('vehicles', path, fileToUpload)
 
             if (isPhotoArray) {
-                const newPhotos = [...form.photos]
+                const currentPhotos = Array.isArray(form?.photos) ? form.photos : []
+                const newPhotos = [...currentPhotos]
                 newPhotos[index] = url
                 setForm({ ...form, photos: newPhotos })
             } else {
@@ -191,7 +192,24 @@ export default function VehiclesSection({ vehicles, onAdd, hasMembership }: any)
         const isCustomModel = !isCustomBrand && !carBrands[vehicle.brand]?.includes(vehicle.model)
 
         setForm({
+            brand: '',
+            model: '',
+            color: '',
+            year: new Date().getFullYear(),
+            plate_number: '',
+            registration_state: '',
+            vin_number: '',
+            vin_photo_url: '',
+            invoice_url: '',
+            verification_url: '',
+            insurance_policy_url: '',
+            plate_photo_url: '',
+            circulation_card_url: '',
+            photos: [],
+            passenger_capacity: 4,
+            trunk_capacity: '',
             ...vehicle,
+            photos: vehicle.photos || [], // Ensure photos is always an array
             isCustomBrand,
             isCustomModel
         })
@@ -478,6 +496,7 @@ export default function VehiclesSection({ vehicles, onAdd, hasMembership }: any)
                                         <div key={label}>
                                             <input
                                                 type="file"
+                                                className="hidden"
                                                 ref={el => { photoRefs.current[idx] = el }}
                                                 accept=".jpg, .jpeg, .png"
                                                 onChange={(e) => handleFile(e, 'photos', true, idx)}
@@ -492,9 +511,9 @@ export default function VehiclesSection({ vehicles, onAdd, hasMembership }: any)
                                                 }}
                                                 className={`relative w-full aspect-video bg-gray-50 border border-gray-200 rounded-xl overflow-hidden group cursor-pointer hover:border-blue-500 ${isLocked ? 'opacity-70 grayscale-[0.5]' : ''}`}
                                             >
-                                                {form.photos[idx] ? (
+                                                {form?.photos?.[idx] ? (
                                                     <>
-                                                        <img src={form.photos[idx]} className="w-full h-full object-cover opacity-80" />
+                                                        <img src={form?.photos?.[idx] || ''} className="w-full h-full object-cover opacity-80" />
                                                         <div className="absolute inset-x-0 bottom-0 bg-black/60 p-1">
                                                             <span className="text-[8px] text-white font-bold uppercase">{label}</span>
                                                         </div>
@@ -553,7 +572,7 @@ export default function VehiclesSection({ vehicles, onAdd, hasMembership }: any)
                         {!canAdd ? (
                             <div className="flex items-center gap-2">
                                 <span className="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100 flex items-center gap-1">
-                                    <Lock className="h-3 w-3" /> Máx. 1 Vehículo (Free)
+                                    <Lock className="h-3 w-3" /> Máx. 1 Vehículo
                                 </span>
                             </div>
                         ) : (
@@ -575,8 +594,8 @@ export default function VehiclesSection({ vehicles, onAdd, hasMembership }: any)
                                     <BadgeCheck className="h-8 w-8 text-white" />
                                 </div>
                                 <div className="flex-1 text-center md:text-left">
-                                    <h4 className="font-bold text-lg mb-1">¿Tienes más de un vehículo?</h4>
-                                    <p className="text-blue-100 text-sm opacity-90">
+                                    <h4 className="font-bold text-lg mb-1 text-white">¿Tienes más de un vehículo?</h4>
+                                    <p className="text-white text-sm">
                                         Los miembros Premium pueden registrar múltiples unidades y gestionarlas desde un solo perfil.
                                         Aumenta tus ingresos operando con varios coches.
                                     </p>

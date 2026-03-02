@@ -135,8 +135,8 @@ export default function WalletPage() {
     }, [supabase])
 
     useEffect(() => {
-        if (typeof window !== 'undefined' && profile?.referral_code) {
-            setReferralLink(`${window.location.origin}/register?ref=${profile.referral_code}`)
+        if (typeof window !== 'undefined' && profile?.id) {
+            setReferralLink(`${window.location.origin}/driver/${profile.id}`)
         }
     }, [profile])
 
@@ -505,7 +505,7 @@ export default function WalletPage() {
                             {referralLink ? (
                                 <img
                                     src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(referralLink)}`}
-                                    alt="QR de Referido"
+                                    alt="QR de Perfil Público"
                                     className="w-[150px] h-[150px] lg:w-[180px] lg:h-[180px]"
                                 />
                             ) : (

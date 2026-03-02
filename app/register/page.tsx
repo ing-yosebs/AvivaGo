@@ -281,8 +281,8 @@ function RegisterForm() {
                                 </div>
                             </div>
 
-                            {/* Invitation Code */}
-                            <div className="space-y-2">
+                            {/* Invitation Code (Hidden to avoid confusion, but still functional via URL) */}
+                            <div className="space-y-2 hidden">
                                 <div className="relative">
                                     <User className="absolute left-3 top-3 h-5 w-5 text-zinc-500" />
                                     <input

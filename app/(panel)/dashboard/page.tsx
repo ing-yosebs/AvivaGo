@@ -37,16 +37,11 @@ export default function Dashboard() {
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Welcome Header */}
             <div>
-                <div className="flex items-center gap-3 mb-2">
-                    <span className="px-3 py-1 rounded-full text-xs font-semibold border bg-blue-500/10 text-blue-500 border-blue-500/20">
-                        Perfil Único
-                    </span>
-                </div>
-                <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-3">
-                    Hola {user?.user_metadata?.full_name?.split(' ')[0] || 'Viajero'}
+                <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-3 text-[#0F2137]">
+                    Panel de Pasajero
                 </h1>
                 <p className="text-lg text-gray-500 font-medium">
-                    Aquí está el resumen de tu actividad de hoy.
+                    Hola {user?.user_metadata?.full_name?.split(' ')[0] || 'Viajero'}. Aquí está el resumen de tu actividad como pasajero dentro de la plataforma.
                 </p>
             </div>
 
