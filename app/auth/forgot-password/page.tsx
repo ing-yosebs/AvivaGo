@@ -2,14 +2,17 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Mail, ArrowLeft, Loader2, CheckCircle, Rocket } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Mail, ArrowLeft, Loader2, CheckCircle, Rocket, Phone } from 'lucide-react'
 import { forgotPassword } from '../actions'
 
 export default function ForgotPasswordPage() {
-    const [email, setEmail] = useState('')
+    const [identifier, setIdentifier] = useState('')
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
+    const [showOtpRedirect, setShowOtpRedirect] = useState(false)
+    const router = useRouter()
 
     const handleResetPassword = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -17,17 +20,55 @@ export default function ForgotPasswordPage() {
         setError(null)
         setMessage(null)
 
-        const formData = new FormData()
-        formData.append('email', email)
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)
 
-        const result = await forgotPassword(formData)
+        if (isEmail) {
+            const formData = new FormData()
+            formData.append('email', identifier)
 
-        if (result?.error) {
-            setError(result.error)
-        } else if (result?.success) {
-            setMessage(result.message || 'Se ha enviado un enlace de recuperación a tu correo electrónico.')
+            const result = await forgotPassword(formData)
+
+            if (result?.error) {
+                setError(result.error)
+            } else if (result?.success) {
+                setMessage(result.message || 'Se ha enviado un enlace de recuperación a tu correo electrónico.')
+            }
+            setLoading(false)
+        } else {
+            // Assume phone. Clean it.
+            let phone = identifier.replace(/\D/g, '')
+            if (phone.length === 10) {
+                 // In register and login we just send the 10 digits to verification
+                 // verify-otp handles adding the +52
+                 try {
+                     const res = await fetch('/api/auth/whatsapp/send-otp', {
+                         method: 'POST',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({ phone }),
+                     })
+
+                     const data = await res.json()
+
+                     if (!res.ok) {
+                         setError(data.error || 'Error al enviar código WhatsApp')
+                         setLoading(false)
+                     } else {
+                         setShowOtpRedirect(true)
+                         setMessage('Te hemos enviado un código por WhatsApp.')
+                         setTimeout(() => {
+                             router.push(`/auth/verify-otp?phone=${phone}&redirect=/auth/update-password`)
+                         }, 2000)
+                     }
+                 } catch (err) {
+                     console.error('WhatsApp OTP Error:', err)
+                     setError('Error de conexión con WhatsApp')
+                     setLoading(false)
+                 }
+            } else {
+                 setError('Por favor ingresa un número de teléfono de 10 dígitos o un correo electrónico válido.')
+                 setLoading(false)
+            }
         }
-        setLoading(false)
     }
 
     return (
@@ -59,13 +100,17 @@ export default function ForgotPasswordPage() {
                         <form onSubmit={handleResetPassword} className="space-y-4">
                             <div className="space-y-2">
                                 <div className="relative">
-                                    <Mail className="absolute left-3 top-3 h-5 w-5 text-zinc-500" />
+                                    {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier) ? (
+                                        <Mail className="absolute left-3 top-3 h-5 w-5 text-zinc-500" />
+                                    ) : (
+                                        <Phone className="absolute left-3 top-3 h-5 w-5 text-zinc-500" />
+                                    )}
                                     <input
-                                        type="email"
+                                        type="text"
                                         required
-                                        placeholder="Correo Electrónico"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="Correo o Teléfono (10 dígitos)"
+                                        value={identifier}
+                                        onChange={(e) => setIdentifier(e.target.value)}
                                         className="w-full bg-black/20 border border-white/10 rounded-xl px-10 py-3 text-white placeholder:text-zinc-600 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
                                     />
                                 </div>
@@ -92,13 +137,21 @@ export default function ForgotPasswordPage() {
                                 <CheckCircle className="h-12 w-12 text-green-500" />
                             </div>
                             <p className="text-zinc-300 mb-6">{message}</p>
-                            <Link
-                                href="/auth/login"
-                                className="inline-flex items-center gap-2 text-white hover:underline"
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                                Volver al inicio de sesión
-                            </Link>
+                            {!showOtpRedirect && (
+                                <Link
+                                    href="/auth/login"
+                                    className="inline-flex items-center gap-2 text-white hover:underline"
+                                >
+                                    <ArrowLeft className="h-4 w-4" />
+                                    Volver al inicio de sesión
+                                </Link>
+                            )}
+                            {showOtpRedirect && (
+                                <div className="mt-4 flex flex-col items-center">
+                                    <Loader2 className="h-6 w-6 animate-spin text-zinc-400 mb-2" />
+                                    <p className="text-zinc-400 text-sm">Redirigiendo a verificación...</p>
+                                </div>
+                            )}
                         </div>
                     )}
 

@@ -3,17 +3,17 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
-import { CheckCircle, ShieldCheck, ArrowRight, Rocket } from 'lucide-react'
+import { CheckCircle, ShieldCheck, ArrowRight, Rocket, Loader2 } from 'lucide-react'
 
 export default function UpdatePasswordPage() {
-    const [userEmail, setUserEmail] = useState<string | null>(null)
+    const [userIdentifier, setUserIdentifier] = useState<string | null>(null)
     const supabase = createClient()
 
     useEffect(() => {
         async function getUser() {
             const { data: { user } } = await supabase.auth.getUser()
-            if (user?.email) {
-                setUserEmail(user.email)
+            if (user) {
+                setUserIdentifier(user.email || user.phone || 'Usuario Autenticado')
             }
         }
         getUser()
@@ -53,8 +53,13 @@ export default function UpdatePasswordPage() {
                             <p>
                                 Estás dentro con tu cuenta:
                             </p>
-                            <p className="font-mono text-purple-400 bg-purple-500/10 py-1 px-3 rounded inline-block">
-                                {userEmail || 'Cargando...'}
+                            <p className="font-mono text-blue-400 bg-blue-500/10 py-1.5 px-4 rounded-xl border border-blue-500/20 inline-flex items-center gap-2">
+                                {userIdentifier || (
+                                    <span className="flex items-center gap-2 opacity-50">
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                        Cargando...
+                                    </span>
+                                )}
                             </p>
                             <p className="pt-4">
                                 Por tu seguridad, ve ahora a tu <strong>Panel de Perfil</strong> en la sección de <strong>Seguridad</strong> para actualizar tu contraseña.
