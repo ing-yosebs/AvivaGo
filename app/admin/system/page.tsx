@@ -1,5 +1,6 @@
 import { ServiceUsageMonitor } from '@/components/Admin/System/ServiceUsageMonitor'
 import { SystemChangelog } from '@/components/Admin/System/SystemChangelog'
+import { BillingQuickLinks } from '@/components/Admin/System/BillingQuickLinks'
 
 export default function SystemPage() {
     return (
@@ -10,6 +11,7 @@ export default function SystemPage() {
             </div>
 
             <ServiceUsageMonitor />
+            <BillingQuickLinks />
             <SystemChangelog />
         </div>
     )
