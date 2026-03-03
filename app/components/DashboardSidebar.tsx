@@ -198,7 +198,7 @@ export default function DashboardSidebar() {
                             <div key={item.label} className="space-y-1">
                                 <Link
                                     href={item.href}
-                                    onClick={() => !hasSubItems && setIsOpen(false)}
+                                    onClick={() => setIsOpen(false)}
                                     className={`flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${isActive
                                         ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
                                         : 'text-gray-500 hover:bg-gray-50 hover:text-[#0F2137]'
