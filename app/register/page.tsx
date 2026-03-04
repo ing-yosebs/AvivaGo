@@ -246,12 +246,20 @@ function RegisterForm() {
                                         className="pl-10"
                                         onClick={(e) => {
                                             const target = e.target as HTMLElement;
+
                                             // Si se hace clic en el dropdown de banderas o en la bandera seleccionada
-                                            if (target.closest('.flag-dropdown') || target.closest('.selected-flag')) {
-                                                // Escondemos el teclado haciendo blur al elemento activo
-                                                if (document.activeElement instanceof HTMLElement) {
-                                                    document.activeElement.blur();
-                                                }
+                                            // pero NO en el campo de búsqueda directamente
+                                            if ((target.closest('.flag-dropdown') || target.closest('.selected-flag')) && !target.closest('.search-box')) {
+                                                // Usamos un pequeño timeout para contrarrestar el auto-focus automático de la librería
+                                                setTimeout(() => {
+                                                    const searchInput = document.querySelector('.search-box') as HTMLElement;
+                                                    if (searchInput) {
+                                                        searchInput.blur();
+                                                    }
+                                                    if (document.activeElement instanceof HTMLElement) {
+                                                        document.activeElement.blur();
+                                                    }
+                                                }, 50);
                                             }
                                         }}
                                     >
