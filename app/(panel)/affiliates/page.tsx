@@ -98,7 +98,7 @@ export default function AffiliatesPage() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 <StatCard
                     icon={<Wallet className="h-5 w-5 text-green-500" />}
                     label="Saldo Disponible"
@@ -117,24 +117,24 @@ export default function AffiliatesPage() {
                     value={profile?.referral_count || 0}
                     sub="Activos"
                 />
-                <div className={`backdrop-blur-xl border rounded-2xl p-6 transition-colors cursor-default ${profile?.affiliate_level === 'gold' ? 'bg-yellow-500/10 border-yellow-500/30' :
-                        profile?.affiliate_level === 'silver' ? 'bg-zinc-400/10 border-zinc-400/30' :
-                            'bg-amber-700/10 border-amber-700/30'
+                <div className={`backdrop-blur-xl border rounded-2xl p-4 sm:p-5 transition-colors cursor-default flex flex-col items-center text-center ${profile?.affiliate_level === 'gold' ? 'bg-yellow-500/10 border-yellow-500/30' :
+                    profile?.affiliate_level === 'silver' ? 'bg-zinc-400/10 border-zinc-400/30' :
+                        'bg-amber-700/10 border-amber-700/30'
                     }`}>
-                    <div className="flex items-start justify-between mb-4">
-                        <div className="p-2 rounded-lg bg-black/20">
+                    <div className="flex items-center justify-center gap-2.5 mb-3 w-full">
+                        <div className="p-1.5 rounded-lg bg-black/20 shrink-0">
                             <Award className={`h-5 w-5 ${profile?.affiliate_level === 'gold' ? 'text-yellow-400' :
-                                    profile?.affiliate_level === 'silver' ? 'text-zinc-300' :
-                                        'text-amber-600'
+                                profile?.affiliate_level === 'silver' ? 'text-zinc-300' :
+                                    'text-amber-600'
                                 }`} />
                         </div>
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-white/10">
+                        <p className="text-zinc-400 text-xs sm:text-sm font-medium leading-tight">Tu Rango</p>
+                    </div>
+                    <div className="flex items-center justify-center gap-2 w-full">
+                        <h4 className="text-xl sm:text-2xl font-bold capitalize">{profile?.affiliate_level || 'Bronze'}</h4>
+                        <span className="text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full bg-white/10 whitespace-nowrap">
                             Nivel Actual
                         </span>
-                    </div>
-                    <div>
-                        <p className="text-zinc-400 text-sm mb-1">Tu Rango</p>
-                        <h4 className="text-2xl font-bold capitalize">{profile?.affiliate_level || 'Bronze'}</h4>
                     </div>
                 </div>
             </div>
@@ -225,18 +225,16 @@ export default function AffiliatesPage() {
 
 function StatCard({ icon, label, value, sub }: any) {
     return (
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors cursor-default">
-            <div className="flex items-start justify-between mb-4">
-                <div className="bg-white/10 p-2 rounded-lg border border-white/5">
+        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-4 sm:p-5 hover:bg-white/10 transition-colors cursor-default flex flex-col items-center text-center">
+            <div className="flex items-center justify-center gap-2.5 mb-3 w-full">
+                <div className="bg-white/10 p-1.5 rounded-lg border border-white/5 shrink-0">
                     {icon}
                 </div>
+                <p className="text-zinc-500 text-xs sm:text-sm font-medium leading-tight">{label}</p>
             </div>
-            <div>
-                <p className="text-zinc-500 text-sm mb-1">{label}</p>
-                <div className="flex items-baseline gap-1">
-                    <h4 className="text-2xl font-bold">{value}</h4>
-                    {sub && <span className="text-xs text-zinc-500">{sub}</span>}
-                </div>
+            <div className="flex items-baseline justify-center gap-1.5 w-full flex-wrap">
+                <h4 className="text-xl sm:text-2xl font-bold">{value}</h4>
+                {sub && <span className="text-[10px] sm:text-xs text-zinc-500">{sub}</span>}
             </div>
         </div>
     )
@@ -260,7 +258,7 @@ function TransactionItem({ tx }: any) {
                     {isPositive ? '+' : ''}{tx.amount}
                 </p>
                 <p className={`text-xs ${tx.status === 'available' ? 'text-green-600' :
-                        tx.status === 'pending' ? 'text-orange-500' : 'text-zinc-600'
+                    tx.status === 'pending' ? 'text-orange-500' : 'text-zinc-600'
                     }`}>
                     {tx.status === 'available' ? 'Disponible' : 'Pendiente'}
                 </p>

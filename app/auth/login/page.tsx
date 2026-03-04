@@ -59,23 +59,17 @@ export default function LoginPage() {
                 return
             }
 
-            // Check for Admin Role
+            // Check for Custom Redirection Path
             const { data: { user } } = await supabase.auth.getUser()
 
             if (user) {
-                const { data: profile } = await supabase
-                    .from('users')
-                    .select('roles')
-                    .eq('id', user.id)
-                    .single()
-
-                const roles = profile?.roles || []
-                if (Array.isArray(roles) && roles.includes('admin')) {
-                    router.push('/admin')
-                    return
-                }
+                const { getDashboardRedirectPath } = await import('@/lib/auth-utils')
+                const redirectPath = await getDashboardRedirectPath(supabase, user.id)
+                router.push(redirectPath)
+                return
             }
-            // Default User
+
+            // Fallback (Shouldn't normally be reached)
             router.push('/dashboard')
         }
     }

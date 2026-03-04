@@ -8,6 +8,7 @@ import { AlertCircle, LogOut, ArrowRight, LayoutDashboard } from 'lucide-react'
 export default function SessionActivePage() {
     const [user, setUser] = useState<any>(null)
     const [loading, setLoading] = useState(true)
+    const [dashboardPath, setDashboardPath] = useState('/dashboard')
     const router = useRouter()
     const searchParams = useSearchParams()
     const supabase = createClient()
@@ -24,6 +25,12 @@ export default function SessionActivePage() {
                 return
             }
             setUser(user)
+
+            // Get correct dashboard path
+            const { getDashboardRedirectPath } = await import('@/lib/auth-utils')
+            const path = await getDashboardRedirectPath(supabase, user.id)
+            setDashboardPath(path)
+
             setLoading(false)
         }
         getUser()
@@ -63,13 +70,13 @@ export default function SessionActivePage() {
                         {user.email?.charAt(0).toUpperCase()}
                     </div>
                     <span className="font-mono text-blue-800 font-medium">
-                        {user.email}
+                        {user.email || user.phone || 'Usuario'}
                     </span>
                 </div>
 
                 <div className="space-y-3">
                     <Link
-                        href="/dashboard"
+                        href={dashboardPath}
                         className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30"
                     >
                         <LayoutDashboard className="h-5 w-5" />

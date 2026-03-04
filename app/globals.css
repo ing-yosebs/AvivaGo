@@ -56,6 +56,7 @@
   h6 {
     @apply tracking-tight font-bold text-gray-900;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -205,4 +206,28 @@
 
 .react-tel-input .selected-flag .arrow.up {
   border-bottom-color: #71717a !important;
+}
+
+/* Centrar el selector en dispositivos móviles */
+@media (max-width: 640px) {
+  .react-tel-input .country-list {
+    position: fixed !important;
+    top: 40% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    width: 85vw !important;
+    max-width: 400px !important;
+    max-height: 280px !important;
+    border-radius: 20px !important;
+    box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.7) !important;
+    /* Overlay más oscuro para cubrir todo */
+    z-index: 999999 !important;
+    /* Elevamos por encima de los iconos de Lucide */
+  }
+
+  /* Forzamos que el contenedor de la librería no atrape el z-index */
+  .react-tel-input .flag-dropdown.open {
+    z-index: 999999 !important;
+  }
 }

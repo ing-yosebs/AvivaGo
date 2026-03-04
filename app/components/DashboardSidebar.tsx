@@ -97,7 +97,7 @@ export default function DashboardSidebar() {
     }, [supabase])
 
     const menuItems = [
-        { icon: LayoutDashboard, label: 'Panel Principal', href: '/dashboard' },
+        { icon: LayoutDashboard, label: 'Panel Pasajero', href: '/dashboard' },
         { icon: User, label: 'Datos Personales', href: '/perfil?tab=personal' },
 
         { icon: FileText, label: 'Mis Solicitudes', href: '/mis-solicitudes' },

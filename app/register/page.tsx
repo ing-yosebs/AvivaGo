@@ -207,7 +207,7 @@ function RegisterForm() {
                                     className={`flex-1 py-3 text-sm font-medium z-10 transition-all flex items-center justify-center gap-2 ${!isDriver ? 'text-blue-400' : 'text-zinc-500 hover:text-zinc-300'}`}
                                 >
                                     <User className={`h-4 w-4 ${!isDriver ? 'animate-pulse' : ''}`} />
-                                    Usuario
+                                    Pasajero
                                 </button>
                                 <button
                                     type="button"
@@ -242,7 +242,19 @@ function RegisterForm() {
                                     <div className="absolute left-3 top-3 z-10">
                                         <Phone className="h-5 w-5 text-zinc-500" />
                                     </div>
-                                    <div className="pl-10">
+                                    <div
+                                        className="pl-10"
+                                        onClick={(e) => {
+                                            const target = e.target as HTMLElement;
+                                            // Si se hace clic en el dropdown de banderas o en la bandera seleccionada
+                                            if (target.closest('.flag-dropdown') || target.closest('.selected-flag')) {
+                                                // Escondemos el teclado haciendo blur al elemento activo
+                                                if (document.activeElement instanceof HTMLElement) {
+                                                    document.activeElement.blur();
+                                                }
+                                            }
+                                        }}
+                                    >
                                         <PhoneInput
                                             country={userCountry}
                                             value={phone}
@@ -402,28 +414,78 @@ function RegisterForm() {
                 </div>
             </div>
 
-            {/* Success Modal */}
+            {/* Success Modal - Welcome Screen */}
             {showSuccessModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { }} />
-                    <div className="bg-zinc-900 border border-white/10 p-8 rounded-3xl shadow-2xl z-10 w-full max-w-sm text-center animate-in zoom-in-95 duration-300">
-                        <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <CheckCircle className="w-10 h-10 text-green-500" />
+                    <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => { }} />
+                    <div className="bg-zinc-900 border border-white/10 p-8 rounded-[2.5rem] shadow-2xl z-10 w-full max-w-md text-center animate-in zoom-in-95 duration-500 overflow-hidden relative">
+                        {/* Decorative Background for the modal */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500" />
+
+                        <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6 ring-8 ring-emerald-500/5">
+                            <CheckCircle className="w-10 h-10 text-emerald-500" />
                         </div>
-                        <h3 className="text-2xl font-bold text-white mb-2">¡Registro Exitoso!</h3>
+
+                        <h3 className="text-3xl font-bold text-white mb-2">
+                            ¡Bienvenido, {fullName.split(' ')[0]}!
+                        </h3>
                         <p className="text-zinc-400 mb-8">
-                            Tu cuenta ha sido creada correctamente. Bienvenido a AvivaGo.
+                            Tu cuenta ha sido creada exitosamente. Estamos felices de tenerte en AvivaGo.
                         </p>
+
+                        {/* Login Reminder Box */}
+                        <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mb-8 text-left space-y-3">
+                            <p className="text-xs font-bold uppercase text-zinc-500 tracking-widest mb-1">Tu Acceso Futuro</p>
+                            <div className="flex items-center gap-3 text-zinc-300">
+                                <div className="p-2 bg-blue-500/10 rounded-lg">
+                                    <Phone className="w-4 h-4 text-blue-400" />
+                                </div>
+                                <span className="text-sm">Tu número de teléfono registrado</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-zinc-300">
+                                <div className="p-2 bg-purple-500/10 rounded-lg">
+                                    <Lock className="w-4 h-4 text-purple-400" />
+                                </div>
+                                <span className="text-sm">La contraseña que acabas de crear</span>
+                            </div>
+                        </div>
+
+                        {/* WhatsApp Community CTA - High Persuasion */}
+                        <div className="relative group mb-8">
+                            <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-3xl blur opacity-30 group-hover:opacity-50 transition duration-1000"></div>
+                            <div className="relative bg-zinc-950 border border-emerald-500/20 rounded-2xl p-6 transition-all duration-300">
+                                <h4 className="text-emerald-400 font-bold mb-2 flex items-center justify-center gap-2">
+                                    <span className="relative flex h-3 w-3">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                                    </span>
+                                    ¡ACCESO EXCLUSIVO!
+                                </h4>
+                                <p className="text-zinc-300 text-sm leading-relaxed mb-4">
+                                    Únete a nuestra <span className="text-white font-semibold">Comunidad Élite de WhatsApp</span> para recibir soporte prioritario, consejos de expertos para maximizar tus ingresos y utilidades antes que nadie.
+                                </p>
+                                <a
+                                    href="https://chat.whatsapp.com/LZL7Ql57Wdl7ZMyr6YjKMG"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98]"
+                                >
+                                    Unirme a la Comunidad <ArrowRight className="w-4 h-4" />
+                                </a>
+                                <p className="text-[10px] text-zinc-500 mt-3 text-center">
+                                    *Cupos limitados disponibles para nuevos miembros registrados hoy
+                                </p>
+                            </div>
+                        </div>
+
                         <button
                             onClick={() => {
-                                // If redirectUrl is specifically for the landing page or similar public pages, we should ignore it on registration success.
-                                // Actually, let's just send them to their panel directly.
                                 const isLandingRedirect = redirectUrl === '/conductores' || redirectUrl === '/pasajeros' || redirectUrl === '/';
                                 window.location.href = (redirectUrl && !isLandingRedirect) ? redirectUrl : (isDriver ? '/perfil?tab=driver_dashboard' : '/dashboard');
                             }}
-                            className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2"
+                            className="w-full text-zinc-400 hover:text-white font-medium py-2 transition-colors flex items-center justify-center gap-2 text-sm"
                         >
-                            Ir a mi panel <ArrowRight className="w-5 h-5" />
+                            Ir a mi panel personal <ArrowRight className="w-4 h-4" />
                         </button>
                     </div>
                 </div>

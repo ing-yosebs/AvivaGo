@@ -5,12 +5,17 @@ export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url)
     const code = searchParams.get('code')
     // if "next" is in param, use it as the redirect URL
-    const next = searchParams.get('next') ?? '/'
+    let next = searchParams.get('next') ?? '/'
 
     if (code) {
         const supabase = await createClient()
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (!error) {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+        if (!error && data.user) {
+            // If we're going to the root, check for the best dashboard
+            if (next === '/') {
+                const { getDashboardRedirectPath } = await import('@/lib/auth-utils')
+                next = await getDashboardRedirectPath(supabase, data.user.id)
+            }
             return NextResponse.redirect(`${origin}${next}`)
         }
     }

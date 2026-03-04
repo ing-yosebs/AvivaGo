@@ -96,6 +96,23 @@ export async function updateSession(request: NextRequest) {
     // Legacy redirect removed:
     // if (!path.startsWith('/suspended') && !path.startsWith('/auth/')) { ... }
 
+    // 0.7 Root Redirection for Logged-in Users
+    if (path === '/' && user && !profile?.is_banned) {
+        const roles = profile?.roles || []
+        const isAdmin = Array.isArray(roles) ? roles.includes('admin') : roles === 'admin'
+
+        if (isAdmin) {
+            return NextResponse.redirect(new URL('/admin', request.url))
+        }
+
+        if (Array.isArray(roles) && roles.includes('driver')) {
+            return NextResponse.redirect(new URL('/perfil?tab=driver_dashboard', request.url))
+        }
+
+        // Default to passenger dashboard
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
     // 1. Admin Protection
     if (path.startsWith('/admin')) {
         if (!user) {

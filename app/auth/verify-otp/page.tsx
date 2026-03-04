@@ -29,6 +29,8 @@ function VerifyOTPForm() {
         setLoading(true)
         setError(null)
 
+        let verificationSuccess = false;
+
         if (isPhone) {
             // Verify via custom WhatsApp API
             try {
@@ -43,10 +45,7 @@ function VerifyOTPForm() {
                     setError(data.error || 'Código incorrecto')
                     setLoading(false)
                 } else {
-                    setSuccess(true)
-                    setTimeout(() => {
-                        router.push(redirectUrl || '/dashboard')
-                    }, 2000)
+                    verificationSuccess = true
                 }
             } catch (err) {
                 setError('Error de conexión')
@@ -65,11 +64,24 @@ function VerifyOTPForm() {
                 setError(error.message === 'Token has expired' ? 'El código ha expirado' : 'Código inválido o ya utilizado')
                 setLoading(false)
             } else {
-                setSuccess(true)
-                setTimeout(() => {
-                    router.push(redirectUrl || '/dashboard')
-                }, 2000)
+                verificationSuccess = true
             }
+        }
+
+        if (verificationSuccess) {
+            const { getDashboardRedirectPath } = await import('@/lib/auth-utils')
+            const supabase = createClient()
+            const { data: { user } } = await supabase.auth.getUser()
+
+            let nextPath = redirectUrl || '/dashboard'
+            if (user) {
+                nextPath = await getDashboardRedirectPath(supabase, user.id)
+            }
+
+            setSuccess(true)
+            setTimeout(() => {
+                router.push(nextPath)
+            }, 2000)
         }
     }
 

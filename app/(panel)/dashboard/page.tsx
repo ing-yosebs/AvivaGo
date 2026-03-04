@@ -48,7 +48,7 @@ export default function Dashboard() {
 
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 <StatCard icon={<Heart className="h-5 w-5 text-red-500" />} label="Conductores Favoritos" value={stats.favorites} />
                 <StatCard icon={<FileText className="h-5 w-5 text-purple-500" />} label="Cotizaciones Solicitadas" value={stats.quote_requests || 0} />
                 <StatCard icon={<Star className="h-5 w-5 text-yellow-500" />} label="Calificación Promedio" value={stats.rating.toFixed(1)} />

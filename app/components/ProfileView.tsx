@@ -9,6 +9,7 @@ import ReportModal from './ReportModal';
 import QuoteModal from './QuoteModal';
 import AuthRequiredModal from './AuthRequiredModal';
 import { DriverProfile } from './profile/types';
+import Header from './Header';
 import ProfileHeader from './profile/ProfileHeader';
 import ProfileInfo from './profile/ProfileInfo';
 import ProfileActions from './profile/ProfileActions';
@@ -19,9 +20,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 
 interface ProfileViewProps {
     driver: DriverProfile;
+    isLoggedIn?: boolean;
 }
 
-const ProfileView = ({ driver }: ProfileViewProps) => {
+const ProfileView = ({ driver, isLoggedIn }: ProfileViewProps) => {
     const supabase = createClient();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -189,16 +191,17 @@ const ProfileView = ({ driver }: ProfileViewProps) => {
 
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col relative font-sans">
+            {isLoggedIn && <Header />}
             {/* Background elements */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
                 <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/40 rounded-full blur-[120px]" />
                 <div className="absolute top-[20%] right-[-10%] w-[30%] h-[30%] bg-indigo-50/50 rounded-full blur-[100px]" />
             </div>
 
-            <main className="flex-1 pt-8 sm:pt-12 pb-12 px-4 sm:px-6 lg:px-8 relative z-10">
+            <main className={`flex-1 pb-12 px-4 sm:px-6 lg:px-8 relative z-10 ${isLoggedIn ? 'pt-20 sm:pt-28' : 'pt-8 sm:pt-12'}`}>
                 <div className="max-w-6xl mx-auto">
                     {/* Mobile Sticky Header - Placed outside grid to ensure sticky works */}
-                    <div className="lg:hidden sticky top-0 z-40 -mx-4 sm:mx-0 mb-2 px-4 sm:px-0 bg-gray-50/95 backdrop-blur-sm pt-0 pb-2 transition-all">
+                    <div className={`lg:hidden sticky z-40 -mx-4 sm:mx-0 mb-2 px-4 sm:px-0 bg-gray-50/95 backdrop-blur-sm pt-0 pb-2 transition-all ${isLoggedIn ? 'top-[56px] sm:top-[64px]' : 'top-0'}`}>
                         <div className="shadow-xl rounded-b-[30px] sm:rounded-b-[40px] overflow-hidden bg-white pt-2">
                             <ProfileHeader driver={driver} className="border-none shadow-none pb-0 mb-0 rounded-none rounded-b-[30px]" />
                         </div>

@@ -289,5 +289,5 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         referral_code: driver.user_referral_code
     };
 
-    return <ProfileView driver={formattedDriver} />;
+    return <ProfileView driver={formattedDriver} isLoggedIn={!!user} />;
 }
