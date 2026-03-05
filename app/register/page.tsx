@@ -23,6 +23,7 @@ function RegisterForm() {
     const [phone, setPhone] = useState('')
     const [password, setPassword] = useState('')
     const [otpCode, setOtpCode] = useState('')
+    const [countdown, setCountdown] = useState(25) // Redirigir después de 25 segundos
 
     // Referral
     const searchParams = useSearchParams()
@@ -158,6 +159,23 @@ function RegisterForm() {
             setError(err.message)
             setPending(false)
         }
+    }
+
+    // Manejar la redirección automática después del registro
+    useEffect(() => {
+        if (showSuccessModal && countdown > 0) {
+            const timer = setTimeout(() => {
+                setCountdown(prev => prev - 1)
+            }, 1000)
+            return () => clearTimeout(timer)
+        } else if (showSuccessModal && countdown === 0) {
+            handleFinalRedirect()
+        }
+    }, [showSuccessModal, countdown])
+
+    const handleFinalRedirect = () => {
+        const isLandingRedirect = redirectUrl === '/conductores' || redirectUrl === '/pasajeros' || redirectUrl === '/';
+        window.location.href = (redirectUrl && !isLandingRedirect) ? redirectUrl : (isDriver ? '/perfil?tab=driver_dashboard' : '/dashboard');
     }
 
     return (
@@ -430,26 +448,40 @@ function RegisterForm() {
                         {/* Decorative Background for the modal */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500" />
 
-                        <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-6 ring-8 ring-emerald-500/5">
-                            <CheckCircle className="w-10 h-10 text-emerald-500" />
-                        </div>
 
                         <h3 className="text-3xl font-bold text-white mb-2">
                             ¡Bienvenido, {fullName.split(' ')[0]}!
                         </h3>
                         <p className="text-zinc-400 mb-8">
-                            Tu cuenta ha sido creada exitosamente. Estamos felices de tenerte en AvivaGo.
+                            Tu cuenta ha sido creada exitosamente.
                         </p>
 
                         {/* Login Reminder Box */}
-                        <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mb-8 text-left space-y-3">
+                        <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mb-8 text-left space-y-3 relative overflow-hidden">
+                            {/* Watermark Icon - Restricted to this section */}
+                            <div className="absolute -right-4 -bottom-4 opacity-[0.05] pointer-events-none z-0">
+                                <CheckCircle className="w-32 h-32 text-emerald-500 rotate-12" />
+                            </div>
                             <p className="text-xs font-bold uppercase text-zinc-500 tracking-widest mb-1">Tu Acceso Futuro</p>
+
+                            <div className="flex items-center gap-3 text-zinc-300">
+                                <div className="p-2 bg-blue-500/10 rounded-lg">
+                                    <ArrowRight className="w-4 h-4 text-blue-400" />
+                                </div>
+                                <span className="text-sm">
+                                    Ingresa a: <a href="https://avivago.mx" target="_blank" rel="noopener noreferrer" className="text-white hover:underline decoration-blue-500/50 underline-offset-4 font-medium transition-all">https://avivago.mx</a>
+                                </span>
+                            </div>
+
                             <div className="flex items-center gap-3 text-zinc-300">
                                 <div className="p-2 bg-blue-500/10 rounded-lg">
                                     <Phone className="w-4 h-4 text-blue-400" />
                                 </div>
-                                <span className="text-sm">Tu número de teléfono registrado</span>
+                                <span className="text-sm">
+                                    Usa tu número: <span className="text-white font-medium">+{phone}</span>
+                                </span>
                             </div>
+
                             <div className="flex items-center gap-3 text-zinc-300">
                                 <div className="p-2 bg-purple-500/10 rounded-lg">
                                     <Lock className="w-4 h-4 text-purple-400" />
@@ -457,6 +489,8 @@ function RegisterForm() {
                                 <span className="text-sm">La contraseña que acabas de crear</span>
                             </div>
                         </div>
+
+
 
                         {/* WhatsApp Community CTA - High Persuasion */}
                         <div className="relative group mb-8">
@@ -467,10 +501,10 @@ function RegisterForm() {
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                         <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                                     </span>
-                                    ¡ACCESO EXCLUSIVO!
+                                    ¡BONO ADICIONAL!
                                 </h4>
                                 <p className="text-zinc-300 text-sm leading-relaxed mb-4">
-                                    Únete a nuestra <span className="text-white font-semibold">Comunidad Élite de WhatsApp</span> para recibir soporte prioritario, consejos de expertos para maximizar tus ingresos y utilidades antes que nadie.
+                                    Únete a nuestra comunidad para recibir soporte técnico y consejos exclusivos para maximizar tus ingresos con las herramientas de <span className="text-white font-semibold">AvivaGo</span>.
                                 </p>
                                 <a
                                     href="https://chat.whatsapp.com/LZL7Ql57Wdl7ZMyr6YjKMG"
@@ -478,7 +512,7 @@ function RegisterForm() {
                                     rel="noopener noreferrer"
                                     className="block w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98]"
                                 >
-                                    Unirme a la Comunidad <ArrowRight className="w-4 h-4" />
+                                    Unirme a la Comunidad WhatsApp <ArrowRight className="w-4 h-4" />
                                 </a>
                                 <p className="text-[10px] text-zinc-500 mt-3 text-center">
                                     *Cupos limitados disponibles para nuevos miembros registrados hoy
@@ -487,13 +521,10 @@ function RegisterForm() {
                         </div>
 
                         <button
-                            onClick={() => {
-                                const isLandingRedirect = redirectUrl === '/conductores' || redirectUrl === '/pasajeros' || redirectUrl === '/';
-                                window.location.href = (redirectUrl && !isLandingRedirect) ? redirectUrl : (isDriver ? '/perfil?tab=driver_dashboard' : '/dashboard');
-                            }}
+                            onClick={handleFinalRedirect}
                             className="w-full text-zinc-400 hover:text-white font-medium py-2 transition-colors flex items-center justify-center gap-2 text-sm"
                         >
-                            Ir a mi panel personal <ArrowRight className="w-4 h-4" />
+                            Ir a mi panel personal (Redirigiendo en {countdown}s) <ArrowRight className="w-4 h-4" />
                         </button>
                     </div>
                 </div>

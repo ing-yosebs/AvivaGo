@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
 import { Trash2, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
 import { deleteUser } from '@/app/admin/users/actions'
@@ -9,24 +10,27 @@ export default function DeleteUserButton({ userId }: { userId: string }) {
     const [isDeleting, setIsDeleting] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
     const [feedbackMessage, setFeedbackMessage] = useState<{ type: 'success' | 'error', message: string } | null>(null)
+    const [mounted, setMounted] = useState(false)
     const router = useRouter()
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     const handleDelete = async () => {
         setIsDeleting(true)
         try {
-            const result = await deleteUser(userId)
-            if (result.success) {
-                setShowConfirm(false)
-                setFeedbackMessage({ type: 'success', message: 'Usuario eliminado correctamente.' })
-            } else {
-                setShowConfirm(false)
-                setFeedbackMessage({ type: 'error', message: result.error || 'Ocurrió un error al intentar eliminar al usuario.' })
-                setIsDeleting(false)
+            await deleteUser(userId)
+            // If we reach here, no redirect happened (unexpected for success)
+            // but we might have returned something if we catch it.
+        } catch (error: any) {
+            // Next.js redirect throws a specific error that should be handled by the framework
+            if (error?.message === 'NEXT_REDIRECT' || error?.digest?.includes('NEXT_REDIRECT')) {
+                return;
             }
-        } catch (error) {
             console.error('Error in handleDelete:', error)
             setShowConfirm(false)
-            setFeedbackMessage({ type: 'error', message: 'Error de conexión al intentar eliminar al usuario.' })
+            setFeedbackMessage({ type: 'error', message: 'Error al intentar eliminar al usuario.' })
             setIsDeleting(false)
         }
     }
@@ -52,8 +56,8 @@ export default function DeleteUserButton({ userId }: { userId: string }) {
                 </span>
             </button>
 
-            {/* Confirm Modal */}
-            {showConfirm && (
+            {/* Confirm Modal - Rendered via Portal to avoid stacking context issues */}
+            {showConfirm && mounted && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-[#1a1a1a] border border-red-500/20 rounded-2xl p-6 max-w-md w-full shadow-2xl relative animate-in zoom-in-95 duration-200">
                         <div className="flex items-center gap-3 mb-4">
@@ -92,11 +96,12 @@ export default function DeleteUserButton({ userId }: { userId: string }) {
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
-            {/* Feedback Modal */}
-            {feedbackMessage && (
+            {/* Feedback Modal - Rendered via Portal */}
+            {feedbackMessage && mounted && createPortal(
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-[#1a1a1a] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
                         {feedbackMessage.type === 'success' ? (
@@ -117,14 +122,15 @@ export default function DeleteUserButton({ userId }: { userId: string }) {
                         <button
                             onClick={handleAcceptFeedback}
                             className={`w-full py-3.5 rounded-xl text-sm font-semibold text-white transition-colors ${feedbackMessage.type === 'success'
-                                    ? 'bg-emerald-500 hover:bg-emerald-600'
-                                    : 'bg-red-500 hover:bg-red-600'
+                                ? 'bg-emerald-500 hover:bg-emerald-600'
+                                : 'bg-red-500 hover:bg-red-600'
                                 }`}
                         >
                             Aceptar y Continuar
                         </button>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     )

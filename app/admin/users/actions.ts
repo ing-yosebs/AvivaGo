@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { logDriverAction } from '@/lib/logger'
@@ -347,8 +348,7 @@ export async function deleteUser(userId: string) {
         return { success: false, error: 'No se pudo eliminar el usuario: ' + error.message }
     }
 
-    console.log('[deleteUser] Borrado exitoso. Revalidando paths...');
+    console.log('[deleteUser] Borrado exitoso. Redireccionando...');
     revalidatePath('/admin/users')
-
-    return { success: true, message: 'Usuario eliminado permanentemente.' }
+    redirect('/admin/users?deleted=true')
 }

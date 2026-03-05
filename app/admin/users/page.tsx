@@ -4,6 +4,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Search, Filter, MoreHorizontal, Shield, Car, User, Users, Settings, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react'
 import { formatDateMX, formatTimeMX } from '@/lib/dateUtils'
+import DeleteSuccessNotification from '@/app/components/admin/DeleteSuccessNotification'
+import { Suspense } from 'react'
 
 // Helper to get status color
 const getStatusColor = (status: string | undefined) => {
@@ -230,6 +232,9 @@ export default async function UsersPage({
 
     return (
         <div className="max-w-[1600px] mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <Suspense fallback={null}>
+                <DeleteSuccessNotification />
+            </Suspense>
             {/* 1. Header Section */}
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="space-y-2">
