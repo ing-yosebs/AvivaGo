@@ -70,12 +70,16 @@ export default function PaymentsSection({
             // 2. Fallback: Find price by country_code (using "General" zone for that country)
             const countryCode = profile.driver_profile.country_code || 'MX'
 
-            // Find the "General%" zone for this country
-            // Alternatively, we can just find ANY zone for this country if we don't have specific logic yet,
-            // or we assume a naming convention like 'General {CountryName}'
-            // To be safe, let's look for a zone that belongs to the country and has a membership price.
-            // Ideally we should have a 'is_default' flag on zones, but for now let's query:
+            // Default strategy (Plan B)
+            if (countryCode !== 'MX') {
+                setPrice(26)
+                setCurrency('USD')
+            } else {
+                setPrice(524)
+                setCurrency('MXN')
+            }
 
+            // Still try to find if there's a specific override in the DB for this country
             const { data: countriesZones } = await supabase
                 .from('zones')
                 .select('id, zone_prices!inner(amount, currency, type)')
@@ -84,11 +88,6 @@ export default function PaymentsSection({
                 .limit(1)
 
             if (countriesZones && countriesZones.length > 0) {
-                const p = countriesZones[0].zone_prices[0] // It's an array because of inner join? actually fetching logic might vary
-                // zone_prices is an array in the response usually if it's 1:M, but here we filter.
-                // Let's be careful with the shape.
-                // Correct interaction: select('id, zone_prices(...)') returns { id, zone_prices: [...] }
-
                 const priceData = Array.isArray(countriesZones[0].zone_prices)
                     ? countriesZones[0].zone_prices[0]
                     : countriesZones[0].zone_prices

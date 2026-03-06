@@ -97,8 +97,14 @@ export async function POST(req: Request) {
             }
 
             if (!zonePrice) {
-                console.error("No pricing configuration found for driver", driverProfile.id, driverProfile.country_code);
-                return new NextResponse('Pricing configuration missing for your region.', { status: 500 });
+                // 3. Fallback globally to Plan B pricing rules
+                const countryCode = driverProfile.country_code || 'MX';
+                if (countryCode !== 'MX') {
+                    zonePrice = { amount: 2600, currency: 'USD' };
+                } else {
+                    zonePrice = { amount: 52400, currency: 'MXN' };
+                }
+                console.log(`No explicit zone found for ${driverProfile.country_code}, applying global default: ${zonePrice.amount} ${zonePrice.currency}`);
             }
 
             const { amount: unitAmount, currency } = zonePrice;
