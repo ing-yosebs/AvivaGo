@@ -16,8 +16,8 @@ export default function VerificationStatusPanel({ driverStatus, profile, handleR
             </h4>
 
             {driverStatus === 'active' ? (
-                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-center gap-3">
-                    <div className="h-10 w-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                    <div className="h-8 w-8 sm:h-10 sm:w-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 shrink-0">
                         <CheckCircle className="h-6 w-6" />
                     </div>
                     <div>
@@ -26,8 +26,8 @@ export default function VerificationStatusPanel({ driverStatus, profile, handleR
                     </div>
                 </div>
             ) : driverStatus === 'pending_approval' ? (
-                <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 flex items-center gap-3">
-                    <div className="h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600">
+                <div className="bg-orange-50 border border-orange-100 rounded-2xl p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+                    <div className="h-8 w-8 sm:h-10 sm:w-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shrink-0">
                         <Clock className="h-6 w-6" />
                     </div>
                     <div>
@@ -36,9 +36,9 @@ export default function VerificationStatusPanel({ driverStatus, profile, handleR
                     </div>
                 </div>
             ) : driverStatus === 'rejected' ? (
-                <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4 space-y-4">
-                    <div className="flex items-start gap-3">
-                        <div className="h-10 w-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shrink-0">
+                <div className="bg-orange-50 border border-orange-100 rounded-2xl p-3 sm:p-4 space-y-4">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 shrink-0">
                             <Info className="h-6 w-6" />
                         </div>
                         <div>
@@ -70,9 +70,9 @@ export default function VerificationStatusPanel({ driverStatus, profile, handleR
                     </button>
                 </div>
             ) : driverStatus === 'suspended' ? (
-                <div className="bg-red-50 border border-red-100 rounded-2xl p-4 space-y-4">
-                    <div className="flex items-start gap-3">
-                        <div className="h-10 w-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 shrink-0">
+                <div className="bg-red-50 border border-red-100 rounded-2xl p-3 sm:p-4 space-y-4">
+                    <div className="flex items-start gap-2 sm:gap-3">
+                        <div className="h-8 w-8 sm:h-10 sm:w-10 bg-red-100 rounded-full flex items-center justify-center text-red-600 shrink-0">
                             <AlertTriangle className="h-6 w-6" />
                         </div>
                         <div>

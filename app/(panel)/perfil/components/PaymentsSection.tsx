@@ -158,7 +158,7 @@ export default function PaymentsSection({
 
             {isDriver ? (
                 hasMembership ? (
-                    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-3xl p-8 relative overflow-hidden animate-in fade-in zoom-in duration-500 shadow-soft">
+                    <div className="relative animate-in fade-in zoom-in duration-500 w-full">
                         <MembershipStatusCard />
 
                         <VerificationStatusPanel

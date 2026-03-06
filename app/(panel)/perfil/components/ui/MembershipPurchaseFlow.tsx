@@ -13,16 +13,14 @@ interface MembershipPurchaseFlowProps {
 
 export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheckout, handlePurchase, purchasing, paymentConsent, setPaymentConsent, price, currency }: MembershipPurchaseFlowProps) {
     return (
-        <div className="backdrop-blur-xl bg-white border border-gray-100 rounded-[3rem] p-8 md:p-12 text-center max-w-3xl mx-auto shadow-2xl relative overflow-hidden">
-            {/* Decorative Background */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50" />
+        <div className="w-full text-center max-w-4xl mx-auto relative">
 
             <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-8 ring-8 ring-indigo-50 transition-transform hover:scale-110 duration-500">
                 <CreditCard className="h-10 w-10 text-indigo-600" />
             </div>
 
-            <h3 className="text-3xl md:text-4xl font-black mb-4 tracking-tight text-[#0F2137]">Activa tu Membresía Driver</h3>
-            <p className="text-gray-500 text-lg mb-12 leading-relaxed max-w-2xl mx-auto">
+            <h3 className="text-2xl sm:text-3xl md:text-4xl font-black mb-4 tracking-tight text-[#0F2137]">Activa tu Membresía Driver</h3>
+            <p className="text-gray-500 text-sm sm:text-lg mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto">
                 Únete a la red de conductores profesionales de AvivaGo. Sigue estos simples pasos para comenzar a recibir solicitudes directas de pasajeros.
             </p>
 
@@ -50,10 +48,10 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
             )}
 
             {/* Process Steps */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 text-left relative">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12 text-left relative">
 
                 {/* Step 1 */}
-                <div className="bg-white border border-indigo-100 p-6 rounded-3xl relative shadow-lg shadow-indigo-500/10 overflow-hidden group hover:bg-gray-50 transition-colors">
+                <div className="bg-white border border-indigo-100 p-5 sm:p-6 rounded-2xl md:rounded-3xl relative shadow-lg shadow-indigo-500/10 overflow-hidden group hover:bg-gray-50 transition-colors">
                     <div className="absolute top-0 left-0 bg-indigo-600 text-white px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 01</div>
                     <div className="mt-6 flex flex-col items-center">
                         <div className="h-12 w-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4 text-indigo-600 group-hover:scale-110 transition-transform">
@@ -65,9 +63,9 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
                 </div>
 
                 {/* Step 2 */}
-                <div className="bg-gray-50 border border-gray-100 p-6 rounded-3xl relative overflow-hidden group hover:bg-white transition-colors">
+                <div className="bg-gray-50 border border-gray-100 p-5 sm:p-6 rounded-2xl md:rounded-3xl relative overflow-hidden group hover:bg-white transition-colors">
                     <div className="absolute top-0 left-0 bg-gray-200 text-gray-600 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 02</div>
-                    <div className="mt-6 flex flex-col items-center">
+                    <div className="mt-4 sm:mt-6 flex flex-col items-center">
                         <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center mb-4 text-gray-400 group-hover:text-gray-600 transition-colors shadow-sm">
                             <Car className="h-6 w-6" />
                         </div>
@@ -77,9 +75,9 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
                 </div>
 
                 {/* Step 3 */}
-                <div className="bg-gray-50 border border-gray-100 p-6 rounded-3xl relative overflow-hidden group hover:bg-white transition-colors">
+                <div className="bg-gray-50 border border-gray-100 p-5 sm:p-6 rounded-2xl md:rounded-3xl relative overflow-hidden group hover:bg-white transition-colors">
                     <div className="absolute top-0 left-0 bg-gray-200 text-gray-600 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 03</div>
-                    <div className="mt-6 flex flex-col items-center">
+                    <div className="mt-4 sm:mt-6 flex flex-col items-center">
                         <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center mb-4 text-gray-400 group-hover:text-gray-600 transition-colors shadow-sm">
                             <Shield className="h-6 w-6" />
                         </div>
@@ -89,9 +87,9 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
                 </div>
 
                 {/* Step 4 */}
-                <div className="bg-gray-50 border border-gray-100 p-6 rounded-3xl relative overflow-hidden group hover:bg-white transition-colors">
+                <div className="bg-gray-50 border border-gray-100 p-5 sm:p-6 rounded-2xl md:rounded-3xl relative overflow-hidden group hover:bg-white transition-colors">
                     <div className="absolute top-0 left-0 bg-green-100/50 text-green-600 px-4 py-1.5 rounded-br-2xl text-[10px] font-bold tracking-widest uppercase">Paso 04</div>
-                    <div className="mt-6 flex flex-col items-center">
+                    <div className="mt-4 sm:mt-6 flex flex-col items-center">
                         <div className="h-12 w-12 bg-white rounded-2xl flex items-center justify-center mb-4 text-gray-400 group-hover:text-green-500 transition-colors shadow-sm">
                             <CheckCircle className="h-6 w-6" />
                         </div>
@@ -101,7 +99,7 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
                 </div>
             </div>
 
-            <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-8 mb-10 inline-block px-12 transform hover:scale-[1.02] transition-transform shadow-inner">
+            <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-6 sm:p-8 mb-8 sm:mb-10 inline-block px-8 sm:px-12 transform hover:scale-[1.02] transition-transform shadow-inner w-full sm:w-auto">
                 <div className="text-[10px] text-indigo-500 uppercase tracking-[0.2em] font-black mb-2">Costo Anual de Activación</div>
                 <div className="text-5xl font-black text-[#0F2137]">${price.toLocaleString('es-MX', { minimumFractionDigits: 2 })} <span className="text-sm font-medium text-gray-500 tracking-normal">{currency}</span></div>
             </div>
@@ -128,7 +126,7 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
                 <button
                     onClick={handlePurchase}
                     disabled={purchasing || !paymentConsent}
-                    className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-black py-5 px-16 rounded-[2rem] transition-all shadow-[0_20px_40px_-15px_rgba(79,70,229,0.3)] flex items-center justify-center gap-3 mx-auto disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] group"
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 sm:py-5 px-6 sm:px-16 rounded-[2rem] transition-all shadow-[0_20px_40px_-15px_rgba(79,70,229,0.3)] flex items-center justify-center gap-3 mx-auto disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] group"
                 >
                     {purchasing ? (
                         <>
