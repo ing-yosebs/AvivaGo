@@ -67,6 +67,9 @@ export async function POST(request: NextRequest) {
                 .from('users')
                 .update({
                     full_name: extractedData.fullName,
+                    birthday: extractedData.birthDate || undefined,
+                    nationality: extractedData.nationality || undefined,
+                    curp: extractedData.documentNumber || undefined,
                     id_document_url: identityRecord.front_image_url || undefined,
                     id_document_back_url: identityRecord.back_image_url || undefined,
                     avatar_url: identityRecord.selfie_url || undefined

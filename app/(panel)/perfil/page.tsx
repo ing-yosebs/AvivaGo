@@ -76,7 +76,7 @@ function ProfileContent() {
 
         const { data: userData } = await supabase
             .from('users')
-            .select('*, driver_profiles(*)')
+            .select('*, driver_profiles(*), identity_verifications(*)')
             .eq('id', currentUserId)
             .single()
 

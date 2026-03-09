@@ -1,4 +1,4 @@
-import { User, Shield, CheckCircle2, FileText, Mail, ChevronDown, Pencil, ChevronRight } from 'lucide-react'
+import { User, Shield, CheckCircle2, FileText, Mail, ChevronDown, Pencil, ChevronRight, Clock, AlertCircle, XCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import PhoneInput from 'react-phone-input-2'
 import 'react-phone-input-2/lib/style.css'
@@ -42,7 +42,15 @@ export function IdentityPanel({
     onPartialSave
 }: IdentityPanelProps) {
     const router = useRouter()
-    const isVerified = !!profile?.driver_profile?.verified_at
+    const verification = Array.isArray(profile?.identity_verifications)
+        ? profile.identity_verifications[0]
+        : profile.identity_verifications;
+
+    const verificationStatus = verification?.status || null;
+    const isVerified = !!profile?.driver_profile?.verified_at || verificationStatus === 'approved';
+    const isPending = verificationStatus === 'manual_review';
+    const isRejected = verificationStatus === 'rejected';
+
     const [isEditingName, setIsEditingName] = useState(false)
 
     return (
@@ -95,6 +103,33 @@ export function IdentityPanel({
                                 <p className="text-xs text-emerald-900 leading-relaxed font-medium">Toda tu información de identidad ha sido validada exitosamente.</p>
                             </div>
                         </div>
+                    ) : isPending ? (
+                        <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-start gap-3 shadow-sm border-l-4 border-l-blue-500 animate-pulse">
+                            <Clock className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+                            <div>
+                                <h5 className="text-[10px] font-bold uppercase text-blue-600 mb-1">Verificación en Proceso</h5>
+                                <p className="text-xs text-blue-900 leading-relaxed font-medium">Estamos revisando tus documentos manualmente. Te notificaremos pronto.</p>
+                            </div>
+                        </div>
+                    ) : isRejected ? (
+                        <div className="bg-red-50 border border-red-100 p-4 rounded-2xl space-y-4 shadow-sm border-l-4 border-l-red-500">
+                            <div className="flex items-start gap-3">
+                                <XCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
+                                <div>
+                                    <h5 className="text-[10px] font-bold uppercase text-red-600 mb-1">Verificación Rechazada</h5>
+                                    <p className="text-xs text-red-900 leading-relaxed font-medium">
+                                        No pudimos validar tu identidad. Por favor intenta de nuevo con fotos más claras.
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => router.push('/verify-id')}
+                                className="w-full py-3 bg-red-600 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-red-700 transition-all shadow-lg shadow-red-500/20 active:scale-[0.98]"
+                            >
+                                Intentar de nuevo
+                                <ChevronRight className="h-4 w-4" />
+                            </button>
+                        </div>
                     ) : (
                         <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl space-y-4 shadow-sm border-l-4 border-l-amber-500">
                             <div className="flex items-start gap-3">
@@ -105,8 +140,8 @@ export function IdentityPanel({
                                     </h5>
                                     <p className="text-xs text-amber-900 leading-relaxed font-medium">
                                         {isDriver && !hasMembership
-                                            ? "Activa tu membresía para verificar tu identidad y ser visible en el catálogo público. Mientras tanto, úsala de forma interna con tus conocidos."
-                                            : "Verifica tu identidad para poder contactar a conductores de tu interés. Mientras tanto, solo podrás contactar al conductor que te invitó."}
+                                            ? "Activa tu membresía para verificar tu identidad y ser visible en el catálogo público."
+                                            : "Verifica tu identidad para poder contactar a conductores de tu interés."}
                                     </p>
                                 </div>
                             </div>

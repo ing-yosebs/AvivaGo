@@ -10,12 +10,20 @@ export default async function VerifyIdPage() {
         redirect('/auth/login');
     }
 
-    // Check Roles and Membership Security
+    // Check roles and verification status
     const { data: userData } = await supabase
         .from('users')
-        .select('roles')
+        .select('roles, identity_verifications(status)')
         .eq('id', user.id)
         .single();
+
+    const verification = Array.isArray(userData?.identity_verifications)
+        ? userData.identity_verifications[0]
+        : userData?.identity_verifications;
+
+    if (verification?.status === 'approved' || verification?.status === 'manual_review') {
+        redirect('/perfil');
+    }
 
     const isDriver = userData?.roles?.includes('driver');
 

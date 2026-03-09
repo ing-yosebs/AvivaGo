@@ -66,7 +66,9 @@ export default function UserDetailSidebar({
                     <div className="space-y-4">
                         <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
                             <span className="text-zinc-400 text-sm">Email Confirmado</span>
-                            {user.email_confirmed_at ? (
+                            {!user.email ? (
+                                <span className="text-xs font-bold text-red-400 uppercase">Faltante</span>
+                            ) : user.email_confirmed_at ? (
                                 <CheckCircle className="h-5 w-5 text-emerald-400" />
                             ) : (
                                 <span className="text-xs font-bold text-zinc-500 uppercase">Pendiente</span>
@@ -91,7 +93,7 @@ export default function UserDetailSidebar({
 
                         <div className="mt-4 pt-4 border-t border-white/10">
                             <p className="text-xs text-zinc-500 text-center">
-                                {(user.full_name && user.phone_number && user.email_confirmed_at)
+                                {(user.full_name && user.phone_number && user.email && user.email_confirmed_at)
                                     ? "Este usuario cumple con todos los requisitos para contactar conductores."
                                     : "El usuario debe completar su perfil para activar funciones de contacto."}
                             </p>

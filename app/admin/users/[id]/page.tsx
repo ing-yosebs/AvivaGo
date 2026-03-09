@@ -94,7 +94,7 @@ export default async function UserDetailPage({
     const identityVerification = Array.isArray(user.identity_verifications) ? user.identity_verifications[0] : user.identity_verifications
 
     // Signed URLs Preparation
-    const idDocumentSignedUrl = await getSignedUrl(supabase, user.id_document_url, 'documents');
+    const idDocumentSignedUrl = await getSignedUrl(supabase, user.id_document_url || identityVerification?.front_image_url, 'documents');
     const idDocumentBackSignedUrl = await getSignedUrl(supabase, user.id_document_back_url || identityVerification?.back_image_url, 'documents');
     const addressProofSignedUrl = await getSignedUrl(supabase, user.address_proof_url, 'documents');
     const verificationSelfieSignedUrl = await getSignedUrl(supabase, identityVerification?.selfie_url, 'avatars');

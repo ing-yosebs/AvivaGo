@@ -81,10 +81,10 @@ export default function IdVerificationFlow() {
 
     // Auto-start verification when entering step 4
     useEffect(() => {
-        if (step === 4 && !isLoading && !error) {
+        if (step === 4 && !isLoading && !error && modelsLoaded) {
             performVerification();
         }
-    }, [step, isLoading, error]);
+    }, [step, isLoading, error, modelsLoaded]);
 
     // --- STEP Logic ---
 
@@ -183,71 +183,66 @@ export default function IdVerificationFlow() {
         setError(null);
         setErrorType(null);
         setMatchScore(null);
-        console.log('Starting verification process...');
 
         try {
             // 1. Face Matching (Client Side)
-            console.log('Fetching images for face-api...');
             // Convert Base64 to HTMLImageElement
             const imgSelfie = await faceapi.fetchImage(selfieImage);
             const imgID = await faceapi.fetchImage(frontImage);
-            console.log('Images fetched. Detecting faces...');
 
             // Detect Faces
             const selfieDetection = await faceapi.detectSingleFace(imgSelfie).withFaceLandmarks().withFaceDescriptor();
             const idDetection = await faceapi.detectSingleFace(imgID).withFaceLandmarks().withFaceDescriptor();
-            console.log('Face detection complete.', { selfieDetection, idDetection });
 
             if (!selfieDetection || !idDetection) {
-                const err = new Error('No pudimos confirmar que la selfie coincida con la foto de la identificación. Asegúrate de estar en un lugar iluminado y no usar lentes ni gorra.');
-                (err as any).type = 'biometric';
-                throw err;
+                setError('No pudimos detectar tu rostro en una de las fotos. Asegúrate de estar en un lugar con buena iluminación, no usar lentes ni gorra, y que la identificación se vea nítida.');
+                setErrorType('biometric');
+                setIsLoading(false);
+                return;
             }
 
             // Calculate Distance (Lower is better match)
-            console.log('Calculating distance...');
             const distance = faceapi.euclideanDistance(selfieDetection.descriptor, idDetection.descriptor);
-            console.log('Distance:', distance);
             const threshold = 0.6;
             const isMatch = distance < threshold;
 
             // Convert distance to a similarity score (approximate)
-            const score = Math.max(0, 100 - (distance * 100)); // Simple conversion for display
+            const score = Math.max(0, 100 - (distance * 100));
             setMatchScore(score);
 
             if (!isMatch) {
-                const err = new Error(`Los rostros no coinciden. No pudimos confirmar que la selfie coincida con la foto de la identificación. Asegúrate de estar en un lugar iluminado y no usar lentes ni gorra.`);
-                (err as any).type = 'biometric';
-                throw err;
+                setError(`Los rostros no coinciden suficientemente (${score.toFixed(0)}%). Asegúrate de que la foto de la ID sea clara y que tu selfie sea reciente y esté bien iluminada.`);
+                setErrorType('biometric');
+                setIsLoading(false);
+                return;
             }
-
-            console.log('Face match successful. Sending to backend...');
 
             // 2. If Match, sending to Backend for OCR
             const response = await fetch('/api/verify-id', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    image: frontImage, // Sending front image for OCR
-                    backImage: backImage, // Optional, depending on logic
+                    image: frontImage,
+                    backImage: backImage,
                     documentType: docType
                 }),
             });
 
             const data = await response.json();
             if (!response.ok) {
-                const err = new Error('No pudimos leer los datos de tu credencial automáticamente. Por favor, asegúrate de que no haya reflejos de luz y que la foto no esté borrosa.');
-                (err as any).type = 'ocr';
-                throw err;
+                setError('No pudimos leer los datos de tu credencial automáticamente. Por favor, asegúrate de que no haya reflejos de luz y que la foto no esté borrosa.');
+                setErrorType('ocr');
+                setIsLoading(false);
+                return;
             }
 
             setOcrResult(data.data);
             setStep(5); // Success Result Step
 
         } catch (err: any) {
-            console.error('Verification error:', err);
-            setError(err.message || 'Error desconocido');
-            setErrorType(err.type || 'general');
+            console.error('Verification exception:', err);
+            setError('Ocurrió un error inesperado durante la verificación. Por favor intenta de nuevo.');
+            setErrorType('general');
         } finally {
             setIsLoading(false);
         }
