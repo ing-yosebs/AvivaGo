@@ -73,14 +73,14 @@ export default function HeroAssistant() {
 
                         <div className="flex flex-col sm:flex-row gap-4 mt-2">
                             <Link
-                                href="/register"
+                                href="/register?role=passenger"
                                 className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-white transition-all bg-aviva-primary rounded-2xl hover:bg-aviva-primary/90 hover:shadow-lg hover:shadow-aviva-primary/20 hover:-translate-y-1"
                             >
                                 Registrarme Gratis
                                 <ArrowRight className="w-5 h-5 ml-2" />
                             </Link>
                             <Link
-                                href="/register"
+                                href="/register?role=passenger"
                                 className="inline-flex items-center justify-center px-8 py-4 text-base font-bold text-gray-700 transition-all bg-gray-50 border border-gray-200 rounded-2xl hover:bg-white hover:border-gray-300 hover:shadow-md"
                             >
                                 Buscar mi conductor

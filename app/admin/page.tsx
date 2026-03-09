@@ -79,7 +79,8 @@ async function getDashboardData(view?: string) {
         { data: historicalMemberships },
         { data: recentUsersForChart },
         { data: recentDriversForChart },
-        { count: totalHistoricalMembershipsCount }
+        { count: totalHistoricalMembershipsCount },
+        { count: pendingVerificationsCount }
     ] = await Promise.all([
         supabase.from('users').select('*', { count: 'exact', head: true }),
         supabase.from('driver_profiles').select('*', { count: 'exact', head: true }).eq('status', 'active'),
@@ -95,7 +96,9 @@ async function getDashboardData(view?: string) {
         supabase.from('users').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
         supabase.from('driver_profiles').select('created_at').gte('created_at', sixMonthsAgo.toISOString()),
         // All Historical Total Memberships Paid
-        supabase.from('driver_memberships').select('*', { count: 'exact', head: true }).eq('origin', 'paid')
+        supabase.from('driver_memberships').select('*', { count: 'exact', head: true }).eq('origin', 'paid'),
+        // KPI: identity verifications pending manual review
+        supabase.from('identity_verifications').select('*', { count: 'exact', head: true }).eq('status', 'manual_review')
     ])
 
     // Math: $524 MXN per membership
@@ -210,6 +213,13 @@ async function getDashboardData(view?: string) {
         viewData = data || []
         // Optional batch join:
         viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (m) => getValidPhoto(m.driver_profiles?.profile_photo_url, m.driver_profiles?.users?.avatar_url, getSelfie(m.driver_profiles?.users)))
+    } else if (view === 'pending_verifications') {
+        const { data } = await supabase.from('identity_verifications')
+            .select('*, users(full_name, email, phone_number, avatar_url)')
+            .eq('status', 'manual_review')
+            .order('created_at', { ascending: false })
+        viewData = data || []
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (v) => getValidPhoto(v.selfie_url, v.users?.avatar_url))
     }
 
     return {
@@ -221,6 +231,7 @@ async function getDashboardData(view?: string) {
         totalRevenue,
         pendingPaymentsCount: uniquePendingCount || 0,
         abandonedPaymentsCount: uniqueAbandonedCount || 0,
+        pendingVerificationsCount: pendingVerificationsCount || 0,
         estimatedPendingRevenue,
         revenueChartData,
         activityChartData,
@@ -343,6 +354,20 @@ export default async function AdminDashboard({
                         <div>
                             <p className="text-sm font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors">Req. Aprobación</p>
                             <p className="text-3xl font-black text-white tracking-tight">{stats.pendingDrivers}</p>
+                        </div>
+                    </div>
+                </Link>
+
+                {/* Identity Verification KPI */}
+                <Link href="/admin?view=pending_verifications" scroll={false} className={`block backdrop-blur-xl border rounded-[2rem] p-6 shadow-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 ${view === 'pending_verifications' ? 'bg-teal-500/10 border-teal-500/50 scale-[1.02]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
+                    <div className={`absolute inset-0 transition-opacity ${stats.pendingVerificationsCount > 0 && view !== 'pending_verifications' ? 'bg-teal-500/5 opacity-100' : 'opacity-0'}`} />
+                    <div className="flex items-center gap-4 relative z-10">
+                        <div className={`p-4 rounded-2xl border transition-colors ${view === 'pending_verifications' ? 'bg-teal-500/20 border-teal-400/30' : 'bg-teal-500/10 border-teal-500/20 group-hover:bg-teal-500/20'}`}>
+                            <Shield className="h-7 w-7 text-teal-400" /> {/* Re-using Shield for now */}
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-teal-400 group-hover:text-teal-300 transition-colors">IDs Pendientes</p>
+                            <p className="text-3xl font-black text-white tracking-tight">{stats.pendingVerificationsCount}</p>
                         </div>
                     </div>
                 </Link>

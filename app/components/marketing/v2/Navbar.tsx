@@ -116,7 +116,7 @@ export default function Navbar() {
                                         Iniciar Sesión
                                     </Link>
                                     <Link
-                                        href="/register"
+                                        href={isHomePage ? "/register?role=passenger" : "/register?role=driver"}
                                         className="bg-aviva-primary text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-aviva-primary/90 transition-all shadow-lg shadow-aviva-primary/10 hover:-translate-y-0.5 active:scale-95"
                                     >
                                         Regístrate Gratis
@@ -206,7 +206,7 @@ export default function Navbar() {
                                                 Iniciar Sesión
                                             </Link>
                                             <Link
-                                                href="/register"
+                                                href={isHomePage ? "/register?role=passenger" : "/register?role=driver"}
                                                 className="flex items-center justify-center p-4 rounded-2xl bg-aviva-primary text-white font-bold shadow-lg shadow-aviva-primary/20 hover:bg-aviva-primary/90 transition-colors"
                                                 onClick={() => setIsMobileMenuOpen(false)}
                                             >

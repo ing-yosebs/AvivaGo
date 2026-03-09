@@ -117,6 +117,9 @@ export async function POST(request: Request) {
             if (role === 'driver' && !currentRoles.includes('driver')) {
                 currentRoles = [...currentRoles, 'driver'];
             }
+            if (role === 'client' && !currentRoles.includes('client')) {
+                currentRoles = [...currentRoles, 'client'];
+            }
             if (currentRoles.length === 0) {
                 currentRoles = ['client'];
             }

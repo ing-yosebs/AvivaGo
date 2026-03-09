@@ -10,6 +10,7 @@ import PersonalDocs from '@/app/components/admin/user-detail/PersonalDocs'
 import ServiceInfo from '@/app/components/admin/user-detail/ServiceInfo'
 import ReferralStats from '@/app/components/admin/user-detail/ReferralStats'
 import UserDetailSidebar from '@/app/components/admin/user-detail/UserDetailSidebar'
+import ManualIdentityReview from '@/app/components/admin/user-detail/ManualIdentityReview'
 
 async function getSignedUrl(supabase: any, pathOrUrl: string | null, fallbackBucket: string) {
     if (!pathOrUrl) return null;
@@ -181,6 +182,15 @@ export default async function UserDetailPage({
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Main Info - Left Column */}
                 <div className="lg:col-span-2 space-y-8">
+                    {/* Manual Identity Review (if pending) */}
+                    <ManualIdentityReview
+                        userId={user.id}
+                        identityVerification={identityVerification}
+                        idDocumentSignedUrl={idDocumentSignedUrl}
+                        idDocumentBackSignedUrl={idDocumentBackSignedUrl}
+                        verificationSelfieSignedUrl={verificationSelfieSignedUrl}
+                    />
+
                     {/* 1. Información Personal */}
                     <PersonalInfo user={user} driverProfile={driverProfile} profilePhotoUrl={profilePhotoUrl} />
 

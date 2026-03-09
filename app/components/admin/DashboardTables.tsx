@@ -138,6 +138,55 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                     </table>
                 )
 
+            case 'pending_verifications':
+                return (
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-white/10 text-zinc-500 text-xs uppercase tracking-wider">
+                                <th className="pb-4 font-semibold px-4">Usuario</th>
+                                <th className="pb-4 font-semibold px-4">Tipo Documento</th>
+                                <th className="pb-4 font-semibold px-4">Estado</th>
+                                <th className="pb-4 font-semibold px-4 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {data.map((verification) => (
+                                <tr key={verification.id} className="hover:bg-white/5 transition-colors group">
+                                    <td className="py-4 px-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-teal-500/10 flex flex-col justify-center items-center border border-teal-500/20 overflow-hidden relative transition-colors">
+                                                {isValidImage(verification.signed_photo_url || verification.users?.avatar_url) ? (
+                                                    <Image src={(verification.signed_photo_url || verification.users?.avatar_url) as string} alt="" fill sizes="40px" className="object-cover" />
+                                                ) : (
+                                                    <User className="h-4 w-4 text-teal-400" />
+                                                )}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-white font-medium text-sm transition-colors">{verification.users?.full_name || 'Sin Nombre'}</span>
+                                                <span className="text-zinc-500 text-xs">{verification.users?.phone_number || verification.users?.email}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="py-4 px-4 text-zinc-300 text-sm">
+                                        <span className="uppercase">{verification.document_type}</span>
+                                        <div className="text-zinc-500 text-xs">{formatDateMX(verification.created_at)}</div>
+                                    </td>
+                                    <td className="py-4 px-4">
+                                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                                            Revisión Manual
+                                        </span>
+                                    </td>
+                                    <td className="py-4 px-4 text-right">
+                                        <Link href={`/admin/users/${verification.user_id}`} className="text-xs text-blue-400 hover:text-blue-300 transition-colors font-semibold px-3 py-1.5 bg-blue-500/10 rounded-lg hover:bg-blue-500/20">
+                                            Validar Perfil
+                                        </Link>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )
+
             case 'monthly_revenue':
                 return (
                     <table className="w-full text-left">
@@ -468,11 +517,13 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                         pending_payments: 'Pagos Pendientes y Abandonados',
                         monthly_revenue: 'Detalle de Ingresos Mensuales',
                         recent_users: 'Usuarios Recientes',
-                        paid_memberships: 'Membresías Pagadas'
+                        paid_memberships: 'Membresías Pagadas',
+                        pending_verifications: 'Validaciones de Identidad Pendientes'
                     } as any)[view] || view.replace('_', ' ')}
                 </h3>
                 {view === 'active_drivers' && <Link href="/admin/users?filter=drivers" className="text-sm text-blue-400 hover:text-blue-300">Ver Todos →</Link>}
                 {view === 'pending_drivers' && <Link href="/admin/users?filter=pending" className="text-sm text-blue-400 hover:text-blue-300">Ver Todos →</Link>}
+                {view === 'pending_verifications' && <Link href="/admin/users" className="text-sm text-blue-400 hover:text-blue-300">Ir a Usuarios →</Link>}
                 {view === 'recent_users' && <Link href="/admin/users" className="text-sm text-blue-400 hover:text-blue-300">Ver Todos →</Link>}
                 {view === 'monthly_revenue' && <Link href="/admin/financials" className="text-sm text-blue-400 hover:text-blue-300">Ir a Finanzas →</Link>}
                 {view === 'pending_payments' && <Link href="/admin/financials" className="text-sm text-blue-400 hover:text-blue-300">Ir a Finanzas →</Link>}

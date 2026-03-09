@@ -51,6 +51,8 @@ export default function IdVerificationFlow() {
     const [matchScore, setMatchScore] = useState<number | null>(null);
     const [ocrResult, setOcrResult] = useState<VerificationResult | null>(null);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [isManualReviewSuccess, setIsManualReviewSuccess] = useState(false);
+    const [errorType, setErrorType] = useState<'biometric' | 'ocr' | 'general' | null>(null);
     const [modelsLoaded, setModelsLoaded] = useState(false);
 
     // Refs for FaceAPI
@@ -179,6 +181,7 @@ export default function IdVerificationFlow() {
 
         setIsLoading(true);
         setError(null);
+        setErrorType(null);
         setMatchScore(null);
         console.log('Starting verification process...');
 
@@ -196,7 +199,9 @@ export default function IdVerificationFlow() {
             console.log('Face detection complete.', { selfieDetection, idDetection });
 
             if (!selfieDetection || !idDetection) {
-                throw new Error('No se detectó un rostro claro en alguna de las fotos. Intenta de nuevo.');
+                const err = new Error('No pudimos confirmar que la selfie coincida con la foto de la identificación. Asegúrate de estar en un lugar iluminado y no usar lentes ni gorra.');
+                (err as any).type = 'biometric';
+                throw err;
             }
 
             // Calculate Distance (Lower is better match)
@@ -211,7 +216,9 @@ export default function IdVerificationFlow() {
             setMatchScore(score);
 
             if (!isMatch) {
-                throw new Error(`Los rostros no coinciden (Similitud: ${score.toFixed(1)}%). Verificación fallida.`);
+                const err = new Error(`Los rostros no coinciden. No pudimos confirmar que la selfie coincida con la foto de la identificación. Asegúrate de estar en un lugar iluminado y no usar lentes ni gorra.`);
+                (err as any).type = 'biometric';
+                throw err;
             }
 
             console.log('Face match successful. Sending to backend...');
@@ -228,7 +235,11 @@ export default function IdVerificationFlow() {
             });
 
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Error en OCR');
+            if (!response.ok) {
+                const err = new Error('No pudimos leer los datos de tu credencial automáticamente. Por favor, asegúrate de que no haya reflejos de luz y que la foto no esté borrosa.');
+                (err as any).type = 'ocr';
+                throw err;
+            }
 
             setOcrResult(data.data);
             setStep(5); // Success Result Step
@@ -236,6 +247,43 @@ export default function IdVerificationFlow() {
         } catch (err: any) {
             console.error('Verification error:', err);
             setError(err.message || 'Error desconocido');
+            setErrorType(err.type || 'general');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleManualReviewSubmit = async () => {
+        setIsLoading(true);
+        setError(null);
+        setErrorType(null);
+
+        try {
+            const response = await fetch('/api/verify-id/manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    documentType: docType,
+                    frontImage: frontImage,
+                    backImage: backImage,
+                    selfieImage: selfieImage,
+                    matchScore: matchScore
+                }),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                const errorMessage = result.error || 'Error al enviar a revisión manual';
+                throw new Error(errorMessage);
+            }
+
+            setIsManualReviewSuccess(true);
+            setShowSuccessModal(true);
+        } catch (err: any) {
+            console.error('Manual Review error:', err);
+            setError(err.message || 'Error al enviar la solicitud');
+            setErrorType('general');
         } finally {
             setIsLoading(false);
         }
@@ -454,12 +502,22 @@ export default function IdVerificationFlow() {
                         <AlertCircle className="h-10 w-10 text-red-400 mx-auto mb-4" />
                         <h3 className="text-lg font-bold text-red-200 mb-2">Verificación Fallida</h3>
                         <p className="text-red-300 text-sm mb-6">{error}</p>
-                        <button
-                            onClick={() => { setError(null); setStep(2); setSelfieImage(null); }}
-                            className="w-full py-3 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-xl transition-colors font-bold"
-                        >
-                            Intentar de Nuevo
-                        </button>
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={() => { setError(null); setErrorType(null); setStep(2); setSelfieImage(null); }}
+                                className="w-full py-3 bg-red-500/20 hover:bg-red-500/30 text-red-200 rounded-xl transition-colors font-bold"
+                            >
+                                Intentar de Nuevo
+                            </button>
+                            {(errorType === 'ocr' || errorType === 'biometric') && (
+                                <button
+                                    onClick={handleManualReviewSubmit}
+                                    className="w-full py-3 bg-transparent border border-white/20 hover:bg-white/5 text-zinc-300 rounded-xl transition-colors font-bold text-sm"
+                                >
+                                    Enviar para Revisión Manual
+                                </button>
+                            )}
+                        </div>
                     </div>
                 ) : null}
             </div>
@@ -527,12 +585,16 @@ export default function IdVerificationFlow() {
             {showSuccessModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
                     <div className="bg-zinc-900 border border-white/10 rounded-[2.5rem] p-10 max-w-sm w-full text-center shadow-2xl animate-in zoom-in-95 duration-300">
-                        <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 text-green-500">
+                        <div className={`w-20 h-20 ${isManualReviewSuccess ? 'bg-blue-500/20 text-blue-500' : 'bg-green-500/20 text-green-500'} rounded-full flex items-center justify-center mx-auto mb-6`}>
                             <CheckCircle className="h-10 w-10" />
                         </div>
-                        <h2 className="text-2xl font-bold text-white mb-3">¡Verificación Guardada!</h2>
+                        <h2 className="text-2xl font-bold text-white mb-3">
+                            {isManualReviewSuccess ? '¡Enviado a Revisión!' : '¡Verificación Guardada!'}
+                        </h2>
                         <p className="text-zinc-400 mb-8 leading-relaxed">
-                            Tu identidad ha sido validada y guardada correctamente. Tu perfil ahora cuenta con el sello de verificación.
+                            {isManualReviewSuccess
+                                ? 'Tus documentos han sido enviados exitosamente. Un administrador revisará tu perfil en breve y activará tu cuenta.'
+                                : 'Tu identidad ha sido validada y guardada correctamente. Tu perfil ahora cuenta con el sello de verificación.'}
                         </p>
                         <button
                             onClick={() => window.location.href = '/perfil'}
