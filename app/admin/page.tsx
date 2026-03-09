@@ -80,7 +80,8 @@ async function getDashboardData(view?: string) {
         { data: recentUsersForChart },
         { data: recentDriversForChart },
         { count: totalHistoricalMembershipsCount },
-        { count: pendingVerificationsCount }
+        { count: pendingVerificationsCount },
+        { data: rawReferralsData }
     ] = await Promise.all([
         supabase.from('users').select('*', { count: 'exact', head: true }),
         supabase.from('driver_profiles').select('*', { count: 'exact', head: true }).eq('status', 'active'),
@@ -98,8 +99,19 @@ async function getDashboardData(view?: string) {
         // All Historical Total Memberships Paid
         supabase.from('driver_memberships').select('*', { count: 'exact', head: true }).eq('origin', 'paid'),
         // KPI: identity verifications pending manual review
-        supabase.from('identity_verifications').select('*', { count: 'exact', head: true }).eq('status', 'manual_review')
+        supabase.from('identity_verifications').select('*', { count: 'exact', head: true }).eq('status', 'manual_review'),
+        // [NUEVO] KPI: Conductores con referidos - RAW data from users table
+        supabase.from('users').select('referred_by').not('referred_by', 'is', null)
     ])
+
+    // Get unique referrers that are drivers
+    const rawReferrers = (rawReferralsData || []).map((r: any) => r.referred_by).filter(Boolean);
+    const uniqueReferrerIds = [...new Set(rawReferrers)];
+
+    // Count how many of these referrers are actually drivers
+    const { count: driversWithReferralsCount } = uniqueReferrerIds.length > 0
+        ? await supabase.from('driver_profiles').select('*', { count: 'exact', head: true }).in('user_id', uniqueReferrerIds)
+        : { count: 0 };
 
     // Math: $524 MXN per membership
     const PRICE_PER_MEMBERSHIP = 524;
@@ -199,7 +211,7 @@ async function getDashboardData(view?: string) {
         // Batch sign
         viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (p) => getValidPhoto(p.users?.avatar_url, getSelfie(p.users)))
     } else if (view === 'monthly_revenue') {
-        const { data } = await supabase.from('driver_memberships').select('*, driver_profiles(id, status, profile_photo_url, users(full_name, email, phone_number, avatar_url, identity_verifications(selfie_url)))').eq('origin', 'paid').limit(50).order('created_at', { ascending: false })
+        const { data } = await supabase.from('driver_memberships').select('*, driver_profiles(id, user_id, status, profile_photo_url, users(full_name, email, phone_number, avatar_url, identity_verifications(selfie_url)))').eq('origin', 'paid').limit(50).order('created_at', { ascending: false })
         viewData = data || []
         // Batch sign
         viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (m) => getValidPhoto(m.driver_profiles?.profile_photo_url, m.driver_profiles?.users?.avatar_url, getSelfie(m.driver_profiles?.users)))
@@ -209,7 +221,7 @@ async function getDashboardData(view?: string) {
         // Batch sign
         viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (u) => getValidPhoto(Array.isArray(u.driver_profiles) ? u.driver_profiles[0]?.profile_photo_url : u.driver_profiles?.profile_photo_url, u.avatar_url, getSelfie(u)))
     } else if (view === 'paid_memberships') {
-        const { data } = await supabase.from('driver_memberships').select('*, driver_profiles(*, users(full_name, email, phone_number, avatar_url, identity_verifications(selfie_url)))').eq('status', 'active').eq('origin', 'paid').limit(50).order('created_at', { ascending: false })
+        const { data } = await supabase.from('driver_memberships').select('*, driver_profiles(id, user_id, status, profile_photo_url, users(full_name, email, phone_number, avatar_url, identity_verifications(selfie_url)))').eq('status', 'active').eq('origin', 'paid').limit(50).order('created_at', { ascending: false })
         viewData = data || []
         // Optional batch join:
         viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (m) => getValidPhoto(m.driver_profiles?.profile_photo_url, m.driver_profiles?.users?.avatar_url, getSelfie(m.driver_profiles?.users)))
@@ -220,6 +232,67 @@ async function getDashboardData(view?: string) {
             .order('created_at', { ascending: false })
         viewData = data || []
         viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (v) => getValidPhoto(v.selfie_url, v.users?.avatar_url))
+    } else if (view === 'drivers_with_referrals') {
+        // Fetch all referrals with their roles and membership status
+        const { data: allUsersReferrals } = await supabase
+            .from('users')
+            .select(`
+                referred_by, 
+                roles,
+                driver_profiles (
+                    driver_memberships (status, origin)
+                )
+            `)
+            .not('referred_by', 'is', null);
+
+        const referrerMap = new Map();
+        (allUsersReferrals || []).forEach((u: any) => {
+            const counts = referrerMap.get(u.referred_by) || { approvedDrivers: 0, pendingDrivers: 0, passengers: 0 };
+            const roles = Array.isArray(u.roles) ? u.roles : [u.roles];
+            const isDriver = roles.includes('driver');
+
+            if (isDriver) {
+                // Determine if driver is "Approved" (has paid active membership)
+                const profiles = Array.isArray(u.driver_profiles) ? u.driver_profiles : (u.driver_profiles ? [u.driver_profiles] : []);
+                const hasPaidMembership = profiles.some((p: any) => {
+                    const memberships = Array.isArray(p.driver_memberships) ? p.driver_memberships : (p.driver_memberships ? [p.driver_memberships] : []);
+                    return memberships.some((m: any) => m.status === 'active' && m.origin === 'paid');
+                });
+
+                if (hasPaidMembership) {
+                    counts.approvedDrivers++;
+                } else {
+                    counts.pendingDrivers++;
+                }
+            } else {
+                counts.passengers++;
+            }
+            referrerMap.set(u.referred_by, counts);
+        });
+
+        const referrerIds = Array.from(referrerMap.keys());
+
+        const { data } = await supabase
+            .from('driver_profiles')
+            .select('*, users(full_name, email, phone_number, avatar_url, identity_verifications(selfie_url))')
+            .in('user_id', referrerIds)
+            .limit(100);
+
+        viewData = (data || []).map(d => {
+            const c = referrerMap.get(d.user_id) || { approvedDrivers: 0, pendingDrivers: 0, passengers: 0 };
+            return {
+                ...d,
+                referral_counts: {
+                    approved: c.approvedDrivers,
+                    pending: c.pendingDrivers,
+                    passengers: c.passengers,
+                    total: c.approvedDrivers + c.pendingDrivers + c.passengers
+                }
+            };
+        });
+
+        // Batch sign
+        viewData = await getSignedUrlsBatch(supabase, viewData, 'avatars', (d) => getValidPhoto(d.profile_photo_url, d.users?.avatar_url, getSelfie(d.users)))
     }
 
     return {
@@ -232,6 +305,7 @@ async function getDashboardData(view?: string) {
         pendingPaymentsCount: uniquePendingCount || 0,
         abandonedPaymentsCount: uniqueAbandonedCount || 0,
         pendingVerificationsCount: pendingVerificationsCount || 0,
+        driversWithReferralsCount: driversWithReferralsCount || 0,
         estimatedPendingRevenue,
         revenueChartData,
         activityChartData,
@@ -301,6 +375,19 @@ export default async function AdminDashboard({
                         <div>
                             <p className="text-sm font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors">Membresías Pagadas</p>
                             <p className="text-3xl font-black text-white tracking-tight">{stats.paidMembershipsCount}</p>
+                        </div>
+                    </div>
+                </Link>
+
+                {/* Drivers with Referrals KPI */}
+                <Link href="/admin?view=drivers_with_referrals" scroll={false} className={`block backdrop-blur-xl border rounded-[2rem] p-6 shadow-xl relative overflow-hidden group transition-all duration-300 hover:-translate-y-1 ${view === 'drivers_with_referrals' ? 'bg-indigo-500/10 border-indigo-500/50 scale-[1.02]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
+                    <div className="flex items-center gap-4 relative z-10">
+                        <div className={`p-4 rounded-2xl border transition-colors ${view === 'drivers_with_referrals' ? 'bg-indigo-500/20 border-indigo-400/30' : 'bg-indigo-500/10 border-indigo-500/20 group-hover:bg-indigo-500/20'}`}>
+                            <Users className="h-7 w-7 text-indigo-400" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-zinc-400 group-hover:text-zinc-300 transition-colors">Conductores con Referidos</p>
+                            <p className="text-3xl font-black text-white tracking-tight">{stats.driversWithReferralsCount}</p>
                         </div>
                     </div>
                 </Link>

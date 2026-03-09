@@ -4,6 +4,7 @@ import { Car, User, Shield, AlertTriangle, CreditCard, Clock, CheckCircle, Info 
 import { formatDateMX, formatDateTimeMX } from '@/lib/dateUtils'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 type DashboardTablesProps = {
     view: string
@@ -11,6 +12,8 @@ type DashboardTablesProps = {
 }
 
 export default function DashboardTables({ view, data }: DashboardTablesProps) {
+    const router = useRouter();
+
     if (!data || data.length === 0) {
         return (
             <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 text-center shadow-xl">
@@ -40,7 +43,14 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {data.map((driver) => (
-                                <tr key={driver.id} className="hover:bg-white/5 transition-colors group">
+                                <tr
+                                    key={driver.id}
+                                    onClick={() => {
+                                        const userId = driver.user_id || (driver.users as any)?.id || driver.id;
+                                        if (userId) router.push(`/admin/users/${userId}`);
+                                    }}
+                                    className="hover:bg-white/5 transition-colors group cursor-pointer"
+                                >
                                     <td className="py-4 px-4">
                                         <Link href={`/driver/${driver.id}`} target="_blank" className="hover:opacity-80 transition-opacity block group/link" title="Ver Perfil Público">
                                             <div className="flex items-center gap-3">
@@ -73,7 +83,7 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                                         {driver.city || 'No especificada'}
                                     </td>
                                     <td className="py-4 px-4 text-right">
-                                        <Link href={`/admin/users/${driver.id}`} className="text-xs text-blue-400 hover:text-blue-300 transition-colors font-semibold px-3 py-1.5 bg-blue-500/10 rounded-lg hover:bg-blue-500/20">
+                                        <Link href={`/admin/users/${driver.user_id || driver.id}`} className="text-xs text-blue-400 hover:text-blue-300 transition-colors font-semibold px-3 py-1.5 bg-blue-500/10 rounded-lg hover:bg-blue-500/20">
                                             Ver Perfil
                                         </Link>
                                     </td>
@@ -96,7 +106,14 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {data.map((driver) => (
-                                <tr key={driver.id} className="hover:bg-white/5 transition-colors group">
+                                <tr
+                                    key={driver.id}
+                                    onClick={() => {
+                                        const userId = driver.user_id || (driver.users as any)?.id || driver.id;
+                                        if (userId) router.push(`/admin/users/${userId}`);
+                                    }}
+                                    className="hover:bg-white/5 transition-colors group cursor-pointer"
+                                >
                                     <td className="py-4 px-4">
                                         <Link href={`/driver/${driver.id}`} target="_blank" className="hover:opacity-80 transition-opacity block group/link" title="Ver Perfil Público">
                                             <div className="flex items-center gap-3">
@@ -128,7 +145,7 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                                         </span>
                                     </td>
                                     <td className="py-4 px-4 text-right">
-                                        <Link href={`/admin/users/${driver.id}`} className="text-xs text-blue-400 hover:text-blue-300 transition-colors font-semibold px-3 py-1.5 bg-blue-500/10 rounded-lg hover:bg-blue-500/20">
+                                        <Link href={`/admin/users/${driver.user_id || driver.id}`} className="text-xs text-blue-400 hover:text-blue-300 transition-colors font-semibold px-3 py-1.5 bg-blue-500/10 rounded-lg hover:bg-blue-500/20">
                                             Revisar Docs
                                         </Link>
                                     </td>
@@ -151,7 +168,11 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {data.map((verification) => (
-                                <tr key={verification.id} className="hover:bg-white/5 transition-colors group">
+                                <tr
+                                    key={verification.id}
+                                    onClick={() => router.push(`/admin/users/${verification.user_id}`)}
+                                    className="hover:bg-white/5 transition-colors group cursor-pointer"
+                                >
                                     <td className="py-4 px-4">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 rounded-full bg-teal-500/10 flex flex-col justify-center items-center border border-teal-500/20 overflow-hidden relative transition-colors">
@@ -202,7 +223,16 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                                 const dateObj = new Date(membership.created_at);
                                 const monthName = dateObj.toLocaleString('es-MX', { month: 'long', year: 'numeric' });
                                 return (
-                                    <tr key={membership.id} className="hover:bg-white/5 transition-colors group">
+                                    <tr
+                                        key={membership.id}
+                                        onClick={() => {
+                                            const profiles = membership.driver_profiles;
+                                            const profile = Array.isArray(profiles) ? profiles[0] : profiles;
+                                            const userId = profile?.user_id || profile?.id;
+                                            if (userId) router.push(`/admin/users/${userId}`);
+                                        }}
+                                        className="hover:bg-white/5 transition-colors group cursor-pointer"
+                                    >
                                         <td className="py-4 px-4">
                                             <Link href={membership.driver_profiles?.id ? `/driver/${membership.driver_profiles.id}` : '#'} target="_blank" className="hover:opacity-80 transition-opacity block group/link" title="Ver Perfil Público">
                                                 <div className="flex items-center gap-3">
@@ -259,7 +289,14 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                                 const whatsappUrl = phone ? `https://wa.me/${phone.replace(/\D/g, '')}` : null
 
                                 return (
-                                    <tr key={payment.id} className="hover:bg-white/5 transition-colors group">
+                                    <tr
+                                        key={payment.id}
+                                        onClick={(e) => {
+                                            if ((e.target as HTMLElement).closest('a')) return;
+                                            router.push(`/admin/users/${payment.user_id}`)
+                                        }}
+                                        className="hover:bg-white/5 transition-colors group cursor-pointer"
+                                    >
                                         <td className="py-4 px-4">
                                             {payment.driver_profile_id ? (
                                                 <Link
@@ -392,7 +429,16 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {data.map((membership) => (
-                                <tr key={membership.id} className="hover:bg-white/5 transition-colors group">
+                                <tr
+                                    key={membership.id}
+                                    onClick={() => {
+                                        const profiles = membership.driver_profiles;
+                                        const profile = Array.isArray(profiles) ? profiles[0] : profiles;
+                                        const userId = profile?.user_id || profile?.id;
+                                        if (userId) router.push(`/admin/users/${userId}`);
+                                    }}
+                                    className="hover:bg-white/5 transition-colors group cursor-pointer"
+                                >
                                     <td className="py-4 px-4">
                                         <Link href={membership.driver_profiles?.id ? `/driver/${membership.driver_profiles.id}` : '#'} target="_blank" className="hover:opacity-80 transition-opacity block group/link" title="Ver Perfil Público">
                                             <div className="flex items-center gap-3">
@@ -451,7 +497,11 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                                 const targetUrl = profileId ? `/driver/${profileId}` : `/admin/users/${user.id}`;
 
                                 return (
-                                    <tr key={user.id} className="hover:bg-white/5 transition-colors group">
+                                    <tr
+                                        key={user.id}
+                                        onClick={() => router.push(`/admin/users/${user.id}`)}
+                                        className="hover:bg-white/5 transition-colors group cursor-pointer"
+                                    >
                                         <td className="py-4 px-4">
                                             <Link href={targetUrl} target="_blank" className="hover:opacity-80 transition-opacity block group/link" title="Ver Perfil o Detalles">
                                                 <div className="flex items-center gap-3">
@@ -500,13 +550,79 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                     </table>
                 )
 
+            case 'drivers_with_referrals':
+                return (
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-white/10 text-zinc-500 text-xs uppercase tracking-wider">
+                                <th className="pb-4 font-semibold px-4">Conductor</th>
+                                <th className="pb-4 font-semibold px-4 text-center">C. Aprobados</th>
+                                <th className="pb-4 font-semibold px-4 text-center">C. Pendientes</th>
+                                <th className="pb-4 font-semibold px-4 text-center">Pasajeros</th>
+                                <th className="pb-4 font-semibold px-4 text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {data.map((driver) => {
+                                const counts = driver.referral_counts || { approved: 0, pending: 0, passengers: 0, total: 0 };
+                                return (
+                                    <tr
+                                        key={driver.id}
+                                        onClick={() => {
+                                            const userId = driver.user_id || (driver.users as any)?.id || driver.id;
+                                            if (userId) router.push(`/admin/users/${userId}`);
+                                        }}
+                                        className="hover:bg-white/5 transition-colors group cursor-pointer"
+                                    >
+                                        <td className="py-4 px-4">
+                                            <Link href={`/admin/users/${driver.user_id || driver.id}`} className="hover:opacity-80 transition-opacity block group/link">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-indigo-500/10 flex flex-col justify-center items-center border border-indigo-500/20 overflow-hidden relative transition-colors">
+                                                        {isValidImage(driver.signed_photo_url || driver.users?.avatar_url) ? (
+                                                            <Image src={(driver.signed_photo_url || driver.users?.avatar_url) as string} alt="" fill sizes="40px" className="object-cover" />
+                                                        ) : (
+                                                            <User className="h-4 w-4 text-indigo-400" />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-white font-medium text-sm group-hover/link:text-indigo-400 transition-colors">{driver.users?.full_name || 'Sin Nombre'}</span>
+                                                        <span className="text-zinc-500 text-xs">{driver.users?.phone_number || driver.users?.email}</span>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </td>
+                                        <td className="py-4 px-4 text-center">
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${counts.approved > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'text-zinc-600'}`}>
+                                                {counts.approved}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-4 text-center">
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${counts.pending > 0 ? 'bg-orange-500/10 text-orange-400' : 'text-zinc-600'}`}>
+                                                {counts.pending}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 px-4 text-center text-zinc-300">
+                                            {counts.passengers}
+                                        </td>
+                                        <td className="py-4 px-4 text-right">
+                                            <span className="text-white font-black text-lg">
+                                                {counts.total}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    </table>
+                )
+
             default:
                 return null
         }
     }
 
     return (
-        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-xl overflow-x-auto relative animate-in fade-in slide-in-from-bottom-4 duration-500 pb-2">
+        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl shadow-xl relative animate-in fade-in slide-in-from-bottom-4 duration-500 pb-2">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none" />
 
             <div className="p-6 border-b border-white/5 flex items-center justify-between">
@@ -518,7 +634,8 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                         monthly_revenue: 'Detalle de Ingresos Mensuales',
                         recent_users: 'Usuarios Recientes',
                         paid_memberships: 'Membresías Pagadas',
-                        pending_verifications: 'Validaciones de Identidad Pendientes'
+                        pending_verifications: 'Validaciones de Identidad Pendientes',
+                        drivers_with_referrals: 'Conductores con Usuarios Referidos'
                     } as any)[view] || view.replace('_', ' ')}
                 </h3>
                 {view === 'active_drivers' && <Link href="/admin/users?filter=drivers" className="text-sm text-blue-400 hover:text-blue-300">Ver Todos →</Link>}
@@ -528,6 +645,7 @@ export default function DashboardTables({ view, data }: DashboardTablesProps) {
                 {view === 'monthly_revenue' && <Link href="/admin/financials" className="text-sm text-blue-400 hover:text-blue-300">Ir a Finanzas →</Link>}
                 {view === 'pending_payments' && <Link href="/admin/financials" className="text-sm text-blue-400 hover:text-blue-300">Ir a Finanzas →</Link>}
                 {view === 'paid_memberships' && <Link href="/admin/users?filter=drivers" className="text-sm text-blue-400 hover:text-blue-300">Ver Conductores →</Link>}
+                {view === 'drivers_with_referrals' && <Link href="/admin/users?filter=drivers" className="text-sm text-blue-400 hover:text-blue-300">Ir a Conductores →</Link>}
             </div>
 
             <div className="px-2">

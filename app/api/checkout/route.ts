@@ -100,7 +100,7 @@ export async function POST(req: Request) {
                 // 3. Fallback globally to Plan B pricing rules
                 const countryCode = driverProfile.country_code || 'MX';
                 if (countryCode !== 'MX') {
-                    zonePrice = { amount: 2600, currency: 'USD' };
+                    zonePrice = { amount: 3000, currency: 'USD' };
                 } else {
                     zonePrice = { amount: 52400, currency: 'MXN' };
                 }

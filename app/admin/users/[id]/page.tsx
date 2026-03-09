@@ -83,7 +83,7 @@ export default async function UserDetailPage({
         .single()
 
     if (error || !user) {
-        console.error('Error fetching user:', error)
+        console.error(`Error fetching user with ID "${id}":`, error)
         notFound()
     }
 

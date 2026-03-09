@@ -72,7 +72,7 @@ export default function PaymentsSection({
 
             // Default strategy (Plan B)
             if (countryCode !== 'MX') {
-                setPrice(26)
+                setPrice(30)
                 setCurrency('USD')
             } else {
                 setPrice(524)
