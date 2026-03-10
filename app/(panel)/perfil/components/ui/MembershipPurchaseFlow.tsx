@@ -1,4 +1,5 @@
 import { CreditCard, Clock, Shield, CheckCircle, Car, Loader2 } from 'lucide-react'
+import Link from 'next/link'
 
 interface MembershipPurchaseFlowProps {
     pendingPayment?: any
@@ -15,14 +16,77 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
     return (
         <div className="w-full text-center max-w-4xl mx-auto relative">
 
-            <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-8 ring-8 ring-indigo-50 transition-transform hover:scale-110 duration-500">
-                <CreditCard className="h-10 w-10 text-indigo-600" />
-            </div>
+            <div className="mb-16 sm:mb-20 mt-4 sm:mt-8 w-full text-center relative z-10">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[150%] bg-indigo-100/30 rounded-[100%] blur-[100px] -z-10 pointer-events-none" />
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#0F2137] mb-6 relative z-10 tracking-tight leading-tight">¿Listo para independizarte?</h2>
+                <p className="text-gray-500 mb-10 text-lg sm:text-xl md:text-2xl leading-relaxed max-w-3xl mx-auto relative z-10 font-medium">
+                    Desbloquea tu perfil en el Directorio VIP, aparece en Google con tu propio botón de cobro y obtén el <span className="font-bold text-indigo-600">Sello de Verificado</span> que demandan los clientes de alto valor.
+                </p>
+                <div className="mt-12 relative z-10">
+                    <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-6 sm:p-8 mb-8 inline-block px-8 sm:px-12 transform hover:scale-[1.02] transition-transform shadow-inner w-full sm:w-auto">
+                        <div className="text-[10px] text-indigo-500 uppercase tracking-[0.2em] font-black mb-2">Costo Anual de Activación</div>
+                        <div className="text-5xl font-black text-[#0F2137]">${price.toLocaleString('es-MX', { minimumFractionDigits: 2 })} <span className="text-sm font-medium text-gray-500 tracking-normal">{currency}</span></div>
+                    </div>
 
-            <h3 className="text-2xl sm:text-3xl md:text-4xl font-black mb-4 tracking-tight text-[#0F2137]">Activa tu Membresía Driver</h3>
-            <p className="text-gray-500 text-sm sm:text-lg mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto">
-                Únete a la red de conductores profesionales de AvivaGo. Sigue estos simples pasos para comenzar a recibir solicitudes directas de pasajeros.
-            </p>
+                    <div className="space-y-6 max-w-md mx-auto">
+                        <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 text-left hover:bg-white hover:shadow-sm transition-all cursor-pointer" onClick={() => setPaymentConsent(!paymentConsent)}>
+                            <div className="relative flex items-center pt-0.5">
+                                <input
+                                    type="checkbox"
+                                    id="payment-consent"
+                                    checked={paymentConsent}
+                                    onChange={(e) => setPaymentConsent(e.target.checked)}
+                                    className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 transition-all checked:border-indigo-600 checked:bg-indigo-600 hover:border-indigo-400"
+                                />
+                                <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100">
+                                    <CheckCircle className="h-3.5 w-3.5" />
+                                </div>
+                            </div>
+                            <label htmlFor="payment-consent" className="text-sm text-gray-600 cursor-pointer select-none leading-tight">
+                                Autorizo a que se me dirija a Stripe para realizar el pago correspondiente.
+                            </label>
+                        </div>
+
+                        <div className="flex flex-col gap-4">
+                            <button
+                                onClick={handlePurchase}
+                                disabled={purchasing || !paymentConsent}
+                                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 sm:py-5 px-6 rounded-[2rem] transition-all shadow-[0_20px_40px_-15px_rgba(79,70,229,0.3)] flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] group text-lg"
+                            >
+                                {purchasing ? (
+                                    <>
+                                        <Loader2 className="h-5 w-5 animate-spin" />
+                                        Validando Pago...
+                                    </>
+                                ) : (
+                                    <>
+                                        <CreditCard className="h-6 w-6 group-hover:rotate-12 transition-transform" />
+                                        Pagar Membresía Ahora
+                                    </>
+                                )}
+                            </button>
+
+                            <Link
+                                href="/membresia"
+                                className="w-full bg-white hover:bg-gray-50 text-indigo-600 font-bold py-4 sm:py-5 px-6 rounded-[2rem] transition-all border-2 border-indigo-100 flex items-center justify-center gap-2 group text-lg"
+                            >
+                                Conocer todos los beneficios
+                                <Shield className="h-5 w-5 group-hover:scale-110 transition-transform" />
+                            </Link>
+                        </div>
+
+                        <div className="flex flex-col items-center justify-center gap-2 text-center pt-2">
+                            <div className="flex items-center gap-1.5 text-gray-400 opacity-80">
+                                <Shield className="h-3.5 w-3.5" />
+                                <span className="text-[10px] font-bold uppercase tracking-wider">Pago Seguro</span>
+                            </div>
+                            <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
+                                El pago se procesará de forma segura a través de Stripe. AvivaGo no almacena información financiera sensible.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {pendingPayment && (
                 <div className="mb-12 p-6 bg-amber-50 border border-amber-200 rounded-3xl text-left flex items-start gap-4 animate-in slide-in-from-top-4 duration-500">
@@ -33,8 +97,17 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
                         <div>
                             <h4 className="font-bold text-amber-700">Tienes un pago pendiente</h4>
                             <p className="text-sm text-amber-700/60">
-                                Detectamos un intento de pago por transferencia (SPEI) o efectivo que aún no se ha completado.
-                                <span className="block mt-1 font-semibold">Recuerda que tienes hasta 3 días naturales para completar este pago antes de que el ticket expire.</span>
+                                {currency === 'MXN' ? (
+                                    <>
+                                        Detectamos un intento de pago por transferencia (SPEI) o efectivo que aún no se ha completado.
+                                        <span className="block mt-1 font-semibold">Recuerda que tienes hasta 3 días naturales para completar este pago antes de que el ticket expire.</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        Detectamos un intento de pago que aún se encuentra pendiente de procesar.
+                                        <span className="block mt-1 font-semibold">Por favor, revisa tus instrucciones de pago o espera a que se confirme la transacción.</span>
+                                    </>
+                                )}
                             </p>
                         </div>
                         <button
@@ -46,6 +119,15 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
                     </div>
                 </div>
             )}
+
+            <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-8 ring-8 ring-indigo-50 transition-transform hover:scale-110 duration-500">
+                <CreditCard className="h-10 w-10 text-indigo-600" />
+            </div>
+
+            <h3 className="text-2xl sm:text-3xl md:text-4xl font-black mb-4 tracking-tight text-[#0F2137]">Activa tu Membresía Driver</h3>
+            <p className="text-gray-500 text-sm sm:text-lg mb-8 sm:mb-12 leading-relaxed max-w-2xl mx-auto">
+                Únete a la red de conductores profesionales de AvivaGo. Sigue estos simples pasos para comenzar a recibir solicitudes directas de pasajeros.
+            </p>
 
             {/* Process Steps */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12 text-left relative">
@@ -99,58 +181,7 @@ export default function MembershipPurchaseFlow({ pendingPayment, openStripeCheck
                 </div>
             </div>
 
-            <div className="bg-indigo-50 border border-indigo-100 rounded-3xl p-6 sm:p-8 mb-8 sm:mb-10 inline-block px-8 sm:px-12 transform hover:scale-[1.02] transition-transform shadow-inner w-full sm:w-auto">
-                <div className="text-[10px] text-indigo-500 uppercase tracking-[0.2em] font-black mb-2">Costo Anual de Activación</div>
-                <div className="text-5xl font-black text-[#0F2137]">${price.toLocaleString('es-MX', { minimumFractionDigits: 2 })} <span className="text-sm font-medium text-gray-500 tracking-normal">{currency}</span></div>
-            </div>
-
-            <div className="space-y-6 max-w-md mx-auto">
-                <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-2xl border border-gray-100 text-left hover:bg-white hover:shadow-sm transition-all cursor-pointer" onClick={() => setPaymentConsent(!paymentConsent)}>
-                    <div className="relative flex items-center pt-0.5">
-                        <input
-                            type="checkbox"
-                            id="payment-consent"
-                            checked={paymentConsent}
-                            onChange={(e) => setPaymentConsent(e.target.checked)}
-                            className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 transition-all checked:border-indigo-600 checked:bg-indigo-600 hover:border-indigo-400"
-                        />
-                        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100">
-                            <CheckCircle className="h-3.5 w-3.5" />
-                        </div>
-                    </div>
-                    <label htmlFor="payment-consent" className="text-sm text-gray-600 cursor-pointer select-none leading-tight">
-                        Autorizo a que se me dirija a Stripe para realizar el pago correspondiente.
-                    </label>
-                </div>
-
-                <button
-                    onClick={handlePurchase}
-                    disabled={purchasing || !paymentConsent}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 sm:py-5 px-6 sm:px-16 rounded-[2rem] transition-all shadow-[0_20px_40px_-15px_rgba(79,70,229,0.3)] flex items-center justify-center gap-3 mx-auto disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] group"
-                >
-                    {purchasing ? (
-                        <>
-                            <Loader2 className="h-5 w-5 animate-spin" />
-                            Validando Pago...
-                        </>
-                    ) : (
-                        <>
-                            <CreditCard className="h-6 w-6 group-hover:rotate-12 transition-transform" />
-                            Pagar Membresía Ahora
-                        </>
-                    )}
-                </button>
-
-                <div className="flex flex-col items-center justify-center gap-2 text-center pt-2">
-                    <div className="flex items-center gap-1.5 text-gray-400 opacity-80">
-                        <Shield className="h-3.5 w-3.5" />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Pago Seguro</span>
-                    </div>
-                    <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
-                        El pago se procesará de forma segura a través de Stripe. AvivaGo no almacena información financiera sensible.
-                    </p>
-                </div>
-            </div>
         </div>
+
     )
 }

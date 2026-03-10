@@ -174,8 +174,15 @@ function RegisterForm() {
     }, [showSuccessModal, countdown])
 
     const handleFinalRedirect = () => {
+        const isCheckout = searchParams.get('checkout') === 'true';
         const isLandingRedirect = redirectUrl === '/conductores' || redirectUrl === '/pasajeros' || redirectUrl === '/';
-        window.location.href = (redirectUrl && !isLandingRedirect) ? redirectUrl : (isDriver ? '/perfil?tab=driver_dashboard' : '/dashboard');
+        let target = (redirectUrl && !isLandingRedirect) ? redirectUrl : (isDriver ? '/perfil?tab=driver_dashboard' : '/dashboard');
+        
+        if (isCheckout && target.includes('/membresia')) {
+            target += (target.includes('?') ? '&' : '?') + 'checkout=true';
+        }
+        
+        window.location.href = target;
     }
 
     return (
@@ -439,7 +446,10 @@ function RegisterForm() {
 
                 <div className="mt-8 text-center text-sm text-zinc-500">
                     ¿Ya tienes cuenta?{' '}
-                    <Link href={`/auth/login${redirectUrl ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} className="text-white hover:underline">
+                    <Link 
+                        href={`/auth/login${searchParams.toString() ? `?${searchParams.toString()}` : ''}`} 
+                        className="text-white hover:underline"
+                    >
                         Iniciar Sesión
                     </Link>
                 </div>

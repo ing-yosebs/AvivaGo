@@ -11,7 +11,7 @@ export default function Comparison() {
                     <h2 className="text-3xl md:text-5xl font-bold mb-4 font-display px-2">
                         El Modelo Antiguo vs. <span className="text-aviva-primary">Tu Propio Negocio</span>
                     </h2>
-                    <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto px-4">
+                    <p className="text-lg md:text-xl text-gray-700 max-w-2xl mx-auto px-4">
                         Deja de ser un número más en una aplicación. Con AvivaGo, tú construyes tu marca y conservas tus ganancias.
                     </p>
                 </div>
@@ -27,8 +27,8 @@ export default function Comparison() {
                         viewport={{ once: true }}
                         className="bg-gray-50 rounded-3xl p-6 md:p-8 border border-gray-200"
                     >
-                        <h3 className="text-xl md:text-2xl font-bold text-gray-500 mb-2">Apps Tradicionales</h3>
-                        <p className="text-xs md:text-sm text-gray-400 mb-6 md:mb-8 font-medium italic">Uber, Didi, inDrive, Cabify...</p>
+                        <h3 className="text-xl md:text-2xl font-bold text-gray-700 mb-2">Apps Tradicionales</h3>
+                        <p className="text-xs md:text-sm text-gray-500 mb-6 md:mb-8 font-medium italic">Uber, Didi, inDrive, Cabify...</p>
 
                         <ul className="space-y-4 md:space-y-6">
                             <ComparisonItem icon={<X size={18} />} color="red" title="Comisiones Altas (25-40%)" text="Pierdes casi la mitad de tu trabajo." />
@@ -50,14 +50,13 @@ export default function Comparison() {
                         </div>
 
                         <h3 className="text-xl md:text-2xl font-bold text-white mb-2">Tu Negocio AvivaGo</h3>
-                        <p className="text-xs md:text-sm text-blue-200 mb-6 md:mb-8 font-medium">Tu Negocio Completo y Listo</p>
+                        <p className="text-xs md:text-sm text-white/80 mb-6 md:mb-8 font-medium">Tu Negocio Completo y Listo</p>
 
                         <ul className="space-y-4 md:space-y-6">
                             <ComparisonItem icon={<Check size={18} />} color="green" title="0% Comisiones" text="Te quedas con el 100% de cada viaje." isAviva />
                             <ComparisonItem icon={<Check size={18} />} color="green" title="Clientes Propios" text="Fideliza pasajeros y crea tu base." isAviva />
                             <ComparisonItem icon={<Check size={18} />} color="green" title="Pagos Directos" text="Usa la plataforma que prefieras." isAviva />
                             <ComparisonItem icon={<Check size={18} />} color="green" title="Tu Marca Personal" text="Web con tu nombre y foto real." isAviva />
-                            <ComparisonItem icon={<Check size={18} />} color="green" title="Bonos recurrentes" text="Gana por cada referido activo." isAviva />
                         </ul>
                     </motion.div>
                 </div>
@@ -73,8 +72,8 @@ function ComparisonItem({ icon, color, title, text, isAviva = false }: { icon: R
                 {icon}
             </div>
             <div>
-                <p className={`font-bold text-sm md:text-base ${isAviva ? 'text-white' : 'text-gray-700'}`}>{title}</p>
-                <p className={`text-xs md:text-sm ${isAviva ? 'text-blue-200' : 'text-gray-500'}`}>{text}</p>
+                <p className={`font-bold text-sm md:text-base ${isAviva ? 'text-white' : 'text-gray-800'}`}>{title}</p>
+                <p className={`text-xs md:text-sm ${isAviva ? 'text-blue-100' : 'text-gray-600'}`}>{text}</p>
             </div>
         </li>
     );

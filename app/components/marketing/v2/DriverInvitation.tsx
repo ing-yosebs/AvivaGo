@@ -78,12 +78,12 @@ export default function DriverInvitation() {
                         className="text-white space-y-8"
                     >
                         <div>
-                            <span className="inline-block py-1 px-3 rounded-full bg-white/10 text-aviva-primary font-bold text-xs uppercase tracking-wider mb-4 border border-white/5">
+                            <span className="inline-block py-1 px-3 rounded-full bg-white/10 text-blue-300 font-bold text-xs uppercase tracking-wider mb-4 border border-white/5">
                                 Solo para Profesionales
                             </span>
                             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4 leading-tight">
                                 ¿Eres Conductor? <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-aviva-primary to-purple-400">Tu negocio empieza aquí.</span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Tu negocio empieza aquí.</span>
                             </h2>
                             <p className="text-zinc-300 text-lg leading-relaxed">
                                 No compitas con algoritmos. Usa AvivaGo como la herramienta definitiva para independizarte gradualmente de otras aplicaciones y ser dueño de tu tiempo.
@@ -93,10 +93,10 @@ export default function DriverInvitation() {
                         <div className="space-y-4">
                             {benefits.map((benefit, index) => (
                                 <div key={index} className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
-                                    <div className="w-10 h-10 rounded-full bg-aviva-primary/20 flex items-center justify-center shrink-0">
-                                        <benefit.icon className="w-5 h-5 text-aviva-primary" />
+                                    <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0">
+                                        <benefit.icon className="w-5 h-5 text-blue-400" />
                                     </div>
-                                    <span className="font-medium text-zinc-200">{benefit.text}</span>
+                                    <span className="font-medium text-zinc-100">{benefit.text}</span>
                                 </div>
                             ))}
                         </div>
@@ -155,7 +155,7 @@ export default function DriverInvitation() {
 
                             <div className="absolute bottom-8 left-8 right-8 z-10">
                                 <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 flex items-center justify-center gap-4">
-                                    <Rocket className="w-9 h-9 text-aviva-primary shrink-0" />
+                                    <Rocket className="w-9 h-9 text-blue-400 shrink-0" />
                                     <p className="text-white font-bold text-lg leading-tight">Aumenta tus ingresos un 40% sin pagar comisiones</p>
                                 </div>
                             </div>

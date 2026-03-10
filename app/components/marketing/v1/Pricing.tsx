@@ -1,18 +1,165 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Check, CreditCard, Car } from 'lucide-react';
 import AvivaLogo from '@/app/components/AvivaLogo';
+import PaymentConfirmationModal from './PaymentConfirmationModal';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function Pricing() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const supabase = createClient();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isPurchasing, setIsPurchasing] = useState(false);
+    const [pricing, setPricing] = useState({
+        amount: '524',
+        currency: 'MXN'
+    });
+
+    // Auto-resume checkout if returning from login/register
+    useEffect(() => {
+        const checkAutoResume = async () => {
+            const isCheckoutIntent = searchParams.get('checkout') === 'true';
+            if (isCheckoutIntent) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    setIsModalOpen(true);
+                    // Limpiar URL
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, '', newUrl);
+                }
+            }
+        };
+        checkAutoResume();
+    }, [searchParams, supabase]);
+
+    useEffect(() => {
+        const detectLocation = async () => {
+            try {
+                // Primero intentamos por zona horaria como check rápido
+                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                if (!tz.includes('Mexico')) {
+                    // Si la zona horaria no parece ser de México, confirmamos con IP
+                    const res = await fetch('https://ipapi.co/json/');
+                    const data = await res.json();
+                    
+                    if (data.country_code && data.country_code !== 'MX') {
+                        setPricing({
+                            amount: '30',
+                            currency: 'USD'
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error detecting location:', error);
+                // Fallback silencioso al precio de MXN por defecto
+            }
+        };
+
+        detectLocation();
+    }, []);
+
+    const handleCTAClick = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+            router.push('/register?role=driver&checkout=true&redirect=/membresia');
+            return;
+        }
+
+        setIsModalOpen(true);
+    };
+
+    const handleConfirmPayment = async () => {
+        setIsPurchasing(true);
+        try {
+            // Ya sabemos que hay usuario por el handleCTAClick
+
+            // Si está logueado, iniciamos el flujo de Stripe
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'membership',
+                    price: parseInt(pricing.amount),
+                    currency: pricing.currency
+                })
+            });
+
+            if (!response.ok) throw new Error('Failed to create checkout session');
+
+            const { url } = await response.json();
+            
+            // Abrir en ventana emergente (Popup) centrada - Estilo Modal
+            const width = 500;
+            const height = 750;
+            const left = window.screenX + (window.outerWidth - width) / 2;
+            const top = window.screenY + (window.outerHeight - height) / 2;
+
+            const popup = window.open(
+                url,
+                'StripeCheckout',
+                `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,status=yes`
+            );
+
+            if (!popup) {
+                alert('Por favor habilita las ventanas emergentes para continuar con el pago.');
+                setIsPurchasing(false);
+                return;
+            }
+
+            // Escuchar el mensaje de éxito desde la ventana emergente
+            const handleMessage = (event: MessageEvent) => {
+                if (event.origin !== window.location.origin) return;
+                if (event.data?.source === 'avivago-payment') {
+                    if (event.data.status === 'success') {
+                        setIsModalOpen(false);
+                        router.push('/perfil?tab=driver_dashboard');
+                    } else {
+                        setIsPurchasing(false);
+                    }
+                    window.removeEventListener('message', handleMessage);
+                }
+            };
+
+            window.addEventListener('message', handleMessage);
+
+            // Verificar si la ventana se cerró manualmente
+            const timer = setInterval(() => {
+                if (popup.closed) {
+                    clearInterval(timer);
+                    setIsPurchasing(false);
+                    window.removeEventListener('message', handleMessage);
+                }
+            }, 1000);
+
+        } catch (error) {
+            console.error('Payment error:', error);
+            alert('Hubo un problema al iniciar el pago.');
+            setIsPurchasing(false);
+        }
+    };
+
     return (
         <section className="py-12 bg-gray-50" id="pricing">
+            <PaymentConfirmationModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                amount={pricing.amount}
+                currency={pricing.currency}
+                onConfirm={handleConfirmPayment}
+                isLoading={isPurchasing}
+            />
             <div className="max-w-7xl mx-auto px-8 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl font-bold font-display mb-4">
                         Invierte en <span className="text-aviva-primary">Tu Futuro</span>
                     </h2>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                    <p className="text-xl text-gray-700 max-w-2xl mx-auto px-4">
                         Todo lo que necesitas para operar como una empresa profesional, por una fracción de lo que costaría desarrollarlo desde cero.
                     </p>
                 </div>
@@ -31,84 +178,73 @@ export default function Pricing() {
                                     <AvivaLogo className="h-16 w-auto" />
                                 </div>
                                 <div>
-                                    <h3 className="text-3xl font-bold text-white mb-2">Todo Incluido</h3>
-                                    <p className="text-blue-200">Tu plataforma profesional lista en minutos.</p>
+                                    <h3 className="text-2xl md:text-3xl font-bold text-white mb-1 md:mb-2">Todo Incluido</h3>
+                                    <p className="text-blue-100 text-sm md:text-base">Tu plataforma profesional lista en minutos.</p>
                                 </div>
                             </div>
                             <div className="text-left md:text-right">
                                 <div className="flex items-baseline md:justify-end gap-1">
-                                    <span className="text-6xl font-extrabold text-white">$524<sup className="text-2xl font-normal text-blue-300 ml-1">*</sup></span>
-                                    <span className="text-xl font-bold text-blue-300">MXN</span>
+                                    <span className="text-6xl font-extrabold text-white">${pricing.amount}<sup className="text-2xl font-normal text-white/70 ml-1">*</sup></span>
+                                    <span className="text-xl font-bold text-white/90">{pricing.currency}</span>
                                 </div>
-                                <p className="text-blue-200 text-sm mt-1">Pago único anual</p>
-                                <p className="text-aviva-secondary text-sm font-bold mt-1">
-                                    3 meses sin intereses con tarjetas de crédito
-                                </p>
+                                <p className="text-white/80 text-sm mt-1">Pago único anual</p>
+                                {pricing.currency === 'MXN' && (
+                                    <p className="text-aviva-secondary text-sm font-bold mt-1">
+                                        3 meses sin intereses con tarjetas de crédito
+                                    </p>
+                                )}
                             </div>
                         </div>
 
-                        <div className="grid md:grid-cols-2 gap-8 mb-12">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 mb-10 md:mb-12">
                             <ul className="space-y-4">
                                 <li className="flex items-start gap-3">
-                                    <Check size={22} className="text-aviva-secondary mt-0.5" />
-                                    <span className="text-blue-50">Web Personalizada y Profesional</span>
+                                    <Check size={22} className="text-aviva-secondary mt-0.5 shrink-0" />
+                                    <span className="text-white text-sm md:text-base">Perfil Web Pro Indexado en Google</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <Check size={22} className="text-aviva-secondary mt-0.5" />
-                                    <span className="text-blue-50">Sistema de Reservas Automatizado</span>
+                                    <Check size={22} className="text-aviva-secondary mt-0.5 shrink-0" />
+                                    <span className="text-white text-sm md:text-base">Gestión de Cartera Propia Directa</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <Check size={22} className="text-aviva-secondary mt-0.5" />
-                                    <span className="text-blue-50">Integración con Tu Plataforma de Cobro</span>
+                                    <Check size={22} className="text-aviva-secondary mt-0.5 shrink-0" />
+                                    <span className="text-white text-sm md:text-base">Botón de Pago Directo a Tu Banco</span>
                                 </li>
                             </ul>
                             <ul className="space-y-4">
                                 <li className="flex items-start gap-3">
-                                    <Check size={22} className="text-aviva-secondary mt-0.5" />
-                                    <span className="text-blue-50">Mantenimiento y Soporte Incluido</span>
+                                    <Check size={22} className="text-aviva-secondary mt-0.5 shrink-0" />
+                                    <span className="text-white text-sm md:text-base">Directorio VIP (Nuevos Pasajeros)</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <Check size={22} className="text-aviva-secondary mt-0.5" />
-                                    <span className="text-blue-50">Actualizaciones de Seguridad</span>
+                                    <Check size={22} className="text-aviva-secondary mt-0.5 shrink-0" />
+                                    <span className="text-white text-sm md:text-base">Kit de Marketing Pro (Físico/Digital)</span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <Check size={22} className="text-aviva-secondary mt-0.5" />
-                                    <span className="text-blue-50">Certificación AvivaGo</span>
+                                    <Check size={22} className="text-aviva-secondary mt-0.5 shrink-0" />
+                                    <span className="text-white text-sm md:text-base">Certificación y Sello de Verificado</span>
                                 </li>
                             </ul>
                         </div>
 
                         <div className="flex flex-col items-center gap-6">
-                            <span className="text-sm font-bold text-white/90 tracking-wide -mb-4">
-                                APLICA COMO CONDUCTOR
+                            <span className="text-sm font-bold text-white/90 tracking-widest -mb-4 uppercase">
+                                Activa tu Perfil Profesional
                             </span>
                             <Link
                                 href="/register?role=driver"
-                                onClick={() => {
-                                    if (typeof window.fbq !== 'undefined') {
-                                        window.fbq('track', 'Lead', {
-                                            content_name: 'Pricing CTA - Register',
-                                            content_category: 'Drivers'
-                                        });
-                                    }
-                                    if (typeof window.ttq !== 'undefined') {
-                                        window.ttq.track('Lead', {
-                                            content_name: 'Pricing CTA - Register',
-                                            content_category: 'Drivers'
-                                        });
-                                    }
-                                }}
+                                onClick={handleCTAClick}
                                 className="w-full bg-aviva-secondary hover:bg-aviva-secondary/90 text-white font-bold text-xl py-5 rounded-2xl transition-all shadow-lg hover:shadow-aviva-secondary/40 text-center flex items-center justify-center gap-3"
                             >
                                 <Car size={24} />
-                                Regístrate Gratis
+                                Activar Plan Pro
                             </Link>
-                            <p className="text-blue-200 text-sm font-medium">
-                                * Para hacer público tu perfil como conductor y recibir los bonos y solicitudes de pasajeros es necesario tener una membresía activa.
+                            <p className="text-white/80 text-sm font-medium text-center px-4">
+                                * Para aparecer en el Buscador VIP, recibir solicitudes de nuevos pasajeros e indexar tu perfil en Google, es necesario tener la Membresía Activa.
                             </p>
 
                             <div className="flex flex-col items-center gap-3">
-                                <p className="text-blue-200 text-sm flex items-center gap-2">
+                                <p className="text-white/80 text-sm flex items-center gap-2">
                                     <CreditCard size={18} />
                                     Aceptamos tarjetas de Crédito y Débito
                                 </p>

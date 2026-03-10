@@ -49,14 +49,21 @@ export const useMembershipPurchase = (onPurchaseSuccess: () => void, price: numb
     const handlePurchase = async () => {
         setPurchasing(true)
         try {
-            await recordPaymentConsent('Autorizo a que se me dirija a Stripe para realizar el pago correspondiente.')
+            const consentRes = await recordPaymentConsent('Autorizo a que se me dirija a Stripe para realizar el pago correspondiente.')
+            if (consentRes?.error) {
+                console.warn('Consent recording failed (non-blocking):', consentRes.error)
+            }
 
             const response = await fetch('/api/checkout', {
                 method: 'POST',
-                // We could pass price/currency here if we wanted to trust the client, 
-                // but better to let backend recalculate/verify.
-                // However, for simplicity and since we just updated the schema, 
-                // let's ensure backend logic is robust.
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    type: 'membership',
+                    price: price,
+                    currency: currency
+                })
             })
 
             if (!response.ok) {

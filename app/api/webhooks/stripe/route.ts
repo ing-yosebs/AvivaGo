@@ -123,19 +123,6 @@ export async function POST(req: Request) {
                             }, { onConflict: 'driver_profile_id' });
                     }
 
-                    if (type === 'unlock') {
-                        await supabase
-                            .from('unlocks')
-                            .insert({
-                                user_id: user_id,
-                                driver_profile_id: driver_profile_id,
-                                amount_paid: session.amount_total ? session.amount_total / 100 : 0,
-                                currency: session.currency || 'mxn',
-                                payment_provider_id: session.id,
-                                status: 'completed'
-                            });
-                    }
-
                     // Get payment method if possible
                     let paymentMethod = session.payment_method_types?.[0] || 'Desconocido';
 

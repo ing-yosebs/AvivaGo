@@ -179,21 +179,11 @@ export default function PaymentsSection({
                         currency={currency}
                     />
                 )
-            ) : (
-                <div className="bg-blue-50 border border-blue-100 rounded-3xl p-6 flex items-start gap-4 shadow-soft">
-                    <div className="p-3 bg-blue-100 rounded-2xl text-blue-600">
-                        <Info className="h-6 w-6" />
-                    </div>
-                    <div>
-                        <h4 className="font-bold text-blue-900">Transparencia en tus pagos</h4>
-                        <p className="text-sm text-blue-900/60 mt-1">Aquí puedes ver el historial de conductores que has desbloqueado. Cada pago te garantiza acceso ilimitado a su contacto por tiempo indefinido.</p>
-                    </div>
-                </div>
-            )}
+            ) : null}
 
-            {(!isDriver || hasMembership) && (
+            {isDriver && hasMembership && (
                 <div className="space-y-4 animate-in fade-in duration-700">
-                    <h3 className="font-bold text-lg text-[#0F2137]">{isDriver ? 'Historial de Membresía' : 'Historial de Desbloqueos'}</h3>
+                    <h3 className="font-bold text-lg text-[#0F2137]">Historial de Membresía</h3>
                     <PaymentHistoryTable
                         isDriver={isDriver}
                         unlocks={unlocks}

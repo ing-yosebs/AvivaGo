@@ -150,10 +150,12 @@ export async function requestReview(driverProfileId: string, reason?: string) {
 
 export async function recordPaymentConsent(consentText: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    let { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
-        return { error: 'Unauthorized' }
+        const { data: { session } } = await supabase.auth.getSession();
+        user = session?.user || null;
+        if (!user) return { error: 'Sesión no válida' }
     }
 
     try {

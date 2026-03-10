@@ -55,8 +55,13 @@ export default function LoginPage() {
         } else {
             // Priority Redirect
             if (redirectUrl) {
-                router.push(redirectUrl)
-                return
+                const isCheckout = searchParams.get('checkout') === 'true';
+                const finalUrl = isCheckout 
+                    ? `${redirectUrl}${redirectUrl.includes('?') ? '&' : '?'}checkout=true` 
+                    : redirectUrl;
+                
+                router.push(finalUrl);
+                return;
             }
 
             // Check for Custom Redirection Path
@@ -186,7 +191,10 @@ export default function LoginPage() {
 
                     <div className="mt-8 text-center text-sm text-zinc-500">
                         ¿No tienes cuenta?{' '}
-                        <Link href="/register" className="text-white hover:underline">
+                        <Link 
+                            href={`/register${searchParams.toString() ? `?${searchParams.toString()}` : ''}`} 
+                            className="text-white hover:underline"
+                        >
                             Regístrate
                         </Link>
                     </div>

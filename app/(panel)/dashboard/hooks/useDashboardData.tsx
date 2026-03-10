@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
-    Unlock,
     Star,
     Heart,
     MessageSquare,
@@ -164,23 +163,7 @@ export function useDashboardData() {
                     })
                 }
 
-                // 3. Unlocks (Purchases/Contact Unlocks)
-                const { data: myUnlocks } = await supabase
-                    .from('unlocks')
-                    .select('created_at, driver_profiles(users(full_name))')
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false })
-                    .limit(5)
 
-                if (myUnlocks) {
-                    mixedActivity.push(...myUnlocks.map((u: any) => ({
-                        type: 'unlock',
-                        date: new Date(u.created_at),
-                        rawDate: u.created_at,
-                        icon: <Unlock className="h-4 w-4 text-green-500" />,
-                        text: `Desbloqueaste el contacto de ${u.driver_profiles?.users?.full_name || 'un conductor'}`
-                    })))
-                }
 
                 // Sort and limit
                 mixedActivity.sort((a: any, b: any) => b.date.getTime() - a.date.getTime())
