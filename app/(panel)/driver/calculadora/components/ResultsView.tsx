@@ -84,7 +84,7 @@ export function ResultsView({
 
             {currentRoute && (
                 <div className="space-y-6">
-                    <Card className="border-indigo-100 shadow-2xl bg-indigo-50/40 overflow-hidden border-2">
+                    <Card className="border-indigo-100 shadow-2xl bg-white overflow-hidden border-2">
                         <div className="bg-indigo-600 p-5 text-white flex items-center justify-between">
                             <h3 className="font-bold text-xl flex items-center gap-2">
                                 <DollarSign className="w-6 h-6" />

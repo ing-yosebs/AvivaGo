@@ -23,7 +23,7 @@ interface DriverMarketingKitProps {
 
 export default function DriverMarketingKit({ profile, referralLink, embedded = false, hasMembership = false, isPlataOrHigher = false }: DriverMarketingKitProps) {
     const [downloading, setDownloading] = useState(false)
-    const [activeTab, setActiveTab] = useState<'flyer' | 'sticker' | 'profile' | 'card' | 'seatback'>('profile')
+    const [activeTab, setActiveTab] = useState<'flyer' | 'sticker' | 'profile' | 'card' | 'seatback' | 'videocam'>('profile')
     const contentRef = useRef<HTMLDivElement>(null)
 
     // Request State
@@ -49,6 +49,10 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
 
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(referralLink)}`
     const profileQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(profileLink)}`
+    
+    // Privacy Notice Link and QR
+    const privacyLink = `${profileLink}/aviso-de-privacidad`
+    const privacyQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(privacyLink)}`
 
     useEffect(() => {
         loadRequestStatus()
@@ -70,60 +74,77 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
         if (!contentRef.current) return
 
         setDownloading(true)
+        const container = document.createElement('div')
+        
         try {
-            // Create a temporary hidden container for clean rendering
-            const container = document.createElement('div')
+            // Setup hidden capture container
             container.style.position = 'fixed'
             container.style.left = '-9999px'
             container.style.top = '0'
-            container.style.zIndex = '-1'
             container.style.background = 'white'
             document.body.appendChild(container)
 
-            // Clone the element to render it at its original size without CSS scale/transforms
+            // Clone and clean the element
             const clone = contentRef.current.cloneNode(true) as HTMLElement
-
-            // Remove any potential transforms/scaling from the clone
             clone.style.transform = 'none'
             clone.style.scale = 'none'
             clone.style.transition = 'none'
-
             container.appendChild(clone)
 
-            // Wait for images to be ready in the clone
-            await new Promise(resolve => setTimeout(resolve, 1500))
+            // Determine dimensions
+            let targetWidth = 816;
+            let targetHeight = 528;
+            if (activeTab === 'flyer') { targetWidth = 350; targetHeight = 500; }
+            else if (activeTab === 'sticker' || activeTab === 'videocam') { targetWidth = 400; targetHeight = 400; }
+            else if (activeTab === 'profile') { targetWidth = 380; targetHeight = 650; }
+            else if (activeTab === 'card') { targetWidth = 510; targetHeight = 283; }
+
+            // Wait for images
+            await new Promise(resolve => setTimeout(resolve, 2000))
 
             const canvas = await html2canvas(clone, {
                 useCORS: true,
-                scale: 3, // High quality
-                backgroundColor: null,
-                logging: false,
-                allowTaint: true,
-                width: 816,
-                height: 528,
+                scale: 2, 
+                backgroundColor: '#ffffff',
+                width: targetWidth,
+                height: targetHeight,
                 onclone: (clonedDoc) => {
-                    // Ensure the cloned target has no transforms and is fully visible
                     const target = clonedDoc.querySelector('[data-capture-container="true"]') as HTMLElement;
                     if (target) {
                         target.style.transform = 'none';
                         target.style.scale = 'none';
-                        target.style.position = 'relative';
-                        target.style.left = '0';
-                        target.style.top = '0';
+                        target.style.display = 'block';
+                        target.style.visibility = 'visible';
                     }
                 }
             })
 
-            const image = canvas.toDataURL("image/png", 1.0)
-            const link = document.createElement('a')
-            link.download = `AvivaGo_${activeTab}_${profile.referral_code}.png`
-            link.href = image
-            link.click()
+            // Download using Blob
+            canvas.toBlob((blob) => {
+                if (!blob) throw new Error('Blob generation failed')
+                
+                const safeCode = (profile.referral_code || 'conductor').replace(/[^a-zA-Z0-9]/g, '_')
+                const fileName = `AvivaGo_${activeTab}_${safeCode}.png`
+                const url = window.URL.createObjectURL(blob)
+                const link = document.createElement('a')
+                
+                link.href = url
+                link.download = fileName
+                document.body.appendChild(link)
+                link.click()
+                
+                // Cleanup
+                setTimeout(() => {
+                    document.body.removeChild(link)
+                    window.URL.revokeObjectURL(url)
+                    if (container.parentNode) document.body.removeChild(container)
+                }, 100)
+            }, 'image/png')
 
-            // Cleanup
-            document.body.removeChild(container)
         } catch (error) {
-            console.error('Error generating image:', error)
+            console.error('Download error:', error)
+            alert('Error al descargar. Por favor intente de nuevo.')
+            if (container.parentNode) document.body.removeChild(container)
         } finally {
             setDownloading(false)
         }
@@ -189,6 +210,7 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
                         {[
                             { id: 'profile', label: 'Cabecera Asiento', exclusive: false },
                             { id: 'sticker', label: 'Sticker Ventana', exclusive: false },
+                            { id: 'videocam', label: 'Sticker Cámara', exclusive: false },
                             { id: 'card', label: 'Tarjeta Presentación', exclusive: true },
                             { id: 'flyer', label: 'Sticker Tablero', exclusive: true },
                             { id: 'seatback', label: 'Respaldo Asiento', exclusive: true }
@@ -243,6 +265,7 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
                                     profile={profile}
                                     qrUrl={qrUrl}
                                     profileQrUrl={profileQrUrl}
+                                    privacyQrUrl={privacyQrUrl}
                                     logoUrl={logoUrl}
                                     activeTab={activeTab}
                                 />
@@ -300,7 +323,7 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
                             <h5 className="text-xl font-black text-white mb-2">¿Todo listo?</h5>
                             <p className="text-sm text-slate-400 mb-8 max-w-[240px] mx-auto">Obtén tu diseño en alta resolución listo para imprimir.</p>
 
-                            {activeTab !== 'profile' && activeTab !== 'sticker' && !hasMembership ? (
+                            {activeTab !== 'profile' && activeTab !== 'sticker' && activeTab !== 'videocam' && !hasMembership ? (
                                 <div className="space-y-4">
                                     <div className="w-full py-6 rounded-[2rem] bg-white/5 border-2 border-dashed border-white/10 text-white/40 flex flex-col items-center gap-2">
                                         <Lock className="h-8 w-8" />

@@ -28,6 +28,7 @@ export interface DriverProfile {
     social_commitment?: boolean;
     payment_methods?: string[];
     payment_link?: string;
+    records_video?: boolean;
     hasAcceptedQuote?: boolean;
     heroPhotos?: string[];
     profilePhotos?: string[];

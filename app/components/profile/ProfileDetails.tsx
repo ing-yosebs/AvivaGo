@@ -1,4 +1,4 @@
-import { Languages, Zap, Stethoscope, Users, Map, Globe, CreditCard, Clock, CheckCircle, ShieldCheck, Award, Car, MapPin } from 'lucide-react';
+import { Languages, Zap, Stethoscope, Users, Map, Globe, CreditCard, Clock, CheckCircle, ShieldCheck, Award, Car, MapPin, Video } from 'lucide-react';
 import { DriverProfile } from './types';
 
 interface ProfileDetailsProps {
@@ -28,6 +28,36 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
                             <div className="flex items-center gap-2 pt-6">
                                 <ShieldCheck className="h-4 w-4 text-violet-600" />
                                 <span className="text-[10px] font-bold uppercase tracking-widest text-violet-600/70">Conductor Comprometido con la Inclusión</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            )}
+
+            {/* Video Recording Privacy Notice */}
+            {driver.records_video && (
+                <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="bg-amber-50 p-2 rounded-xl border border-amber-100">
+                            <Video className="h-5 w-5 text-amber-600" />
+                        </div>
+                        <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Aviso de Privacidad (Cámaras en Vehículo)</h3>
+                    </div>
+
+                    <div className="p-8 bg-amber-50/50 border border-amber-200 rounded-[2.5rem] relative overflow-hidden group shadow-soft">
+                        <Video className="absolute -right-4 -bottom-4 h-32 w-32 text-amber-500/5 group-hover:scale-110 transition-transform duration-700" />
+                        <div className="relative z-10 pl-0">
+                            <p className="text-amber-900/80 text-sm md:text-base leading-relaxed font-medium">
+                                "Este vehículo es monitoreado y cuenta con grabación de video operada exclusivamente por el Conductor, quien actúa como responsable independiente del tratamiento de estas imágenes para fines estrictamente de seguridad de ambas partes. AvivaGo no tiene acceso, control ni responsabilidad alguna sobre estas grabaciones. Al abordar el vehículo, consientes ser grabado en dichos términos."
+                            </p>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-6">
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck className="h-4 w-4 text-amber-600" />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600/70">MONITOREO DE SEGURIDAD INDEPENDIENTE</span>
+                                </div>
+                                <a href={`/driver/${driver.referral_code || driver.id}/aviso-de-privacidad`} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-amber-700 hover:text-amber-800 underline underline-offset-2 transition-colors">
+                                    Leer Aviso Integral
+                                </a>
                             </div>
                         </div>
                     </div>

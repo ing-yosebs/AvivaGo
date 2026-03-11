@@ -39,28 +39,64 @@ export default function Pricing() {
     useEffect(() => {
         const detectLocation = async () => {
             try {
-                // Primero intentamos por zona horaria como check rápido
-                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                if (!tz.includes('Mexico')) {
-                    // Si la zona horaria no parece ser de México, confirmamos con IP
-                    const res = await fetch('https://ipapi.co/json/');
-                    const data = await res.json();
-                    
-                    if (data.country_code && data.country_code !== 'MX') {
-                        setPricing({
-                            amount: '30',
-                            currency: 'USD'
-                        });
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user && user.phone) {
+                    const isPhoneMX = user.phone.startsWith('52') || user.phone.startsWith('+52');
+                    if (isPhoneMX) {
+                        setPricing({ amount: '524', currency: 'MXN' });
+                    } else {
+                        setPricing({ amount: '30', currency: 'USD' });
                     }
+                    return;
+                }
+
+                let isMX = true;
+                try {
+                    const res = await fetch('https://get.geojs.io/v1/ip/country.json');
+                    if (res.ok) {
+                        const data = await res.json();
+                        isMX = data.country === 'MX';
+                    } else {
+                        throw new Error('geojs failed');
+                    }
+                } catch (err) {
+                    try {
+                        const res2 = await fetch('https://ipapi.co/json/');
+                        if (res2.ok) {
+                            const data2 = await res2.json();
+                            if (data2.country_code) isMX = data2.country_code === 'MX';
+                        } else {
+                            throw new Error('ipapi failed');
+                        }
+                    } catch (err2) {
+                        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+                        isMX = tz.includes('Mexico') || [
+                            'America/Cancun', 'America/Merida', 'America/Monterrey',
+                            'America/Matamoros', 'America/Mazatlan', 'America/Chihuahua',
+                            'America/Ojinaga', 'America/Hermosillo', 'America/Tijuana',
+                            'America/Bahia_Banderas'
+                        ].includes(tz);
+                    }
+                }
+
+                if (!isMX) {
+                    setPricing({
+                        amount: '30',
+                        currency: 'USD'
+                    });
+                } else {
+                    setPricing({
+                        amount: '524',
+                        currency: 'MXN'
+                    });
                 }
             } catch (error) {
                 console.error('Error detecting location:', error);
-                // Fallback silencioso al precio de MXN por defecto
             }
         };
 
         detectLocation();
-    }, []);
+    }, [supabase]);
 
     const handleCTAClick = async (e: React.MouseEvent) => {
         e.preventDefault();

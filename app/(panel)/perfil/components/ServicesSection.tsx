@@ -29,10 +29,14 @@ export default function ServicesSection({ services, onSave, saving, hasMembershi
         knows_sign_language: services?.knows_sign_language || false,
         social_commitment: services?.social_commitment || false,
         payment_methods: services?.payment_methods || [],
-        payment_link: services?.payment_link || ''
+        payment_link: services?.payment_link || '',
+        records_video: services?.records_video || false,
+        video_notice_accepted_at: services?.video_notice_accepted_at || null
     })
 
     const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false)
+    const [isCommitmentModalOpen, setIsCommitmentModalOpen] = useState(false)
+    const [videoCommitment, setVideoCommitment] = useState(services?.records_video || false)
     const [modalConfig, setModalConfig] = useState({ feature: '', message: '' })
 
     const triggerPremiumModal = (feature: string, message: string) => {
@@ -78,7 +82,9 @@ export default function ServicesSection({ services, onSave, saving, hasMembershi
                 knows_sign_language: services.knows_sign_language || false,
                 social_commitment: services.social_commitment || false,
                 payment_methods: services.payment_methods || [],
-                payment_link: services.payment_link || ''
+                payment_link: services.payment_link || '',
+                records_video: services.records_video || false,
+                video_notice_accepted_at: services.video_notice_accepted_at || null
             })
         }
     }, [services])
@@ -204,6 +210,64 @@ export default function ServicesSection({ services, onSave, saving, hasMembershi
                             <span className={`font-bold text-sm ${formData.knows_sign_language ? 'text-blue-900' : ''}`}>Sí, domino el lenguaje de señas (LSM)</span>
                         </button>
                     </div>
+
+                    <div className="w-full h-px bg-gray-100" />
+
+                    {/* Video Recording */}
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center justify-between p-2">
+                            <div>
+                                <p className="text-sm font-bold text-[#0F2137]">¿Cuentas con grabación de video en tu vehículo?</p>
+                                <p className="text-xs text-gray-400 mt-1">Dashcam (Seguridad y contenido anonimizado)</p>
+                            </div>
+                            <button
+                                onClick={() => setFormData({ ...formData, records_video: !formData.records_video })}
+                                className={`relative inline-flex h-7 w-16 items-center rounded-full transition-all duration-300 focus:outline-none shadow-inner ${formData.records_video ? 'bg-amber-500' : 'bg-gray-200'
+                                    }`}
+                            >
+                                <span className="sr-only">Habilitar grabación</span>
+                                <span className={`absolute text-[10px] font-bold uppercase transition-all duration-300 ${formData.records_video ? 'left-2 text-white opacity-100' : 'left-8 text-gray-400 opacity-0'}`}>
+                                    Sí
+                                </span>
+                                <span className={`absolute text-[10px] font-bold uppercase transition-all duration-300 ${formData.records_video ? 'right-8 text-white opacity-0' : 'right-2 text-gray-400 opacity-100'}`}>
+                                    No
+                                </span>
+                                <span
+                                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-300 ${formData.records_video ? 'translate-x-10' : 'translate-x-1'
+                                        }`}
+                                />
+                            </button>
+                        </div>
+
+                        {formData.records_video && (
+                            <div className="bg-amber-50/50 border border-amber-100 p-5 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-500 space-y-4">
+                                <div className="flex gap-3">
+                                    <div className="mt-0.5">
+                                        <div className="bg-amber-500 p-1 rounded-full text-white">
+                                            <CheckCircle2 className="h-3.5 w-3.5" />
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-amber-900 leading-relaxed font-medium italic">
+                                        "Declaro que utilizo la grabación primordialmente por seguridad. En caso de utilizar fragmentos para redes sociales, me comprometo a la anonimización total (borrar rostros y voces) de los pasajeros. Acepto ser el único responsable legal del uso de estos videos y eximo totalmente a AvivaGo de cualquier reclamo por privacidad o daño moral."
+                                    </p>
+                                </div>
+                                <div className="pt-3 border-t border-amber-200/50">
+                                    <button
+                                        onClick={() => setVideoCommitment(!videoCommitment)}
+                                        className="flex items-center gap-2 group transition-all"
+                                    >
+                                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${videoCommitment ? 'bg-amber-600 border-amber-600' : 'bg-white border-amber-300'}`}>
+                                            {videoCommitment && <CheckCircle2 className="h-3 w-3 text-white" />}
+                                        </div>
+                                        <span className={`text-xs font-bold ${videoCommitment ? 'text-amber-900' : 'text-amber-700'} group-hover:text-amber-800`}>
+                                            Sí, acepto el compromiso y las normas de privacidad.
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                 </div>
             </div>
 
@@ -503,7 +567,13 @@ export default function ServicesSection({ services, onSave, saving, hasMembershi
 
             <div className="flex justify-end pt-8">
                 <button
-                    onClick={() => onSave(formData)}
+                    onClick={() => {
+                        if (formData.records_video && !videoCommitment) {
+                            setIsCommitmentModalOpen(true)
+                            return
+                        }
+                        onSave(formData)
+                    }}
                     disabled={saving}
                     className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold hover:bg-blue-700 transition-all flex items-center gap-2 shadow-2xl shadow-blue-600/30"
                 >
@@ -518,6 +588,29 @@ export default function ServicesSection({ services, onSave, saving, hasMembershi
                 feature={modalConfig.feature}
                 message={modalConfig.message}
             />
+
+            {/* Commitment Warning Modal */}
+            {isCommitmentModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-300">
+                        <div className="flex flex-col items-center text-center space-y-4">
+                            <div className="bg-amber-100 p-4 rounded-full">
+                                <Lock className="h-8 w-8 text-amber-600" />
+                            </div>
+                            <h3 className="text-xl font-bold text-[#0F2137]">Compromiso Obligatorio</h3>
+                            <p className="text-gray-500 text-sm leading-relaxed">
+                                Para poder activar tu aviso de privacidad y el uso de cámaras en tu perfil, debes de <strong>aceptar el compromiso</strong> marcando la casilla de aceptación.
+                            </p>
+                            <button
+                                onClick={() => setIsCommitmentModalOpen(false)}
+                                className="w-full bg-amber-500 text-white py-4 rounded-2xl font-bold hover:bg-amber-600 transition-colors shadow-lg shadow-amber-500/20"
+                            >
+                                Entendido, revisar compromiso
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     )
 }

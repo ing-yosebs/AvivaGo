@@ -40,7 +40,7 @@ export function RouteInputs({
 }: RouteInputsProps) {
     return (
         <div className="lg:col-span-6 space-y-6">
-            <Card className="border-slate-200 shadow-sm">
+            <Card className="border-slate-200 shadow-sm bg-white">
                 <CardHeader className="pb-4">
                     <CardTitle className="text-lg font-bold text-indigo-950">Tus Parámetros</CardTitle>
                 </CardHeader>
@@ -80,7 +80,7 @@ export function RouteInputs({
                 </CardContent>
             </Card>
 
-            <Card className="border-slate-200 shadow-sm">
+            <Card className="border-slate-200 shadow-sm bg-white">
                 <CardHeader className="pb-4">
                     <CardTitle className="text-lg font-bold text-indigo-950">Ruta del Viaje</CardTitle>
                 </CardHeader>
@@ -138,7 +138,7 @@ export function RouteInputs({
                                                 type="text"
                                                 placeholder="Buscar parada..."
                                                 defaultValue={wp.formatted_address || ""}
-                                                className="pl-10 w-full bg-slate-50/50 border-dashed border-slate-200 focus-visible:ring-indigo-400 text-sm h-9"
+                                                className="pl-10 w-full bg-slate-50 border-dashed border-slate-200 focus-visible:ring-indigo-400 text-sm h-9"
                                             />
                                         </Autocomplete>
                                     </div>

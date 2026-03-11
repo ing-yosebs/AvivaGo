@@ -275,6 +275,7 @@ export default async function DriverPage({ params }: { params: Promise<{ id: str
         social_commitment: services?.social_commitment || false,
         payment_methods: services?.payment_methods || [],
         payment_link: services?.payment_link || "",
+        records_video: services?.records_video || false,
         hasAcceptedQuote: hasAcceptedQuote,
         heroPhotos: uniqueHeroPhotos,
         selfiePhoto: secondaryPhoto,

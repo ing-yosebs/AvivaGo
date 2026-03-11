@@ -8,17 +8,69 @@ interface TemplateProps {
     }
     qrUrl: string
     profileQrUrl: string
+    privacyQrUrl?: string
     logoUrl: string
     activeTab: string
 }
 
-export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ profile, qrUrl, profileQrUrl, logoUrl, activeTab }, ref) => {
+export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ profile, qrUrl, profileQrUrl, privacyQrUrl, logoUrl, activeTab }, ref) => {
     return (
         <>
+            {/* Sticker Cámara de Videovigilancia (Aviso de Privacidad) */}
+            {activeTab === 'videocam' && (
+                <div
+                    ref={ref}
+                    data-template="videocam"
+                    data-capture-container="true"
+                    style={{ width: '400px', height: '400px', minWidth: '400px', maxWidth: '400px', minHeight: '400px', maxHeight: '400px' }}
+                    className="bg-white rounded-3xl shadow-2xl flex flex-col items-center justify-between border-[6px] border-[#0f172a] flex-shrink-0 relative overflow-hidden antialiased"
+                >
+                    <div className="bg-[#0f172a] w-full py-5 px-6 flex items-center justify-center shadow-md z-10 flex-shrink-0 min-h-[90px]">
+                        <span className="text-white font-black text-[18px] tracking-wide uppercase text-center leading-tight break-words">
+                            VEHÍCULO DE<br/>{profile.full_name}
+                        </span>
+                    </div>
+                    
+                    <div className="flex-1 w-full flex flex-row items-stretch bg-white">
+                        {/* Columna Izquierda: Información de Cámara */}
+                        <div className="w-1/2 flex flex-col items-center justify-start pt-8 pb-8 px-4 border-r-[3px] border-[#0f172a] text-center h-full">
+                            <h2 className="text-[18px] font-black text-red-600 uppercase tracking-tight mb-4 leading-[1.1]">Unidad<br/>Videovigilada</h2>
+                            <div className="flex-1 flex flex-col items-center justify-center">
+                                <div className="bg-amber-100/50 p-4 rounded-full text-amber-600 border border-amber-200 shadow-sm flex-shrink-0">
+                                    <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <p className="text-[18px] font-black text-slate-500 uppercase tracking-tight leading-[1.1] mt-8 pb-2">Por<br/>Seguridad</p>
+                        </div>
+
+                        {/* Columna Derecha: Código QR de Privacidad */}
+                        <div className="w-1/2 flex flex-col items-center justify-start pt-8 pb-8 px-4 bg-slate-50/50 text-center h-full">
+                            <p className="text-[18px] font-black text-slate-700 uppercase tracking-tighter mb-4 leading-[1.1]">Escanea<br/>para ver</p>
+                            
+                            <div className="flex-1 flex flex-col items-center justify-center">
+                                {privacyQrUrl && (
+                                    <img 
+                                        src={privacyQrUrl} 
+                                        alt="QR Aviso Privacidad" 
+                                        className="w-[115px] h-[115px] object-contain shadow-md border-2 border-white rounded-2xl p-1 bg-white" 
+                                        crossOrigin="anonymous" 
+                                    />
+                                )}
+                            </div>
+
+                            <p className="text-[18px] font-black text-emerald-600 uppercase tracking-tight leading-[1.1] max-w-[160px] mt-8 pb-2">Mi Aviso de<br/>Privacidad</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Sticker Tablero Template */}
             {activeTab === 'flyer' && (
                 <div
                     ref={ref}
+                    data-capture-container="true"
                     style={{ width: '350px', height: '500px', minWidth: '350px', maxWidth: '350px', minHeight: '500px', maxHeight: '500px' }}
                     className={`bg-white text-black rounded-3xl overflow-hidden shadow-2xl flex flex-col transition-all duration-300`}
                 >
@@ -98,6 +150,7 @@ export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ p
             {activeTab === 'profile' && (
                 <div
                     ref={ref}
+                    data-capture-container="true"
                     style={{ width: '380px', height: '650px', minWidth: '380px', maxWidth: '380px', minHeight: '650px', maxHeight: '650px' }}
                     className={`bg-white text-black rounded-lg overflow-hidden shadow-2xl flex flex-col transition-all duration-300 border border-zinc-200 flex-shrink-0`}
                 >
@@ -162,6 +215,7 @@ export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ p
             {activeTab === 'card' && (
                 <div
                     ref={ref}
+                    data-capture-container="true"
                     style={{ width: '510px', height: '283px', minWidth: '510px', maxWidth: '510px', minHeight: '283px', maxHeight: '283px' }}
                     className={`bg-white text-black rounded-sm overflow-hidden shadow-2xl flex flex-col transition-all duration-300 border border-zinc-200 flex-shrink-0`}
                 >

@@ -242,15 +242,33 @@ function ProfileContent() {
         setSaving(true)
         setMessage(null)
         try {
+            const isEnabling = formData.records_video && !driverServices?.records_video;
+            const isDisabling = !formData.records_video && driverServices?.records_video;
+            
+            const updatedData = { ...formData };
+            if (isEnabling) {
+                updatedData.video_notice_accepted_at = new Date().toISOString();
+            }
+
             const { error } = await supabase
                 .from('driver_services')
                 .upsert({
                     driver_profile_id: driverServices.driver_profile_id,
-                    ...formData,
+                    ...updatedData,
                     updated_at: new Date().toISOString()
                 }, { onConflict: 'driver_profile_id' })
 
             if (error) throw error
+
+            // Log Traceability
+            if (isEnabling || isDisabling) {
+                await supabase.from('video_notice_logs').insert({
+                    driver_profile_id: driverServices.driver_profile_id,
+                    action: isEnabling ? 'enabled' : 'disabled',
+                    accepted_at: isEnabling ? updatedData.video_notice_accepted_at : null
+                });
+            }
+
             setMessage({ type: 'success', text: 'Servicios actualizados correctamente' })
         } catch (error: any) {
             setMessage({ type: 'error', text: error.message })

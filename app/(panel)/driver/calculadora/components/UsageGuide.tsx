@@ -13,7 +13,7 @@ export function UsageGuide({ countryCode }: UsageGuideProps) {
 
     return (
         <div className="max-w-4xl mx-auto w-full pt-4">
-            <Card className="border-slate-200 shadow-sm bg-slate-50/80 rounded-2xl border-dashed">
+            <Card className="border-slate-200 shadow-sm bg-slate-50 rounded-2xl border-dashed">
                 <CardHeader className="pb-4">
                     <CardTitle className="text-lg flex items-center gap-2 font-black text-indigo-950">
                         <HelpCircle className="w-5 h-5 text-indigo-600" />
@@ -67,7 +67,7 @@ export function UsageGuide({ countryCode }: UsageGuideProps) {
                         </div>
 
                         {/* New International Section */}
-                        <div className="p-5 bg-indigo-50/50 rounded-xl border border-indigo-100 flex gap-4 shadow-sm md:col-span-2">
+                        <div className="p-5 bg-indigo-50 rounded-xl border border-indigo-100 flex gap-4 shadow-sm md:col-span-2">
                             <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center shrink-0">
                                 <Globe className="w-5 h-5 text-indigo-600" />
                             </div>
@@ -80,7 +80,7 @@ export function UsageGuide({ countryCode }: UsageGuideProps) {
                                                 `${countryCode || 'Tu país'} (Configuración local activa)`}
                                     </span>.
                                 </p>
-                                <div className="mt-2 flex items-center gap-2 bg-amber-100/50 p-2 rounded-lg border border-amber-200">
+                                <div className="mt-2 flex items-center gap-2 bg-amber-100 p-2 rounded-lg border border-amber-200">
                                     <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
                                     <p className="text-[10px] text-amber-800 font-bold leading-tight italic">
                                         ¿Ves unidades o monedas incorrectas? Asegúrate de tener bien configurada tu ubicación en tu Perfil Profesional.
