@@ -130,10 +130,10 @@ export async function updateSession(request: NextRequest) {
         }
     }
 
-    // 2. Driver Dashboard Protection (Allow public profiles)
-    // Matches /driver/some-id
-    const isPublicProfile = /^\/driver\/[a-zA-Z0-9-]+\/?$/.test(path);
-    // If it starts with /driver, is NOT a public profile, and user is not logged in -> Redirect
+    // 2. Driver Dashboard Protection (Allow public profiles & privacy notice)
+    // Matches /driver/some-id or /driver/some-id/aviso-de-privacidad
+    const isPublicProfile = /^\/driver\/[^/]+(\/aviso-de-privacidad)?\/?$/.test(path);
+    // If it starts with /driver, is NOT a public profile/privacy link, and user is not logged in -> Redirect
     if (path.startsWith('/driver') && !isPublicProfile && !user) {
         return NextResponse.redirect(new URL('/auth/login', request.url))
     }

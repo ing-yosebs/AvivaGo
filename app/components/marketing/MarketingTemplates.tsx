@@ -14,6 +14,19 @@ interface TemplateProps {
 }
 
 export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ profile, qrUrl, profileQrUrl, privacyQrUrl, logoUrl, activeTab }, ref) => {
+    if (activeTab === 'all-for-pdf') {
+        return (
+            <div ref={ref} className="flex flex-col gap-10 bg-white p-10">
+                <div data-pdf-item="profile"><MarketingTemplates profile={profile} qrUrl={qrUrl} profileQrUrl={profileQrUrl} privacyQrUrl={privacyQrUrl} logoUrl={logoUrl} activeTab="profile" /></div>
+                <div data-pdf-item="sticker"><MarketingTemplates profile={profile} qrUrl={qrUrl} profileQrUrl={profileQrUrl} privacyQrUrl={privacyQrUrl} logoUrl={logoUrl} activeTab="sticker" /></div>
+                <div data-pdf-item="videocam"><MarketingTemplates profile={profile} qrUrl={qrUrl} profileQrUrl={profileQrUrl} privacyQrUrl={privacyQrUrl} logoUrl={logoUrl} activeTab="videocam" /></div>
+                <div data-pdf-item="card"><MarketingTemplates profile={profile} qrUrl={qrUrl} profileQrUrl={profileQrUrl} privacyQrUrl={privacyQrUrl} logoUrl={logoUrl} activeTab="card" /></div>
+                <div data-pdf-item="flyer"><MarketingTemplates profile={profile} qrUrl={qrUrl} profileQrUrl={profileQrUrl} privacyQrUrl={privacyQrUrl} logoUrl={logoUrl} activeTab="flyer" /></div>
+                <div data-pdf-item="seatback"><MarketingTemplates profile={profile} qrUrl={qrUrl} profileQrUrl={profileQrUrl} privacyQrUrl={privacyQrUrl} logoUrl={logoUrl} activeTab="seatback" /></div>
+            </div>
+        )
+    }
+
     return (
         <>
             {/* Sticker Cámara de Videovigilancia (Aviso de Privacidad) */}
@@ -23,7 +36,7 @@ export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ p
                     data-template="videocam"
                     data-capture-container="true"
                     style={{ width: '400px', height: '400px', minWidth: '400px', maxWidth: '400px', minHeight: '400px', maxHeight: '400px' }}
-                    className="bg-white rounded-3xl shadow-2xl flex flex-col items-center justify-between border-[6px] border-[#0f172a] flex-shrink-0 relative overflow-hidden antialiased"
+                    className="bg-white rounded-3xl shadow-2xl flex flex-col items-center justify-between border-2 border-zinc-300 flex-shrink-0 relative overflow-hidden antialiased"
                 >
                     <div className="bg-[#0f172a] w-full py-5 px-6 flex items-center justify-center shadow-md z-10 flex-shrink-0 min-h-[90px]">
                         <span className="text-white font-black text-[18px] tracking-wide uppercase text-center leading-tight break-words">
@@ -42,7 +55,7 @@ export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ p
                                     </svg>
                                 </div>
                             </div>
-                            <p className="text-[18px] font-black text-slate-500 uppercase tracking-tight leading-[1.1] mt-8 pb-2">Por<br/>Seguridad</p>
+                            <p className="text-[18px] font-black text-slate-500 uppercase tracking-tight leading-[1.1] mt-3 pb-6">Por<br/>Seguridad</p>
                         </div>
 
                         {/* Columna Derecha: Código QR de Privacidad */}
@@ -60,7 +73,7 @@ export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ p
                                 )}
                             </div>
 
-                            <p className="text-[18px] font-black text-emerald-600 uppercase tracking-tight leading-[1.1] max-w-[160px] mt-8 pb-2">Mi Aviso de<br/>Privacidad</p>
+                            <p className="text-[18px] font-black text-emerald-600 uppercase tracking-tight leading-[1.1] max-w-[160px] mt-3 pb-6">Mi Aviso de<br/>Privacidad</p>
                         </div>
                     </div>
                 </div>
@@ -72,7 +85,7 @@ export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ p
                     ref={ref}
                     data-capture-container="true"
                     style={{ width: '350px', height: '500px', minWidth: '350px', maxWidth: '350px', minHeight: '500px', maxHeight: '500px' }}
-                    className={`bg-white text-black rounded-3xl overflow-hidden shadow-2xl flex flex-col transition-all duration-300`}
+                    className={`bg-white text-black rounded-3xl overflow-hidden shadow-2xl flex flex-col transition-all duration-300 border-2 border-zinc-300 flex-shrink-0`}
                 >
                     <div className="bg-[#10b981] h-[100px] flex flex-col justify-center items-center text-white text-center flex-shrink-0 w-full">
                         <div className="flex items-center justify-center gap-3 mb-1 w-full">
@@ -84,36 +97,25 @@ export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ p
                         <p className="text-[10px] font-bold uppercase tracking-[0.15em] opacity-90 leading-tight">Seguridad, Confianza y Certeza.</p>
                     </div>
 
-                    <div className="h-[360px] w-full px-8 pt-4 pb-8 flex flex-col items-center justify-between flex-shrink-0">
-                        <div className="text-center w-full">
-                            <h2 className="text-[40px] font-black text-[#065f46] leading-none uppercase tracking-tight">¡VIAJA SEGURO!</h2>
-                            <p className="text-[14px] text-zinc-500 font-bold mt-2">Escanea y regístrate para tu primer viaje</p>
+                    <div className="h-[360px] w-full px-6 pt-2 pb-3 flex flex-col items-center justify-between flex-shrink-0 overflow-hidden">
+                        <div className="text-center w-full flex-shrink-0">
+                            <h2 className="text-[26px] font-black text-[#065f46] leading-none uppercase tracking-tight">¡VIAJA SEGURO!</h2>
                         </div>
 
-                        <div className="bg-zinc-50 p-6 rounded-[2.5rem] shadow-inner border border-zinc-100 flex items-center justify-center flex-shrink-0">
-                            <img src={qrUrl} alt="QR" className="w-[160px] h-[160px] object-contain block" crossOrigin="anonymous" />
+                        <div className="bg-zinc-50 p-3 rounded-[1.5rem] shadow-inner border border-zinc-100 flex items-center justify-center flex-shrink-0 mt-3">
+                            <img src={profileQrUrl} alt="QR" className="w-[135px] h-[135px] object-contain block" crossOrigin="anonymous" />
                         </div>
 
-                        <div className="w-full space-y-4 flex-shrink-0">
-                            <div className="flex items-center gap-4 w-full px-2">
-                                <div className="h-[2px] flex-1 bg-zinc-100" />
-                                <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest whitespace-nowrap">Tu Conductor</span>
-                                <div className="h-[2px] flex-1 bg-zinc-100" />
-                            </div>
-
-                            <div className="flex items-center gap-4 text-left w-full h-[85px] bg-zinc-50 p-4 rounded-3xl border border-zinc-100 flex-shrink-0">
+                        <div className="w-full flex-shrink-0 mb-1">
+                            <div className="flex items-center text-left w-full h-[110px] bg-zinc-50 p-2 rounded-3xl border border-zinc-100 flex-shrink-0">
                                 <img
                                     src={profile.display_avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop'}
                                     alt="Avatar"
-                                    className="w-14 h-14 rounded-full object-cover border-2 border-[#10b981] flex-shrink-0"
+                                    className="w-20 h-20 rounded-full object-cover border-2 border-[#10b981] flex-shrink-0 mr-4"
                                     crossOrigin="anonymous"
                                 />
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-[18px] font-black text-[#065f46] uppercase leading-tight truncate">{profile.full_name}</p>
-                                    <div className="flex items-center justify-between mt-0.5">
-                                        <span className="text-[10px] font-bold text-zinc-400 uppercase">CÓDIGO:</span>
-                                        <span className="text-[#10b981] font-black text-[18px] leading-none">{profile.referral_code}</span>
-                                    </div>
+                                <div className="flex-1 min-w-0 flex items-center h-full">
+                                    <p className="text-[22px] font-black text-[#065f46] uppercase leading-[1.1] break-words -mt-2">{profile.full_name}</p>
                                 </div>
                             </div>
                         </div>
@@ -152,7 +154,7 @@ export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ p
                     ref={ref}
                     data-capture-container="true"
                     style={{ width: '380px', height: '650px', minWidth: '380px', maxWidth: '380px', minHeight: '650px', maxHeight: '650px' }}
-                    className={`bg-white text-black rounded-lg overflow-hidden shadow-2xl flex flex-col transition-all duration-300 border border-zinc-200 flex-shrink-0`}
+                    className={`bg-white text-black rounded-lg overflow-hidden shadow-2xl flex flex-col transition-all duration-300 border-2 border-zinc-300 flex-shrink-0`}
                 >
                     {/* Header: Photo and Name */}
                     <div className="h-[300px] bg-[#0f172a] p-10 flex flex-col items-center justify-center relative flex-shrink-0 w-full overflow-hidden">
@@ -161,9 +163,9 @@ export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ p
                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-emerald-500/5 rounded-tr-full -ml-8 -mb-8" />
 
                         {/* Top Section: Logo (Left) and Photo (Right) - Mismo Tamaño */}
-                        <div className="flex items-center justify-center gap-12 z-10 w-full mb-6">
+                        <div className="flex items-center justify-center z-10 w-full mb-6">
                             {/* Logo Column */}
-                            <div className="flex flex-col items-center">
+                            <div className="flex flex-col items-center mr-10">
                                 <div className="bg-white w-24 h-24 rounded-3xl shadow-2xl border-2 border-emerald-50 flex items-center justify-center p-2">
                                     <img src={logoUrl} alt="Logo" className="h-18 w-auto block object-contain" crossOrigin="anonymous" />
                                 </div>
@@ -173,12 +175,14 @@ export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ p
                             <div className="w-[1px] h-24 bg-white/10" />
 
                             {/* Photo Column */}
-                            <img
-                                src={profile.display_avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop'}
-                                alt="Avatar"
-                                className="w-32 h-32 min-w-[128px] min-h-[128px] rounded-full object-cover border-4 border-emerald-500 shadow-2xl flex-shrink-0"
-                                crossOrigin="anonymous"
-                            />
+                            <div className="ml-10">
+                                <img
+                                    src={profile.display_avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop'}
+                                    alt="Avatar"
+                                    className="w-32 h-32 min-w-[128px] min-h-[128px] rounded-full object-cover border-4 border-emerald-500 shadow-2xl flex-shrink-0"
+                                    crossOrigin="anonymous"
+                                />
+                            </div>
                         </div>
 
                         {/* Bottom Section: Name and Status */}
@@ -217,7 +221,7 @@ export const MarketingTemplates = forwardRef<HTMLDivElement, TemplateProps>(({ p
                     ref={ref}
                     data-capture-container="true"
                     style={{ width: '510px', height: '283px', minWidth: '510px', maxWidth: '510px', minHeight: '283px', maxHeight: '283px' }}
-                    className={`bg-white text-black rounded-sm overflow-hidden shadow-2xl flex flex-col transition-all duration-300 border border-zinc-200 flex-shrink-0`}
+                    className={`bg-white text-black rounded-sm overflow-hidden shadow-2xl flex flex-col transition-all duration-300 border-2 border-zinc-300 flex-shrink-0`}
                 >
                     {/* Header Section - Explicit Height */}
                     <div className="h-[95px] w-full flex flex-col items-center justify-center bg-zinc-50 border-b-2 border-zinc-800 px-4 flex-shrink-0">

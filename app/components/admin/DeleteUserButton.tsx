@@ -20,9 +20,14 @@ export default function DeleteUserButton({ userId }: { userId: string }) {
     const handleDelete = async () => {
         setIsDeleting(true)
         try {
-            await deleteUser(userId)
-            // If we reach here, no redirect happened (unexpected for success)
-            // but we might have returned something if we catch it.
+            const result = await deleteUser(userId)
+            
+            if (result && !result.success) {
+                setShowConfirm(false)
+                setFeedbackMessage({ type: 'error', message: result.error || 'Error al intentar eliminar al usuario.' })
+                setIsDeleting(false)
+            }
+            // If result.success is true, the redirect inside the action will handle it
         } catch (error: any) {
             // Next.js redirect throws a specific error that should be handled by the framework
             if (error?.message === 'NEXT_REDIRECT' || error?.digest?.includes('NEXT_REDIRECT')) {
@@ -30,7 +35,7 @@ export default function DeleteUserButton({ userId }: { userId: string }) {
             }
             console.error('Error in handleDelete:', error)
             setShowConfirm(false)
-            setFeedbackMessage({ type: 'error', message: 'Error al intentar eliminar al usuario.' })
+            setFeedbackMessage({ type: 'error', message: 'Error de red al intentar eliminar al usuario.' })
             setIsDeleting(false)
         }
     }

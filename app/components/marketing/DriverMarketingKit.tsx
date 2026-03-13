@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from 'react'
 import { Download, Tag, CreditCard, Truck, Shield, Award, Lock } from 'lucide-react'
 import html2canvas from 'html2canvas'
+import { jsPDF } from 'jspdf'
 import { createMarketingRequest, getMarketingRequest, type MarketingRequest } from '@/app/actions/user-requests'
 import { useRouter } from 'next/navigation'
 import MarketingRequestModal from './MarketingRequestModal'
@@ -23,8 +24,10 @@ interface DriverMarketingKitProps {
 
 export default function DriverMarketingKit({ profile, referralLink, embedded = false, hasMembership = false, isPlataOrHigher = false }: DriverMarketingKitProps) {
     const [downloading, setDownloading] = useState(false)
+    const [pdfDownloading, setPdfDownloading] = useState(false)
     const [activeTab, setActiveTab] = useState<'flyer' | 'sticker' | 'profile' | 'card' | 'seatback' | 'videocam'>('profile')
     const contentRef = useRef<HTMLDivElement>(null)
+    const pdfHiddenRef = useRef<HTMLDivElement>(null)
 
     // Request State
     const [requestModalOpen, setRequestModalOpen] = useState(false)
@@ -147,6 +150,77 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
             if (container.parentNode) document.body.removeChild(container)
         } finally {
             setDownloading(false)
+        }
+    }
+
+    const handleDownloadPDF = async () => {
+        if (!pdfHiddenRef.current) return
+
+        setPdfDownloading(true)
+        try {
+            const pdf = new jsPDF('p', 'mm', 'letter')
+            const margin = 10
+            const pageWidth = 215.9
+            const pageHeight = 279.4
+
+            // Wait for all images in the hidden container to load
+            await new Promise(resolve => setTimeout(resolve, 3000))
+
+            const capture = async (itemId: string) => {
+                const parent = pdfHiddenRef.current?.querySelector(`[data-pdf-item="${itemId}"]`) as HTMLElement
+                if (!parent) return null
+                const target = parent.querySelector('[data-capture-container="true"]') as HTMLElement
+                if (!target) return null
+                
+                const canvas = await html2canvas(target, { 
+                    useCORS: true, 
+                    scale: 3, 
+                    backgroundColor: '#ffffff'
+                })
+                return canvas.toDataURL('image/png')
+            }
+
+            // PAGE 1
+            const profileImg = await capture('profile')
+            const videocamImg = await capture('videocam')
+            const stickerImg = await capture('sticker')
+
+            // Row 1: Cabecera Asiento (left) | Sticker Cámara (right)
+            // Cabecera Asiento: 13 x 7.6 cm (alto x ancho) -> 76mm x 130mm
+            if (profileImg) pdf.addImage(profileImg, 'PNG', margin, margin, 76, 130)
+            
+            // Sticker Cámara: 8.5 x 8.5 cm -> 85mm x 85mm
+            if (videocamImg) pdf.addImage(videocamImg, 'PNG', margin + 86, margin, 85, 85)
+            
+            // Row 2: Sticker Ventana (below)
+            // Sticker Ventana: 7 x 7 cm -> 70mm x 70mm
+            if (stickerImg) pdf.addImage(stickerImg, 'PNG', margin, margin + 140, 70, 70)
+
+            // PAGE 2 (Membership only)
+            if (hasMembership) {
+                pdf.addPage()
+                const seatbackImg = await capture('seatback')
+                const flyerImg = await capture('flyer')
+                const cardImg = await capture('card')
+
+                // Respaldo Asiento: Keep standard size for landscape
+                if (seatbackImg) pdf.addImage(seatbackImg, 'PNG', margin, margin, 195, 126)
+                
+                // Sticker Tablero: 10.89 x 7.6 cm (alto x ancho) -> 76mm x 108.9mm
+                if (flyerImg) pdf.addImage(flyerImg, 'PNG', margin, margin + 136, 76, 108.9)
+                
+                // Tarjeta Presentación: 4.72 x 8.5 cm -> 85mm x 47.2mm
+                if (cardImg) pdf.addImage(cardImg, 'PNG', margin + 86, margin + 136, 85, 47.2)
+            }
+
+            const safeCode = (profile.referral_code || 'conductor').replace(/[^a-zA-Z0-9]/g, '_')
+            pdf.save(`Kit_Marketing_AvivaGo_${safeCode}.pdf`)
+
+        } catch (error) {
+            console.error('PDF Download error:', error)
+            alert('Error al generar el PDF. Por favor intente de nuevo.')
+        } finally {
+            setPdfDownloading(false)
         }
     }
 
@@ -356,6 +430,24 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
                                 </button>
                             )}
 
+                            <button
+                                onClick={handleDownloadPDF}
+                                disabled={pdfDownloading}
+                                className="w-full mt-4 py-4 rounded-3xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all flex items-center justify-center gap-3 border border-white/10 active:scale-[0.98] disabled:opacity-50"
+                            >
+                                {pdfDownloading ? (
+                                    <>
+                                        <div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+                                        <span className="text-base">Generando PDF...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Download className="h-6 w-6 text-emerald-400" />
+                                        <span className="text-base">Descargar Kit Completo (PDF)</span>
+                                    </>
+                                )}
+                            </button>
+
                             <div className="w-full h-px bg-white/10 my-6" />
 
                             {/* Status / Request Button Area - Now below download */}
@@ -434,6 +526,18 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
                     submitting={submitting}
                 />
             )}
+            {/* Hidden export layout for PDF generation */}
+            <div style={{ position: 'fixed', left: '-9999px', top: '0', opacity: 0, pointerEvents: 'none' }}>
+                <MarketingTemplates
+                    ref={pdfHiddenRef}
+                    profile={profile}
+                    qrUrl={qrUrl}
+                    profileQrUrl={profileQrUrl}
+                    privacyQrUrl={privacyQrUrl}
+                    logoUrl={logoUrl}
+                    activeTab="all-for-pdf"
+                />
+            </div>
         </div>
     )
 }
