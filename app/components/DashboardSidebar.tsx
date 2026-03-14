@@ -35,6 +35,7 @@ export default function DashboardSidebar() {
     const [hasDriverRole, setHasDriverRole] = useState(false)
     const [userEmail, setUserEmail] = useState<string | null>(null)
     const [unreadCount, setUnreadCount] = useState(0)
+    const [hasMembership, setHasMembership] = useState(false)
 
     useEffect(() => {
         let channel: any = null;
@@ -87,6 +88,27 @@ export default function DashboardSidebar() {
 
             if (userData?.roles?.includes('driver')) {
                 setHasDriverRole(true)
+
+                // Check for active membership
+                const { data: driverProfile } = await supabase
+                    .from('driver_profiles')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .maybeSingle()
+
+                if (driverProfile) {
+                    const { data: membership } = await supabase
+                        .from('driver_memberships')
+                        .select('id')
+                        .eq('driver_profile_id', driverProfile.id)
+                        .eq('status', 'active')
+                        .gt('expires_at', new Date().toISOString())
+                        .maybeSingle()
+                    
+                    if (membership) {
+                        setHasMembership(true)
+                    }
+                }
             }
         }
         checkRole()
@@ -114,9 +136,9 @@ export default function DashboardSidebar() {
                     { label: 'Marketing', href: '/perfil?tab=marketing' },
                     { label: 'Mis cotizaciones', href: '/perfil?tab=solicitudes' },
                     { label: 'Calculadora de viajes', href: '/driver/calculadora' },
-                    { label: 'Mis Invitados', href: '/invitados' },
                     { label: 'Cartera de Pasajeros', href: '/cartera', badge: unreadCount },
-                    { label: 'Membresía', href: '/perfil?tab=payments' }
+                    { label: 'Membresía', href: '/perfil?tab=payments' },
+                    ...(hasMembership ? [{ label: 'Mis Invitados', href: '/invitados' }] : [])
                 ]
             }
         ] : []),

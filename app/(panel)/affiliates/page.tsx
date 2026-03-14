@@ -12,6 +12,7 @@ import {
     History,
     CheckCircle
 } from 'lucide-react'
+import LoadingScreen from '@/app/components/LoadingScreen'
 
 export default function AffiliatesPage() {
     const [loading, setLoading] = useState(true)
@@ -77,7 +78,7 @@ export default function AffiliatesPage() {
     }
 
     if (loading) {
-        return <div className="p-10 text-center text-zinc-500">Cargando datos de afiliados...</div>
+        return <LoadingScreen />
     }
 
     return (

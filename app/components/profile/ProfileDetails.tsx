@@ -7,7 +7,7 @@ interface ProfileDetailsProps {
 
 export default function ProfileDetails({ driver }: ProfileDetailsProps) {
     return (
-        <div className="bg-white border border-gray-100 shadow-soft rounded-[30px] sm:rounded-[40px] p-6 sm:p-8 lg:p-12 space-y-12">
+        <div className="bg-white border border-gray-100 shadow-soft rounded-[30px] sm:rounded-[40px] p-5 sm:p-8 lg:p-12 space-y-8 sm:space-y-12">
 
             {/* Social Commitment */}
             {driver.social_commitment && (
@@ -19,7 +19,7 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
                         <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Compromiso de Trato Igualitario</h3>
                     </div>
 
-                    <div className="p-8 bg-violet-50 border border-violet-100 rounded-[2.5rem] relative overflow-hidden group shadow-soft">
+                    <div className="p-5 sm:p-8 bg-violet-50 border border-violet-100 rounded-[2.5rem] relative overflow-hidden group shadow-soft">
                         <Users className="absolute -right-4 -bottom-4 h-32 w-32 text-violet-500/5 group-hover:scale-110 transition-transform duration-700" />
                         <div className="relative z-10 pl-0">
                             <p className="text-violet-900/80 text-lg leading-relaxed font-medium">
@@ -44,7 +44,7 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
                         <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Aviso de Privacidad (Cámaras en Vehículo)</h3>
                     </div>
 
-                    <div className="p-8 bg-amber-50/50 border border-amber-200 rounded-[2.5rem] relative overflow-hidden group shadow-soft">
+                    <div className="p-5 sm:p-8 bg-amber-50/50 border border-amber-200 rounded-[2.5rem] relative overflow-hidden group shadow-soft">
                         <Video className="absolute -right-4 -bottom-4 h-32 w-32 text-amber-500/5 group-hover:scale-110 transition-transform duration-700" />
                         <div className="relative z-10 pl-0">
                             <p className="text-amber-900/80 text-sm md:text-base leading-relaxed font-medium">
@@ -184,7 +184,7 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
                     </div>
                     <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Formas de Pago Aceptadas</h3>
                 </div>
-                <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl">
+                <div className="p-5 sm:p-6 bg-gray-50 border border-gray-100 rounded-3xl">
                     {driver.payment_methods && driver.payment_methods.length > 0 ? (
                         <div className="space-y-6">
                             <div className="flex flex-wrap gap-3">
@@ -239,21 +239,21 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
             )}
 
             {/* Languages & Platforms */}
-            <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6 sm:space-y-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                     {/* Languages */}
                     <section>
-                        <div className="flex items-center gap-3 mb-6">
+                        <div className="flex items-center gap-3 mb-4 sm:mb-6">
                             <div className="bg-blue-50 p-2 rounded-xl">
                                 <Globe className="h-5 w-5 text-aviva-primary" />
                             </div>
-                            <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Idiomas</h3>
+                            <h3 className="text-lg sm:text-xl font-bold tracking-tight text-aviva-navy font-display">Idiomas</h3>
                         </div>
-                        <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl h-full">
+                        <div className="p-5 sm:p-6 bg-gray-50 border border-gray-100 rounded-3xl md:h-full">
                             <div className="flex flex-wrap gap-2">
                                 {(driver.languages || []).length > 0 ? (
                                     (driver.languages || []).map(lang => (
-                                        <span key={lang} className="px-3 py-1 bg-white border border-blue-100 text-aviva-primary rounded-lg text-sm font-bold shadow-sm">{lang}</span>
+                                        <span key={lang} className="px-3 py-1.5 bg-white border border-blue-100 text-aviva-primary rounded-lg text-sm font-bold shadow-sm">{lang}</span>
                                     ))
                                 ) : <span className="text-aviva-subtext italic">Español</span>}
                             </div>
@@ -263,16 +263,17 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
                     {/* Indigenous Languages */}
                     {(driver.indigenous || []).length > 0 && (
                         <section>
-                            <div className="flex items-center gap-3 mb-6">
+                            <div className="flex items-center gap-3 mb-4 sm:mb-6">
                                 <div className="bg-purple-50 p-2 rounded-xl">
                                     <Globe className="h-5 w-5 text-purple-600" />
                                 </div>
-                                <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Lenguas Indígenas</h3>
+                                <h3 className="text-lg sm:text-xl font-bold tracking-tight text-aviva-navy font-display">Lenguas Indígenas</h3>
                             </div>
-                            <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl h-full">
-                                <div className="flex flex-wrap gap-2">
+                            <div className="p-5 sm:p-6 bg-gray-50 border border-gray-100 rounded-3xl md:h-full">
+                                <div className="flex flex-wrap gap-2.5">
                                     {driver.indigenous?.map((lang: string) => (
-                                        <span key={lang} className="px-3 py-1 bg-white border border-purple-100 text-purple-600 rounded-lg text-sm font-bold shadow-sm">
+                                        <span key={lang} className="px-4 py-2 bg-white border border-purple-100 text-purple-600 rounded-xl text-sm font-bold shadow-sm flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
                                             {lang}
                                         </span>
                                     ))}
@@ -284,17 +285,18 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
 
                 {/* Transport Platforms - Full Width Below */}
                 {driver.transport_platforms && driver.transport_platforms.length > 0 && (
-                    <section>
-                        <div className="flex items-center gap-3 mb-6">
+                    <section className="pt-4 sm:pt-8">
+                        <div className="flex items-center gap-3 mb-4 sm:mb-6">
                             <div className="bg-gray-100 p-2 rounded-xl">
                                 <Car className="h-5 w-5 text-gray-700" />
                             </div>
-                            <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Experiencia en Plataformas de Movilidad</h3>
+                            <h3 className="text-lg sm:text-xl font-bold tracking-tight text-aviva-navy font-display">Experiencia en Plataformas</h3>
                         </div>
-                        <div className="p-6 bg-gray-50 border border-gray-100 rounded-3xl">
-                            <div className="flex flex-wrap gap-3">
+                        <div className="p-5 sm:p-6 bg-gray-50 border border-gray-100 rounded-3xl">
+                            <div className="flex flex-wrap gap-2.5">
                                 {driver.transport_platforms.map(platform => (
-                                    <div key={platform} className="px-4 py-2 bg-gray-700 border border-gray-700 rounded-xl text-sm font-bold text-white shadow-sm">
+                                    <div key={platform} className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 shadow-sm flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
                                         {platform}
                                     </div>
                                 ))}
@@ -313,16 +315,19 @@ export default function ProfileDetails({ driver }: ProfileDetailsProps) {
                         </div>
                         <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Horario y Disponibilidad</h3>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="flex flex-wrap gap-2.5">
                         {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map(day => {
                             const time = driver.schedule?.[day];
                             const isActive = time && time.start !== '00:00' && time.end !== '00:00';
 
                             return (
-                                <div key={day} className={`p-4 rounded-2xl border transition-all ${isActive ? 'bg-blue-50 border-blue-100' : 'bg-gray-50 border-gray-100 opacity-50'}`}>
-                                    <div className="text-[10px] font-bold uppercase tracking-widest text-aviva-subtext mb-1">{day}</div>
-                                    <div className={`text-sm font-bold ${isActive ? 'text-aviva-navy' : 'text-gray-300'}`}>
-                                        {isActive ? `${time.start} - ${time.end}` : 'No disponible'}
+                                <div key={day} className={`px-4 py-2.5 rounded-xl border transition-all flex items-center gap-3 shadow-sm ${isActive ? 'bg-white border-blue-100' : 'bg-gray-50 border-gray-100 opacity-50'}`}>
+                                    <div className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-blue-500' : 'bg-gray-300'}`} />
+                                    <div className="flex flex-col">
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-aviva-subtext leading-none mb-1">{day}</span>
+                                        <span className={`text-sm font-bold ${isActive ? 'text-aviva-navy' : 'text-gray-400'} leading-none`}>
+                                            {isActive ? `${time.start} - ${time.end}` : 'Sin servicio'}
+                                        </span>
                                     </div>
                                 </div>
                             );

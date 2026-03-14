@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation'
 import { toggleLike } from '@/app/actions/reviews'
 import ReviewThread from '../../components/ReviewThread'
 import TrustFooter from '@/app/components/marketing/v1/TrustFooter'
+import LoadingScreen from '@/app/components/LoadingScreen'
 
 export default function CommunityPage() {
     const [posts, setPosts] = useState<any[]>([])
@@ -213,13 +214,7 @@ export default function CommunityPage() {
         fetchData()
     }, [supabase])
 
-    if (loading) return <div className="animate-pulse space-y-4">
-        <div className="h-10 bg-white/5 rounded-xl w-1/3" />
-        <div className="space-y-6">
-            <div className="h-48 bg-white/5 rounded-3xl" />
-            <div className="h-48 bg-white/5 rounded-3xl" />
-        </div>
-    </div>
+    if (loading) return <LoadingScreen />
 
     const handleLike = async (postId: string) => {
         if (!currentUserId) {

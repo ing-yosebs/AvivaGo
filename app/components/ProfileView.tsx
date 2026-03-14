@@ -203,22 +203,40 @@ const ProfileView = ({ driver, isLoggedIn }: ProfileViewProps) => {
                     {/* Mobile Sticky Header - Placed outside grid to ensure sticky works */}
                     <div className={`lg:hidden sticky z-40 -mx-4 sm:mx-0 mb-2 px-4 sm:px-0 bg-gray-50/95 backdrop-blur-sm pt-0 pb-2 transition-all ${isLoggedIn ? 'top-[56px] sm:top-[64px]' : 'top-0'}`}>
                         <div className="shadow-xl rounded-b-[30px] sm:rounded-b-[40px] overflow-hidden bg-white pt-2">
-                            <ProfileHeader driver={driver} className="border-none shadow-none pb-0 mb-0 rounded-none rounded-b-[30px]" />
+                            <ProfileHeader
+                                driver={driver}
+                                isFavorite={isFavorite}
+                                isLocked={isLocked}
+                                loadingFav={loadingFav}
+                                showShareFeedback={showShareFeedback}
+                                onToggleFavorite={toggleFavorite}
+                                onShare={handleShare}
+                                className="border-none shadow-none pb-0 mb-0 rounded-none rounded-b-[30px]"
+                            />
                         </div>
                     </div>
 
                     {/* Mobile Info - Just below sticky header */}
-                    <div className="lg:hidden mb-6">
+                    <div className="lg:hidden mb-1">
                         <ProfileInfo driver={driver} />
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
                         {/* Left Sidebar (Desktop & Mobile Actions) */}
-                        <div className="lg:col-span-4 space-y-6">
+                        <div className="lg:col-span-4 space-y-3">
                             {/* Desktop Header containing both Image+Name and Details */}
                             <div className="hidden lg:block bg-white border border-gray-100 shadow-soft rounded-[30px] sm:rounded-[40px] overflow-hidden pb-6">
-                                <ProfileHeader driver={driver} className="border-none shadow-none rounded-none mb-0" />
+                                <ProfileHeader
+                                    driver={driver}
+                                    isFavorite={isFavorite}
+                                    isLocked={isLocked}
+                                    loadingFav={loadingFav}
+                                    showShareFeedback={showShareFeedback}
+                                    onToggleFavorite={toggleFavorite}
+                                    onShare={handleShare}
+                                    className="border-none shadow-none rounded-none mb-0"
+                                />
                                 <ProfileInfo driver={driver} />
                             </div>
 

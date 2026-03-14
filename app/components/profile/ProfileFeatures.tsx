@@ -10,13 +10,13 @@ export default function ProfileFeatures({ driver }: ProfileFeaturesProps) {
         <div className="space-y-6 sm:space-y-8">
             {/* SERVICE SEAL (Personality) */}
             {(driver.personality?.social || driver.personality?.driving || driver.personality?.assistance) && (
-                <div className="bg-white border border-gray-100 shadow-soft rounded-[30px] sm:rounded-[40px] p-6 sm:p-8">
+                <div className="bg-white border border-gray-100 shadow-soft rounded-[30px] sm:rounded-[40px] p-5 sm:p-8">
                     <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <div className="flex items-center gap-3 mb-8">
+                        <div className="flex items-center gap-3 mb-6 sm:mb-8">
                             <div className="bg-blue-50 p-2 rounded-xl">
                                 <Zap className="h-5 w-5 text-aviva-primary" />
                             </div>
-                            <h3 className="text-xl font-bold tracking-tight text-aviva-navy font-display">Sello de Servicio Profesional</h3>
+                            <h3 className="text-lg sm:text-xl font-bold tracking-tight text-aviva-navy font-display">Sello de Servicio Profesional</h3>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

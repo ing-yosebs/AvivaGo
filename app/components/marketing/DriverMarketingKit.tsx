@@ -174,10 +174,10 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
                 
                 const canvas = await html2canvas(target, { 
                     useCORS: true, 
-                    scale: 3, 
+                    scale: 2, 
                     backgroundColor: '#ffffff'
                 })
-                return canvas.toDataURL('image/png')
+                return canvas.toDataURL('image/jpeg', 0.85)
             }
 
             // PAGE 1
@@ -187,14 +187,14 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
 
             // Row 1: Cabecera Asiento (left) | Sticker Cámara (right)
             // Cabecera Asiento: 13 x 7.6 cm (alto x ancho) -> 76mm x 130mm
-            if (profileImg) pdf.addImage(profileImg, 'PNG', margin, margin, 76, 130)
+            if (profileImg) pdf.addImage(profileImg, 'JPEG', margin, margin, 76, 130, undefined, 'FAST')
             
             // Sticker Cámara: 8.5 x 8.5 cm -> 85mm x 85mm
-            if (videocamImg) pdf.addImage(videocamImg, 'PNG', margin + 86, margin, 85, 85)
+            if (videocamImg) pdf.addImage(videocamImg, 'JPEG', margin + 86, margin, 85, 85, undefined, 'FAST')
             
             // Row 2: Sticker Ventana (below)
             // Sticker Ventana: 7 x 7 cm -> 70mm x 70mm
-            if (stickerImg) pdf.addImage(stickerImg, 'PNG', margin, margin + 140, 70, 70)
+            if (stickerImg) pdf.addImage(stickerImg, 'JPEG', margin, margin + 140, 70, 70, undefined, 'FAST')
 
             // PAGE 2 (Membership only)
             if (hasMembership) {
@@ -204,13 +204,13 @@ export default function DriverMarketingKit({ profile, referralLink, embedded = f
                 const cardImg = await capture('card')
 
                 // Respaldo Asiento: Keep standard size for landscape
-                if (seatbackImg) pdf.addImage(seatbackImg, 'PNG', margin, margin, 195, 126)
+                if (seatbackImg) pdf.addImage(seatbackImg, 'JPEG', margin, margin, 195, 126, undefined, 'FAST')
                 
                 // Sticker Tablero: 10.89 x 7.6 cm (alto x ancho) -> 76mm x 108.9mm
-                if (flyerImg) pdf.addImage(flyerImg, 'PNG', margin, margin + 136, 76, 108.9)
+                if (flyerImg) pdf.addImage(flyerImg, 'JPEG', margin, margin + 136, 76, 108.9, undefined, 'FAST')
                 
                 // Tarjeta Presentación: 4.72 x 8.5 cm -> 85mm x 47.2mm
-                if (cardImg) pdf.addImage(cardImg, 'PNG', margin + 86, margin + 136, 85, 47.2)
+                if (cardImg) pdf.addImage(cardImg, 'JPEG', margin + 86, margin + 136, 85, 47.2, undefined, 'FAST')
             }
 
             const safeCode = (profile.referral_code || 'conductor').replace(/[^a-zA-Z0-9]/g, '_')

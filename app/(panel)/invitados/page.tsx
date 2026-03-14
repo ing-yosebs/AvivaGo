@@ -8,6 +8,7 @@ import { Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, Award, Copy, C
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import MembershipRequiredView from '../perfil/components/MembershipRequiredView'
+import LoadingScreen from '@/app/components/LoadingScreen'
 
 export default function WalletPage() {
     const router = useRouter()
@@ -151,7 +152,7 @@ export default function WalletPage() {
         }
     }
 
-    if (loading) return <div className="p-8"><div className="w-8 h-8 border-4 border-blue-600 rounded-full animate-spin border-t-transparent" /></div>
+    if (loading) return <LoadingScreen />
 
     // Calculate level thresholds
     const getLevelData = (count = 0, currentLevel = 'bronze') => {
@@ -211,6 +212,10 @@ export default function WalletPage() {
     const b2cCount = hasMembership ? eligibleB2CCount : 0
     const b2cNextGoal = 20 - (b2cCount % 20)
     const b2cProgress = (b2cCount % 20) / 20 * 100
+
+    if (!hasMembership) {
+        return <MembershipRequiredView />
+    }
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto p-4 md:p-8">

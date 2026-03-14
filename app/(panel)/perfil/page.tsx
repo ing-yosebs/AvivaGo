@@ -33,6 +33,7 @@ import MarketingSection from './components/MarketingSection'
 import DriverDashboardSection from './components/DriverDashboardSection'
 import { OnboardingTracker } from '@/components/Onboarding/OnboardingTracker'
 import { getDriverOnboardingProgress, type OnboardingProgressResult } from '@/lib/actions/onboarding'
+import LoadingScreen from '@/app/components/LoadingScreen'
 export default function ProfilePage() {
     return (
         <Suspense fallback={
@@ -277,12 +278,7 @@ function ProfileContent() {
         }
     }
 
-    if (loading) return (
-        <div className="animate-pulse space-y-4">
-            <div className="h-12 bg-gray-100 rounded-2xl w-1/4" />
-            <div className="h-[400px] bg-gray-100 rounded-3xl" />
-        </div>
-    )
+    if (loading) return <LoadingScreen />
 
     const tabs = [
         { id: 'personal', label: 'Datos Personales', icon: User },

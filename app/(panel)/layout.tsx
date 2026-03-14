@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { Rocket } from 'lucide-react'
 import MissingInfoModal from '@/app/components/MissingInfoModal'
 import ChatSlideOver from '@/app/components/chat/ChatSlideOver'
+import LoadingScreen from '@/app/components/LoadingScreen'
 
 export default function PanelLayout({
     children,
@@ -36,11 +37,7 @@ export default function PanelLayout({
     }, [supabase, router, pathname])
 
     if (loading) {
-        return (
-            <div className="min-h-screen bg-[#F9FAF8] flex items-center justify-center">
-                <div className="w-12 h-12 border-4 border-[#2563EB]/20 border-t-[#2563EB] rounded-full animate-spin" />
-            </div>
-        )
+        return <LoadingScreen />
     }
 
     const showSidebar = !!user;

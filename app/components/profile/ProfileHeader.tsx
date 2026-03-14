@@ -1,4 +1,4 @@
-import { ShieldCheck, Users, User } from 'lucide-react';
+import { ShieldCheck, Users, User, Heart, Share2, Check } from 'lucide-react';
 import { DriverProfile } from './types';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,9 +6,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface ProfileHeaderProps {
     driver: DriverProfile;
     className?: string;
+    isFavorite?: boolean;
+    isLocked?: boolean;
+    loadingFav?: boolean;
+    showShareFeedback?: boolean;
+    onToggleFavorite?: () => void;
+    onShare?: () => void;
 }
 
-export default function ProfileHeader({ driver, className = '' }: ProfileHeaderProps) {
+export default function ProfileHeader({
+    driver,
+    className = '',
+    isFavorite = false,
+    isLocked = false,
+    loadingFav = false,
+    showShareFeedback = false,
+    onToggleFavorite,
+    onShare
+}: ProfileHeaderProps) {
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
     const [currentProfileIndex, setCurrentProfileIndex] = useState(0);
     const heroPhotos = driver.heroPhotos || [];
@@ -56,6 +71,46 @@ export default function ProfileHeader({ driver, className = '' }: ProfileHeaderP
                         </div>
                     </div>
                 )}
+
+                {/* Floating Action Buttons */}
+                <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-30">
+                    {/* Favorite Button */}
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onToggleFavorite?.();
+                        }}
+                        disabled={loadingFav || isLocked}
+                        className={`p-2.5 rounded-full backdrop-blur-md transition-all active:scale-90 shadow-lg border ${isFavorite
+                            ? 'bg-red-500/90 border-red-400 text-white'
+                            : 'bg-white/70 border-white/40 text-gray-700 hover:bg-white/90'
+                            }`}
+                    >
+                        {isLocked ? (
+                            <ShieldCheck className="h-4 w-4 fill-current" />
+                        ) : (
+                            <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
+                        )}
+                    </button>
+
+                    {/* Share Button */}
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            onShare?.();
+                        }}
+                        className={`p-2.5 rounded-full backdrop-blur-md transition-all active:scale-90 shadow-lg border ${showShareFeedback
+                            ? 'bg-emerald-500/90 border-emerald-400 text-white'
+                            : 'bg-white/70 border-white/40 text-gray-700 hover:bg-white/90'
+                            }`}
+                    >
+                        {showShareFeedback ? (
+                            <Check className="h-4 w-4" />
+                        ) : (
+                            <Share2 className="h-4 w-4" />
+                        )}
+                    </button>
+                </div>
 
                 <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full overflow-hidden ring-4 ring-white shadow-2xl group relative z-10 bg-white aspect-square">
                     {profilePhotos.length > 0 ? (

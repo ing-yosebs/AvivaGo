@@ -20,6 +20,7 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import DriverCard from '../../components/DriverCard'
+import LoadingScreen from '@/app/components/LoadingScreen'
 
 export default function FavoritesPage() {
     const [favorites, setFavorites] = useState<any[]>([])
@@ -148,13 +149,7 @@ export default function FavoritesPage() {
         setSavingNote(false)
     }
 
-    if (loading) return <div className="animate-pulse space-y-4">
-        <div className="h-10 bg-white/5 rounded-xl w-1/4" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="h-64 bg-white/5 rounded-3xl" />
-            <div className="h-64 bg-white/5 rounded-3xl" />
-        </div>
-    </div>
+    if (loading) return <LoadingScreen />
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">

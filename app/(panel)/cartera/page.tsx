@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import { Users, Search, MessageSquare, Save, Car, BookOpen, Clock, Loader2, Download } from 'lucide-react'
 import Link from 'next/link'
+import LoadingScreen from '@/app/components/LoadingScreen'
 
 export default function CarteraPage() {
     const [passengers, setPassengers] = useState<any[]>([])
@@ -215,7 +216,7 @@ export default function CarteraPage() {
         p.address_state?.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
-    if (loading) return <div className="p-8 flex justify-center"><Loader2 className="h-8 w-8 text-blue-600 animate-spin" /></div>
+    if (loading) return <LoadingScreen />
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-7xl mx-auto p-4 md:p-8">

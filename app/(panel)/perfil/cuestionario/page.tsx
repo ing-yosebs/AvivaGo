@@ -17,6 +17,7 @@ import {
     Map,
     Globe
 } from 'lucide-react'
+import LoadingScreen from '@/app/components/LoadingScreen'
 
 export default function QuestionnairePage() {
     const router = useRouter()
@@ -107,7 +108,7 @@ export default function QuestionnairePage() {
         }
     }
 
-    if (loading) return <div className="min-h-screen bg-black p-8 flex items-center justify-center text-white">Cargando cuestionario...</div>
+    if (loading) return <LoadingScreen />
 
     return (
         <div className="min-h-screen bg-black text-white p-4 md:p-8 animate-in fade-in duration-700">

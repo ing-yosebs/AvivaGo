@@ -22,6 +22,7 @@ import { es } from 'date-fns/locale'
 import { useDashboardData } from './hooks/useDashboardData'
 import { StatCard } from './components/StatCard'
 import { ActivityItem } from './components/ActivityItem'
+import LoadingScreen from '@/app/components/LoadingScreen'
 
 
 export default function Dashboard() {
@@ -30,7 +31,7 @@ export default function Dashboard() {
 
 
     if (loading) {
-        return <div className="p-8 text-center text-zinc-400">Cargando panel...</div>
+        return <LoadingScreen />
     }
 
     return (
