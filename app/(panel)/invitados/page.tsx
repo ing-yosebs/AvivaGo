@@ -214,7 +214,7 @@ export default function WalletPage() {
     const b2cProgress = (b2cCount % 20) / 20 * 100
 
     if (!hasMembership) {
-        return <MembershipRequiredView />
+        return <MembershipRequiredView onTabChange={(tab) => router.push(`/perfil?tab=${tab}`)} />
     }
 
     return (
