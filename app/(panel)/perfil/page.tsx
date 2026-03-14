@@ -63,8 +63,7 @@ function ProfileContent() {
     const [pendingPayment, setPendingPayment] = useState<any>(null)
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
     const [onboardingProgress, setOnboardingProgress] = useState<OnboardingProgressResult | null>(null)
-
-    const supabase = createClient()
+    const [supabase] = useState(() => createClient())
 
     const loadProfile = async (userId?: string) => {
         let currentUserId = userId
@@ -180,7 +179,7 @@ function ProfileContent() {
             setLoading(false)
         }
         init()
-    }, [supabase, urlTab])
+    }, [urlTab])
 
     const handleSaveProfile = async (formData: any) => {
         if (profile?.is_banned) {

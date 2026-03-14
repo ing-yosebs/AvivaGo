@@ -20,8 +20,7 @@ export default function AffiliatesPage() {
     const [wallet, setWallet] = useState<any>(null)
     const [referralLink, setReferralLink] = useState('')
     const [transactions, setTransactions] = useState<any[]>([])
-
-    const supabase = createClient()
+    const [supabase] = useState(() => createClient())
 
     useEffect(() => {
         const fetchData = async () => {
@@ -70,7 +69,7 @@ export default function AffiliatesPage() {
             setLoading(false)
         }
         fetchData()
-    }, [supabase])
+    }, [])
 
     const copyLink = () => {
         navigator.clipboard.writeText(referralLink)

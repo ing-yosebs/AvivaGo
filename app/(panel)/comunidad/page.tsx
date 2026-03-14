@@ -27,7 +27,7 @@ export default function CommunityPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [loading, setLoading] = useState(true)
     const [currentUserId, setCurrentUserId] = useState<string | undefined>(undefined)
-    const supabase = createClient()
+    const [supabase] = useState(() => createClient())
     const router = useRouter()
 
     const [topDrivers, setTopDrivers] = useState<any[]>([])
@@ -212,7 +212,7 @@ export default function CommunityPage() {
             setLoading(false)
         }
         fetchData()
-    }, [supabase])
+    }, [])
 
     if (loading) return <LoadingScreen />
 

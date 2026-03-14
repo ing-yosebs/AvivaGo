@@ -13,7 +13,7 @@ export default function CarteraPage() {
     const [selectedPassenger, setSelectedPassenger] = useState<any | null>(null)
     const [noteContent, setNoteContent] = useState('')
     const [savingNote, setSavingNote] = useState(false)
-    const supabase = createClient()
+    const [supabase] = useState(() => createClient())
 
     useEffect(() => {
         const fetchPassengers = async () => {
@@ -142,7 +142,7 @@ export default function CarteraPage() {
             setLoading(false)
         }
         fetchPassengers()
-    }, [supabase])
+    }, [])
 
     const handleDownloadCSV = () => {
         if (passengers.length === 0) return

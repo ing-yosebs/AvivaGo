@@ -22,7 +22,7 @@ export default function WalletPage() {
     const [referralLink, setReferralLink] = useState('')
     const [hasMembership, setHasMembership] = useState(false)
     const [membershipDate, setMembershipDate] = useState<Date | null>(null)
-    const supabase = createClient()
+    const [supabase] = useState(() => createClient())
 
     useEffect(() => {
         const fetchData = async () => {
@@ -133,7 +133,7 @@ export default function WalletPage() {
             setLoading(false)
         }
         fetchData()
-    }, [supabase])
+    }, [])
 
     useEffect(() => {
         if (typeof window !== 'undefined' && profile?.id) {

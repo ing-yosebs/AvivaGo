@@ -30,9 +30,7 @@ export function useDashboardData() {
     })
     const [activities, setActivities] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
-
-
-    const supabase = createClient()
+    const [supabase] = useState(() => createClient())
 
     useEffect(() => {
         const loadDashboardData = async () => {
@@ -184,7 +182,7 @@ export function useDashboardData() {
         }
 
         loadDashboardData()
-    }, [supabase])
+    }, [])
 
 
 

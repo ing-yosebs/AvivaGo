@@ -30,7 +30,7 @@ export default function DashboardSidebar() {
     const pathname = usePathname()
     const searchParams = useSearchParams()
     const router = useRouter()
-    const supabase = createClient()
+    const [supabase] = useState(() => createClient())
     const [isOpen, setIsOpen] = useState(false)
     const [hasDriverRole, setHasDriverRole] = useState(false)
     const [userEmail, setUserEmail] = useState<string | null>(null)
@@ -116,7 +116,7 @@ export default function DashboardSidebar() {
         return () => {
             if (channel) supabase.removeChannel(channel)
         }
-    }, [supabase])
+    }, [])
 
     const menuItems = [
         { icon: LayoutDashboard, label: 'Panel Pasajero', href: '/dashboard' },

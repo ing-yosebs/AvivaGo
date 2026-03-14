@@ -21,7 +21,7 @@ import LoadingScreen from '@/app/components/LoadingScreen'
 
 export default function QuestionnairePage() {
     const router = useRouter()
-    const supabase = createClient()
+    const [supabase] = useState(() => createClient())
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [driverProfileId, setDriverProfileId] = useState<string | null>(null)
@@ -69,7 +69,7 @@ export default function QuestionnairePage() {
             setLoading(false)
         }
         loadData()
-    }, [supabase, router])
+    }, [router])
 
     const handleRadio = (field: string, val: any) => {
         setFormData((prev: any) => ({ ...prev, [field]: val }))

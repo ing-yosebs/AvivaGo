@@ -18,7 +18,7 @@ export default function PanelLayout({
 }) {
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState<any>(null)
-    const supabase = createClient()
+    const [supabase] = useState(() => createClient())
     const router = useRouter()
     const pathname = usePathname()
 
@@ -34,7 +34,7 @@ export default function PanelLayout({
             }
         }
         checkAuth()
-    }, [supabase, router, pathname])
+    }, [router, pathname])
 
     if (loading) {
         return <LoadingScreen />

@@ -29,7 +29,7 @@ export default function FavoritesPage() {
     const [noteContent, setNoteContent] = useState('')
     const [savingNote, setSavingNote] = useState(false)
     const router = useRouter()
-    const supabase = createClient()
+    const [supabase] = useState(() => createClient())
 
     useEffect(() => {
         const fetchFavorites = async () => {
@@ -102,7 +102,7 @@ export default function FavoritesPage() {
             setLoading(false)
         }
         fetchFavorites()
-    }, [supabase])
+    }, [])
 
     const handleUnfavorite = async (e: React.MouseEvent, favId: string) => {
         e.preventDefault()
